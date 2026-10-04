@@ -1,0 +1,381 @@
+/* 모든 화면 상단 공통 내비게이션(홈 · 검색 · 마이페이지) 스타일 */
+
+/* 상단 헤더 — 메뉴 버튼 한 행 + 하단 구분선 (사이트 이름 워드마크는 2026-10-02 제거) */
+.top-nav-bar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 14px 22px 0;
+}
+
+.nav-menu-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px 14px;
+  /* 메뉴 행과 본문을 가르는 가로선 */
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-icon-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.nav-icon-button:hover {
+  transform: translateY(-1px);
+  background: rgba(109, 40, 217, 0.2);
+  border-color: var(--accent);
+}
+
+/* 로그인 상태 표시 점 (마이페이지 버튼) */
+.nav-icon-button.logged-in::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #17995f;
+  border: 2px solid var(--bg);
+}
+
+/* 확인할 알림 개수 배지 (마이페이지·종 버튼, 오늘 마감·임박 공모전 수) */
+.nav-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  background: var(--error);
+  border: 2px solid var(--bg);
+}
+
+/* 열림 상태 종 버튼 */
+.nav-icon-button.notif-open {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* 종 아이콘 알림 패널 — 메뉴 행 오른쪽 아래로 펼친다 */
+.notif-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.notif-panel {
+  position: absolute;
+  top: 76px;
+  right: max(16px, calc(50% - 380px));
+  width: min(340px, calc(100vw - 32px));
+  max-height: min(70vh, 480px);
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 14px 14px 12px;
+}
+
+.notif-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.notif-head-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-h);
+}
+
+.notif-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.notif-close:hover {
+  background: var(--accent-bg);
+}
+
+.notif-empty {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 11px;
+}
+
+.notif-tone {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-top: 1px;
+  color: var(--text-h);
+  border: 1px solid var(--border);
+}
+
+.notif-tone.tone-today {
+  color: #fff;
+  background: var(--error);
+  border-color: var(--error);
+}
+
+.notif-tone.tone-urgent {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.notif-tone.tone-upcoming {
+  color: #fff;
+  background: #17995f;
+  border-color: #17995f;
+}
+
+.notif-text {
+  min-width: 0;
+}
+
+.notif-item-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.notif-item-meta {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.notif-goto-mypage {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 4px;
+  text-align: center;
+  border-radius: 8px;
+}
+
+.notif-goto-mypage:hover {
+  background: var(--accent-bg);
+}
+
+/* 검색 팝업 */
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 96px 24px 24px;
+  background: rgba(8, 6, 13, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.search-dialog {
+  width: 100%;
+  max-width: 460px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.search-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0 10px;
+  color: var(--text);
+}
+
+.search-input-row input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 15px;
+  color: var(--text-h);
+  background: none;
+  border: none;
+  outline: none;
+  padding: 12px 2px;
+}
+
+.search-close {
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text);
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.search-close:hover {
+  color: var(--text-h);
+  background: var(--code-bg);
+}
+
+.search-hint {
+  margin: 14px 4px 4px;
+  font-size: 14px;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.search-section-label {
+  margin: 16px 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.search-section-label:first-of-type {
+  margin-top: 14px;
+}
+
+.search-results {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 공모전 결과 행: 상세 보기 영역 + 관심 추가 버튼 */
+.search-result-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.search-results .search-result-main,
+.search-results a {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  background: none;
+  border: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.search-results .search-result-main:hover {
+  background: var(--accent-bg);
+}
+
+.search-wish-button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text);
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.search-wish-button:hover {
+  background: var(--accent-bg);
+}
+
+.search-wish-button.active {
+  color: #f59e0b;
+}
+
+.search-result-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.search-result-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text);
+  word-break: keep-all;
+}

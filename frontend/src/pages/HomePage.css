@@ -1,0 +1,424 @@
+/* 시작 화면(랜딩 페이지) 스타일 */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  /* 모든 섹션이 같은 내용 폭을 쓰게 해 좌우 여백을 동일하게 유지 */
+  --content-width: 1120px;
+}
+
+/* 화면 뒤 배경 — 첫화면이 비어 보이지 않게 그라데이션 + 광원 무늬.
+   본문 뒤(z-index -1)에 고정되어 스크롤 내내 은은하게 깔린다. */
+.home-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  /* 좌상단 보라 → 우하단 초록이 스미는 대각 그라데이션 */
+  background:
+    linear-gradient(165deg, var(--grad-a) 0%, transparent 42%),
+    linear-gradient(345deg, var(--grad-b) 0%, transparent 42%),
+    var(--bg);
+}
+
+.home-glow {
+  position: absolute;
+  border-radius: 50%;
+  animation: glow-drift 14s ease-in-out infinite alternate;
+}
+
+.glow-a {
+  width: 46vw;
+  height: 46vw;
+  left: -12vw;
+  top: -14vw;
+  background: radial-gradient(closest-side, var(--glow-a), transparent 72%);
+}
+
+.glow-b {
+  width: 40vw;
+  height: 40vw;
+  right: -10vw;
+  top: 6vw;
+  background: radial-gradient(closest-side, var(--glow-b), transparent 72%);
+  animation-delay: -5s;
+}
+
+.glow-c {
+  width: 30vw;
+  height: 30vw;
+  left: 16vw;
+  bottom: -12vw;
+  background: radial-gradient(closest-side, var(--glow-a), transparent 75%);
+  animation-delay: -9s;
+  animation-duration: 18s;
+}
+
+@keyframes glow-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.85;
+  }
+  to {
+    transform: translate3d(4vw, 3vw, 0) scale(1.12);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-glow {
+    animation: none;
+  }
+}
+
+/* 히어로: 로고부터 예시까지 세로로 쌓아 모두 가운데 정렬.
+   히어로+광고 마키+시작 버튼이 한 화면에 들어오도록 상하 리듬을 컴팩트하게 유지한다. */
+.hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-items: center;
+  gap: 40px;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 26px 24px 8px;
+}
+
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+/* 히어로(시작 버튼)와 마감 임박 패널 사이 — 광고 마키 배치.
+   히어로의 아래 패딩 28px가 히어로와의 간격이 된다. */
+.home-deadlines {
+  display: flex;
+  justify-content: center;
+  max-width: var(--content-width);
+  margin: 46px auto 0;
+  padding-inline: 24px;
+}
+
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+}
+
+/* 나비가 경로 위를 살랑 부유 */
+.nabi-flyer {
+  animation: nabi-bob 3.4s ease-in-out infinite;
+}
+
+/* 점선 경로가 트로피 쪽으로 흐름 */
+.nabi-route {
+  animation: nabi-march 1.5s linear infinite;
+}
+
+/* 반짝이 별 깜빡임 */
+.nabi-sparkle {
+  animation: nabi-twinkle 2.8s ease-in-out infinite;
+}
+
+.nabi-sparkle.s2 {
+  animation-delay: 0.9s;
+}
+
+.nabi-sparkle.s3 {
+  animation-delay: 1.7s;
+}
+
+@keyframes nabi-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes nabi-march {
+  to {
+    stroke-dashoffset: -14.1;
+  }
+}
+
+@keyframes nabi-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* 나침반 로고 + 배지 + 제목 묶음 — 세로로 쌓고 모두 가운데 정렬 */
+.hero-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.hero .hero-brand h1 {
+  margin: 20px 0 0;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 4px 11px;
+}
+
+.hero h1 {
+  margin: 16px 0 0;
+  font-size: clamp(28px, 4.2vw, 40px);
+  font-weight: 900;
+  /* 한글 볼드가 700까지만 있는 환경에서도 굵게 보이도록 얇은 스트로크 보강 */
+  -webkit-text-stroke: 0.6px currentColor;
+  letter-spacing: -1px;
+}
+
+.tagline {
+  margin-top: 0;
+  font-size: 15px;
+  line-height: 140%;
+  color: var(--text-h);
+  word-break: keep-all;
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
+}
+
+/* 타이핑 애니메이션 커서 */
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  background: var(--accent);
+  vertical-align: -0.15em;
+  animation: caret-blink 0.8s step-end infinite;
+}
+
+@keyframes caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* 순환 표시되는 랜덤 아이디어 예시 */
+.idea-example {
+  margin-top: 0;
+  font-size: 13.5px;
+  color: var(--text);
+  word-break: keep-all;
+  animation: example-fade 0.45s ease-out;
+}
+
+.idea-example-label {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  padding: 1px 8px;
+  margin-right: 8px;
+}
+
+@keyframes example-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.description {
+  margin-top: 0;
+  max-width: 640px;
+  margin-inline: auto;
+  font-size: 13.5px;
+  line-height: 150%;
+  word-break: keep-all;
+
+  @media (max-width: 768px) {
+    font-size: 14px;
+  }
+}
+
+/* 광고 마키 바로 아래 — 분석 시작 버튼 + 예시 문구 묶음 */
+.home-start {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  max-width: var(--content-width);
+  margin: 10px auto 0;
+  padding-inline: 24px;
+}
+
+.start-button {
+  margin-top: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 9px 30px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    opacity 0.2s;
+}
+
+.start-button:hover {
+  transform: translateY(-2px);
+  opacity: 0.92;
+}
+
+.start-button:active {
+  transform: translateY(0);
+}
+
+.start-button:focus-visible {
+  outline: 3px solid var(--accent-border);
+  outline-offset: 3px;
+}
+
+/* 시작 버튼 바로 아래 보조 CTA — 유형 검사로 이어지는 입구 */
+.type-test-link {
+  margin-top: -10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.type-test-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.features {
+  border-top: 1px solid var(--border);
+  padding: 112px 24px 88px;
+  background: var(--code-bg);
+}
+
+.features h2 {
+  margin: 0 0 60px;
+  /* 박스를 글자 폭에 맞춰야 반복 그라데이션(3회)이 글자 안에 딱 맞는다 */
+  width: fit-content;
+  margin-inline: auto;
+  font-size: 30px;
+  font-weight: 800;
+  /* 한글 볼드가 700까지만 있는 환경에서도 굵게 보이도록 얇은 스트로크 보강 */
+  -webkit-text-stroke: 0.4px var(--accent-stroke);
+  letter-spacing: -0.5px;
+  color: var(--accent);
+}
+
+/* 제목 아래 마스코트 3색 점 장식(레버리 보라 · 콩콩이 초록 · 노란 병아리) */
+.features h2::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 8px;
+  margin: 40px auto 0;
+  background:
+    radial-gradient(circle at 4px 4px, #6d28d9 4px, transparent 4.5px),
+    radial-gradient(circle at 20px 4px, #1fb46f 4px, transparent 4.5px),
+    radial-gradient(circle at 36px 4px, #ffd94d 4px, transparent 4.5px);
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  /* 히어로와 같은 내용 폭(1120px − 좌우 패딩 24px) */
+  max-width: calc(var(--content-width) - 48px);
+  margin: 0 auto;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 760px;
+  }
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+  }
+}
+
+.feature-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  text-align: left;
+}
+
+.feature-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  margin-bottom: 14px;
+}
+
+.feature-card h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: var(--text-h);
+}
+
+.feature-card p {
+  font-size: 15px;
+  line-height: 165%;
+  word-break: keep-all;
+}
+
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 24px;
+  font-size: 14px;
+  text-align: center;
+}

@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>공내비 대시보드 챗봇 계획서</title>
+<style>
+  :root {
+    --accent: #aa3bff;
+    --accent-soft: rgba(170, 59, 255, 0.09);
+    --accent-border: rgba(170, 59, 255, 0.4);
+    --ink: #08060d;
+    --text: #6b6375;
+    --bg: #ffffff;
+    --card: #ffffff;
+    --card-alt: #f7f4fb;
+    --line: #e9e3f2;
+    --strong-line: #d8cfeb;
+    --soon: #b45309;
+    --soon-bg: rgba(217, 119, 6, 0.12);
+    --urgent: #c2364b;
+    --urgent-bg: rgba(194, 54, 75, 0.1);
+    --calm: #1f8a5d;
+    --calm-bg: rgba(31, 138, 93, 0.1);
+    --shadow: rgba(15, 8, 28, 0.16);
+    --on-accent: #ffffff;
+    --mono: "Consolas", "Menlo", monospace;
+  }
+  :root[data-theme="dark"] {
+    --accent: #c07aff;
+    --accent-soft: rgba(192, 122, 255, 0.12);
+    --accent-border: rgba(192, 122, 255, 0.45);
+    --ink: #f4f0fa;
+    --text: #a89fb5;
+    --bg: #14101a;
+    --card: #1d1726;
+    --card-alt: #221b2d;
+    --line: #2e2540;
+    --strong-line: #403459;
+    --soon: #e8a13d;
+    --soon-bg: rgba(232, 161, 61, 0.14);
+    --urgent: #ef7288;
+    --urgent-bg: rgba(239, 114, 136, 0.13);
+    --calm: #4fc48f;
+    --calm-bg: rgba(79, 196, 143, 0.13);
+    --shadow: rgba(0, 0, 0, 0.5);
+    --on-accent: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --accent: #c07aff;
+      --accent-soft: rgba(192, 122, 255, 0.12);
+      --accent-border: rgba(192, 122, 255, 0.45);
+      --ink: #f4f0fa;
+      --text: #a89fb5;
+      --bg: #14101a;
+      --card: #1d1726;
+      --card-alt: #221b2d;
+      --line: #2e2540;
+      --strong-line: #403459;
+      --soon: #e8a13d;
+      --soon-bg: rgba(232, 161, 61, 0.14);
+      --urgent: #ef7288;
+      --urgent-bg: rgba(239, 114, 136, 0.13);
+      --calm: #4fc48f;
+      --calm-bg: rgba(79, 196, 143, 0.13);
+      --shadow: rgba(0, 0, 0, 0.5);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", ui-sans-serif, sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    word-break: keep-all;
+    padding: 48px 24px 64px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-size: 31px;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+  .lede { color: var(--text); font-size: 16px; max-width: 62ch; margin: 0; }
+  .doc-head { border-bottom: 1px solid var(--line); padding-bottom: 30px; margin-bottom: 14px; }
+  section { padding-block: 34px; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: 0; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin: 0 0 6px; }
+  .sec-no {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  h2 { font-size: 21px; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+  .sec-desc { color: var(--text); margin: 4px 0 22px; max-width: 64ch; }
+  h3 { font-size: 15.5px; margin: 26px 0 10px; }
+  p { margin: 0 0 14px; }
+  strong { color: var(--ink); }
+  .note {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    color: var(--text);
+    margin: 18px 0;
+  }
+  .note b { color: var(--ink); }
+  table.data {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin: 14px 0 6px;
+  }
+  table.data th {
+    text-align: left;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    color: var(--text);
+    border-bottom: 2px solid var(--strong-line);
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+  table.data td {
+    border-bottom: 1px solid var(--line);
+    padding: 10px;
+    vertical-align: top;
+    color: var(--text);
+  }
+  table.data td:first-child { color: var(--ink); font-weight: 700; white-space: nowrap; }
+  table.data code, .inline-code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--card-alt);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 1px 5px;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .br-all { white-space: normal !important; word-break: break-all !important; }
+  table.data td .br-all { font-weight: 400; }
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    border-radius: 999px;
+    padding: 2px 9px;
+    white-space: nowrap;
+  }
+  .tag-new { background: var(--calm-bg); color: var(--calm); }
+  .tag-edit { background: var(--soon-bg); color: var(--soon); }
+  .tag-reuse { background: var(--accent-soft); color: var(--accent); }
+  /* ---- 데이터 흐름 다이어그램 ---- */
+  .flow { display: grid; gap: 10px; margin: 16px 0; }
+  .flow-row { display: flex; align-items: stretch; gap: 0; flex-wrap: wrap; }
+  .fbox {
+    border: 1px solid var(--strong-line);
+    background: var(--card);
+    border-radius: 9px;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 1.45;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+  }
+  .fbox b { font-size: 12px; }
+  .fbox span { color: var(--text); font-size: 11px; }
+  .fbox.hot { border-color: var(--accent-border); background: var(--accent-soft); }
+  .farrow {
+    align-self: center;
+    color: var(--accent);
+    font-weight: 700;
+    padding: 0 10px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  /* ---- 코드 블록 ---- */
+  .codeblock {
+    background: var(--card-alt);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 13px 15px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.65;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--ink);
+    margin: 14px 0 8px;
+  }
+  .codeblock .cmt { color: var(--text); }
+  /* ---- 단계 목록 ---- */
+  ol.steps { list-style: none; margin: 14px 0 0; padding: 0; counter-reset: step; display: grid; gap: 10px; }
+  ol.steps li {
+    counter-increment: step;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    padding: 14px 16px 14px 52px;
+    position: relative;
+  }
+  ol.steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 15px;
+    top: 14px;
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 12.5px;
+    display: grid;
+    place-items: center;
+  }
+  ol.steps b { display: block; margin-bottom: 2px; }
+  ol.steps .step-meta { font-size: 12px; color: var(--text); }
+  ol.steps .step-meta code { font-family: var(--mono); font-size: 11px; background: var(--card-alt); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+  /* ---- 체크리스트 ---- */
+  ul.checks { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 7px; }
+  ul.checks li {
+    display: grid;
+    grid-template-columns: 16px 1fr;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--text);
+    align-items: start;
+  }
+  ul.checks .box {
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--accent-border);
+    border-radius: 4px;
+    margin-top: 4px;
+    background: var(--card);
+  }
+  ul.checks b { color: var(--ink); }
+  footer { padding-top: 26px; color: var(--text); font-size: 12px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  @media (max-width: 640px) {
+    h1 { font-size: 25px; }
+    body { padding: 34px 16px 48px; }
+  }
+  @media print {
+    @page { size: A4; margin: 16mm; }
+    body { padding: 0; font-size: 12px; background: #fff; color: #08060d; }
+    section { padding-block: 18px; break-inside: avoid; }
+    .dock-demo, .chatmock, .codeblock, table.data, ol.steps li { break-inside: avoid; }
+    :root { --bg: #fff; --card: #fff; --card-alt: #f7f4fb; --ink: #08060d; --text: #6b6375; }
+  }
+  /* ---- 도크 위치 다이어그램 ---- */
+  .dock-demo {
+    margin: 18px 0 8px;
+    border: 1px solid var(--strong-line);
+    border-radius: 14px;
+    background: var(--card-alt);
+    padding: 18px;
+  }
+  .dd-page {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    min-height: 236px;
+  }
+  .dd-nav {
+    height: 20px;
+    border-radius: 6px;
+    background: var(--card-alt);
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 8px;
+    margin-bottom: 10px;
+  }
+  .dd-nav i { width: 9px; height: 9px; border-radius: 999px; background: var(--accent); opacity: 0.5; }
+  .dd-nav i:first-child { opacity: 1; }
+  .dd-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 8px; }
+  .dd-kpi { height: 46px; border-radius: 7px; border: 1px solid var(--line); background: var(--card-alt); opacity: 0.75; }
+  .dd-duo { display: grid; grid-template-columns: 1.4fr 1fr; gap: 7px; }
+  .dd-panel { height: 100px; border-radius: 7px; border: 1px dashed var(--strong-line); background: var(--bg); opacity: 0.6; }
+  .dd-dock { position: absolute; right: 12px; bottom: 12px; display: flex; align-items: flex-end; gap: 9px; }
+  .dd-mini {
+    width: 208px;
+    background: var(--card);
+    border: 1px solid var(--accent-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 24px var(--shadow);
+    overflow: hidden;
+  }
+  .dd-mini-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--line);
+    background: var(--accent-soft);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .dd-mini-head .dot {
+    margin-left: auto;
+    width: 6px; height: 6px;
+    border-radius: 999px;
+    background: var(--calm);
+  }
+  .dd-mini-body { padding: 8px 9px; display: grid; gap: 5px; }
+  .dd-fab {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    background: var(--accent);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 8px 18px var(--shadow);
+    flex: none;
+  }
+  .dd-fab svg { width: 18px; height: 18px; fill: var(--on-accent); }
+  .dd-caption { font-size: 11.5px; color: var(--text); margin: 10px 2px 0; }
+  /* ---- 챗봇 상태 와이어프레임 ---- */
+  .chatduo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+    margin: 18px 0 8px;
+  }
+  .chatmock {
+    background: var(--card);
+    border: 1px solid var(--strong-line);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .cm-head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 13px;
+    border-bottom: 1px solid var(--line);
+    background: var(--card-alt);
+  }
+  .cm-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 800;
+    font-size: 12px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--accent-border);
+    flex: none;
+  }
+  .cm-name { font-size: 12.5px; font-weight: 700; line-height: 1.25; }
+  .cm-model { font-size: 10.5px; color: var(--text); font-family: var(--mono); }
+  .cm-badge {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 2px 8px;
+    background: var(--calm-bg);
+    color: var(--calm);
+    white-space: nowrap;
+  }
+  .cm-badge.warn { background: var(--soon-bg); color: var(--soon); }
+  .cm-body { padding: 13px; display: flex; flex-direction: column; gap: 9px; }
+  .bub {
+    max-width: 88%;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  .bub.bot { background: var(--card-alt); border: 1px solid var(--line); border-top-left-radius: 4px; align-self: flex-start; }
+  .bub.user { background: var(--accent-soft); border: 1px solid var(--accent-border); border-top-right-radius: 4px; align-self: flex-end; }
+  .bub-meta { display: block; font-size: 10px; color: var(--text); margin-top: 4px; font-family: var(--mono); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 10.5px;
+    border: 1px solid var(--accent-border);
+    color: var(--accent);
+    border-radius: 999px;
+    padding: 3px 9px;
+    background: var(--card);
+  }
+  .typing { display: inline-flex; gap: 4px; align-items: center; padding: 5px 2px; align-self: flex-start; }
+  .typing i { width: 6px; height: 6px; border-radius: 999px; background: var(--accent); }
+  .typing i:nth-child(1) { opacity: 0.35; }
+  .typing i:nth-child(2) { opacity: 0.65; }
+  .cm-form { display: grid; gap: 8px; padding: 4px 0; }
+  .cm-label { font-size: 11px; color: var(--text); font-weight: 700; }
+  .cm-pass {
+    border: 1px solid var(--strong-line);
+    border-radius: 9px;
+    padding: 8px 11px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--ink);
+    background: var(--bg);
+  }
+  .cm-start {
+    border: 0;
+    border-radius: 9px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 700;
+    font-size: 12px;
+    padding: 9px;
+    text-align: center;
+  }
+  .cm-note { font-size: 10.5px; color: var(--text); line-height: 1.55; }
+  .cm-input {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    border-top: 1px solid var(--line);
+    padding: 10px 12px;
+  }
+  .cm-field {
+    flex: 1;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 11.5px;
+    color: var(--text);
+    min-width: 0;
+  }
+  .cm-send {
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 13px;
+    flex: none;
+  }
+  @media (max-width: 640px) {
+    .dd-kpis { grid-template-columns: repeat(2, 1fr); }
+    .dd-duo { grid-template-columns: 1fr; }
+    .dd-mini { width: 168px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="doc-head">
+    <p class="eyebrow">GongNabi · 제작 계획서 · 2026-10-02</p>
+    <h1>공내비 대시보드 챗봇 계획서</h1>
+    <p class="lede">대시보드를 &ldquo;보는&rdquo; 화면에서 &ldquo;묻는&rdquo; 화면으로. 대시보드가 집계한 현황을 근거로 마감·응모·관심을 답하고, 공모전 추천과 아이디어 브레인스토밍까지 맡기는 대화형 도우미.</p>
+  </header>
+  <main>
+    <section id="s1">      <div class="sec-head"><span class="sec-no">01</span><h2>목표와 성공 기준</h2></div>
+      <p class="sec-desc">대시보드는 흩어진 현황을 한 화면에 모았고, 챗봇은 그 화면을 <strong>질문할 수 있게</strong> 만든다. &ldquo;이번 주에 뭐 마감해?&rdquo;라고 물으면 대시보드가 계산해 둔 D-x를 그대로 답한다. AI가 날짜와 건수를 새로 계산하지 않는다 &mdash; 이것이 이 챗봇의 설계 축이다. 챗봇 마스코트 이름은 공내비에서 따온 <strong>&ldquo;나비&rdquo;</strong>로 제안한다(기존 레버리·콩콩이와 같은 계열).</p>
+      <h3>성공 기준</h3>
+      <ul class="checks">
+        <li><span class="box"></span><span><b>근거 있는 답변</b> — 사실(마감일·건수·목록)은 전부 대시보드 집계 스냅숏에서 온다. 스냅숏에 없으면 &ldquo;모른다&rdquo;고 답한다. 기존 분석 AI의 &ldquo;전달되지 않은 사실을 만들어 내지 않는다&rdquo; 원칙과 동일.</span></li>
+        <li><span class="box"></span><span><b>키 입력 후 바로 대화</b> — 시작 화면에 채워 넣을 것은 API 키 하나다. 입력 즉시 인사말과 예시 질문이 준비된다.</span></li>
+        <li><span class="box"></span><span><b>상태가 글자보다 먼저 읽힌다</b> — 키 등록 여부·전송 중·오류를 배지와 타이핑 인디케이터로 표시한다.</span></li>
+        <li><span class="box"></span><span><b>오류마다 복구 길이 있다</b> — 키 오류는 재입력 화면으로(대화는 유지), 서버 오류는 재시도 버튼으로 이어진다.</span></li>
+        <li><span class="box"></span><span><b>새로 배울 것이 없다</b> — 기존 집계 모듈·OpenAI SDK 호출 패턴·보라 액센트 카드 스타일을 전부 재사용한다.</span></li>
+      </ul></section>
+    <section id="s2">      <div class="sec-head"><span class="sec-no">02</span><h2>모델·연결 정보</h2></div>
+      <p class="sec-desc">결과 화면의 아이디어 분석과 같은 OpenAI 호환 게이트웨이를 쓴다. 다른 점은 두 가지다 &mdash; 모델이 gpt-5-luna로 고정되고, API 키를 <code>.env</code>가 아니라 <strong>챗봇 시작 화면에서 입력받는다</strong>.</p>
+      <table class="data">
+        <thead><tr><th>항목</th><th>값</th><th>비고</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>모델 ID</td>
+            <td><code>openai/gpt-5-luna</code></td>
+            <td>게이트웨이가 요구하는 접두사 붙은 모델명 &mdash; 전체 이름을 그대로 전송한다 (기존 <code>ai.service.ts</code>와 같은 방식)</td>
+          </tr>
+          <tr>
+            <td>base_url</td>
+            <td><code class="br-all">https://mlapi.run/286e9158-d32e-436d-a23d-36b43fc8e68a/v1</code></td>
+            <td>OpenAI 호환 엔드포인트 &mdash; OpenAI SDK에 <code>baseURL</code>로 주입</td>
+          </tr>
+          <tr>
+            <td>API 키</td>
+            <td>챗봇 시작 시 사용자 입력</td>
+            <td><code>.env</code>·localStorage에 저장하지 않는다 &mdash; sessionStorage에만 보관 (05장)</td>
+          </tr>
+          <tr>
+            <td>응답 형식</td>
+            <td>일반 텍스트 대화</td>
+            <td>아이디어 분석의 <code>json_object</code> 강제와 달리 자연 대화 &mdash; 말풍선에 바로 표시</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note"><b>gpt-5 계열 특성.</b> temperature를 기본값(1)으로 고정해 보내야 하고, 실행마다 문구가 조금씩 달라지는 것이 정상이다. 기존 <code>ai.service.ts</code>가 이 분기를 이미 처리하고 있어 챗 서비스도 같은 방식을 따른다. 요청 타임아웃은 백엔드 60초·프론트 45초로, 기존 분석 요청과 같은 값을 쓴다.</div></section>
+    <section id="s3">      <div class="sec-head"><span class="sec-no">03</span><h2>챗봇 역할 정의</h2></div>
+      <p class="sec-desc">범위는 두 갈래다 &mdash; <strong>대시보드의 숫자를 묻고 답하는 일</strong>, 그 숫자를 바탕으로 <strong>추천하고 브레인스토밍하는 일</strong>. 둘 다 같은 스냅숏을 근거로 한다.</p>
+      <table class="data">
+        <thead><tr><th>역할</th><th>질문 예시</th><th>근거 데이터</th></tr></thead>
+        <tbody>
+          <tr><td>마감 질의응답</td><td>&ldquo;이번 주에 마감하는 공모전 알려줘&rdquo;</td><td><code>buildDeadlineRows()</code> &mdash; D-x 라벨·상태 색 기준을 그대로 사용</td></tr>
+          <tr><td>내 활동 질의</td><td>&ldquo;내가 응모한 것 중 곧 마감인 게 있어?&rdquo;</td><td>응모·관심 스냅숏 + <code>buildActivityCounts()</code></td></tr>
+          <tr><td>분야·통계 질의</td><td>&ldquo;어떤 분야 공모전이 제일 많아?&rdquo;</td><td><code>buildFieldBreakdown()</code></td></tr>
+          <tr><td>공모전 추천</td><td>&ldquo;이런 주제인데 어디에 응모하면 좋을까?&rdquo;</td><td>스냅숏의 접수 중 공모전 목록 <strong>안에서만</strong> 후보 선정</td></tr>
+          <tr><td>아이디어 브레인스토밍</td><td>&ldquo;생활 분야 아이디어 조합 추천해 줘&rdquo;</td><td>슬롯머신 릴 원본(분야 6·대상 8·형태 8) + 오늘의 미션</td></tr>
+          <tr><td>알림 현황 질의</td><td>&ldquo;문자 알림이 몇 건 발송됐어?&rdquo;</td><td><code>/api/notifications/stats</code> &mdash; 백엔드가 살아 있을 때만 스냅숏에 포함</td></tr>
+        </tbody>
+      </table>
+      <h3>하지 않는 일</h3>
+      <ul class="checks">
+        <li><span class="box"></span><span><b>앱 밖 공모전 검색</b> — 챗봇이 아는 공모전은 앱 데이터(접수 중 4개 · 기준일 명시)뿐이다. 밖을 물으면 검색 팝업의 &ldquo;국내 공모전 전체 검색&rdquo;을 안내한다.</span></li>
+        <li><span class="box"></span><span><b>대화 기록 영속화</b> — 탭을 닫으면 키와 대화가 함께 사라진다. 다시 열면 새 대화다.</span></li>
+        <li><span class="box"></span><span><b>키 없는 대화 · 모델 변경</b> — 키가 없으면 전송 자체가 막히고, 모델은 gpt-5-luna로 고정이다.</span></li>
+      </ul></section>
+    <section id="s4">      <div class="sec-head"><span class="sec-no">04</span><h2>아키텍처와 데이터 흐름</h2></div>
+      <p class="sec-desc">기존 구조 위에 얹는다. 핵심 결정 하나 &mdash; <strong>브라우저가 mlapi.run을 직접 부르지 않고 백엔드를 한 번 거친다.</strong></p>
+      <div class="flow" role="img" aria-label="챗봇 데이터 흐름 다이어그램">
+        <div class="flow-row">
+          <div class="fbox hot"><b>DashboardChat.tsx</b><span>도크 패널 · 키 관리 · 대화 UI</span></div>
+          <span class="farrow">&#10230;</span>
+          <div class="fbox"><b>POST /api/chat</b><span>x-chat-key 헤더 + 대화 + 스냅숏</span></div>
+          <span class="farrow">&#10230;</span>
+          <div class="fbox"><b>chat.service.ts</b><span>OpenAI SDK · baseURL 주입</span></div>
+          <span class="farrow">&#10230;</span>
+          <div class="fbox"><b>openai/gpt-5-luna</b><span>mlapi.run 게이트웨이</span></div>
+        </div>
+        <div class="flow-row">
+          <div class="fbox"><b>dashboard.js · ideaSparks.js</b><span>기존 집계 4종 + 스파크 릴</span></div>
+          <span class="farrow">&#10230;</span>
+          <div class="fbox"><b>data/chatContext.js (신규)</b><span>buildChatSnapshot() — 전송마다 재계산</span></div>
+          <span class="farrow">&#10230;</span>
+          <div class="fbox"><b>시스템 프롬프트</b><span>스냅숏 JSON 주입 (07장)</span></div>
+        </div>
+      </div>
+      <h3>왜 백엔드를 거치는가</h3>
+      <ul class="checks">
+        <li><span class="box"></span><span><b>CORS 회피</b> — mlapi.run이 브라우저에서의 직접 호출을 허용한다는 보장이 없다. 백엔드(3000)를 거치는 서버 간 호출이면 제약이 없다.</span></li>
+        <li><span class="box"></span><span><b>기존 패턴 재사용</b> — <code>ai.service.ts</code>가 이미 OpenAI SDK + baseURL 주입 + 오류 매핑을 하고 있다. 챗 서비스는 키를 <code>.env</code>가 아니라 요청 헤더에서 받는 변형이다.</span></li>
+        <li><span class="box"></span><span><b>통제 지점</b> — 키 비기록 규칙, 60초 타임아웃, 모델명 고정을 서버 한 곳에서 관리한다.</span></li>
+      </ul>
+      <h3>오류 응답 매핑</h3>
+      <table class="data">
+        <thead><tr><th>코드</th><th>상황</th><th>프론트 동작</th></tr></thead>
+        <tbody>
+          <tr><td>400 <code>KEY_MISSING</code></td><td>헤더에 키 없음</td><td>발생하지 않음 &mdash; 프론트가 미리 차단</td></tr>
+          <tr><td>401 <code>KEY_REJECTED</code></td><td>게이트웨이 인증 실패</td><td>키 재입력 화면으로 전환 &mdash; 대화는 유지</td></tr>
+          <tr><td>502 <code>CHAT_UPSTREAM</code></td><td>모델 서버 오류·빈 응답</td><td>말풍선 안내 + 재시도 버튼</td></tr>
+          <tr><td>504 <code>CHAT_TIMEOUT</code></td><td>60초 초과</td><td>같은 안내 + 재시도 버튼</td></tr>
+        </tbody>
+      </table>
+      <p class="sec-desc">응답 봉투는 기존 API와 같은 <code>{ success, data | error: { code, message } }</code> 형식을 쓴다. 백엔드 제약도 동일 &mdash; TypeScript 5.x 유지, 상대 import에 <code>.js</code> 확장자 금지.</p>
+      <h3>파일 변경 목록</h3>
+      <table class="data">
+        <thead><tr><th>구분</th><th>파일</th><th>내용</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-new">신규</span></td><td><code>backend/src/routes/chat.routes.ts</code></td><td>POST /api/chat 라우트 &mdash; 기존 idea.routes.ts와 같은 마운트 방식</td></tr>
+          <tr><td><span class="tag tag-new">신규</span></td><td><code>backend/src/controllers/chat.controller.ts</code></td><td>키 헤더 검증, 오류 코드 매핑 (idea.controller.ts 패턴)</td></tr>
+          <tr><td><span class="tag tag-new">신규</span></td><td><code>backend/src/services/chat.service.ts</code></td><td>OpenAI SDK 호출 &mdash; 모델 고정 · temperature 분기 · 타임아웃</td></tr>
+          <tr><td><span class="tag tag-new">신규</span></td><td><code>frontend/src/components/DashboardChat.tsx</code></td><td>도크 패널 &mdash; 키 입력 화면 · 말풍선 · 상태 배지</td></tr>
+          <tr><td><span class="tag tag-new">신규</span></td><td><code>frontend/src/components/DashboardChat.css</code></td><td>index.css 토큰(--accent 등) 재사용 스타일</td></tr>
+          <tr><td><span class="tag tag-new">신규</span></td><td><code>frontend/src/data/chatContext.js</code></td><td>buildChatSnapshot() &mdash; JSDoc만 사용(TS 문법 금지), dashboard.js 집계 재사용</td></tr>
+          <tr><td><span class="tag tag-edit">수정</span></td><td><code>backend/src/server.ts</code></td><td>chat 라우트 마운트 한 줄</td></tr>
+          <tr><td><span class="tag tag-edit">수정</span></td><td><code>frontend/src/pages/DashboardPage.tsx</code></td><td>&lt;DashboardChat /&gt; 마운트 한 줄</td></tr>
+          <tr><td><span class="tag tag-reuse">재사용</span></td><td><code>data/dashboard.js</code> · <code>ideaSparks.js</code> · <code>utils/contestAlerts.js</code></td><td>집계와 D-x 상태 계산 &mdash; 내용 수정 없음</td></tr>
+          <tr><td><span class="tag tag-reuse">재사용</span></td><td><code>services/aiAnalysis.js</code></td><td>API_BASE · 오류 처리 패턴</td></tr>
+        </tbody>
+      </table></section>
+    <section id="s5">      <div class="sec-head"><span class="sec-no">05</span><h2>API 키 처리와 보안</h2></div>
+      <p class="sec-desc">&ldquo;챗봇 시작 시 입력&rdquo;이 이 기능의 요구사항 축이다. 키는 어디에도 저장되지 않고, <strong>이 탭의 sessionStorage에만 살아 있다.</strong></p>
+      <ol class="steps">
+        <li><b>시작 화면</b><span class="step-meta">패널을 처음 열면 키 입력 화면 &mdash; 비밀번호형 입력 필드와 &ldquo;대화 시작&rdquo; 버튼만 있다</span></li>
+        <li><b>보관</b><span class="step-meta">입력한 키를 <code>sessionStorage</code> 키 <code>gongnabi:chat-key</code>에 저장 &mdash; 탭을 닫으면 브라우저가 지우고, 탭이 살아 있는 동안 새로고침에도 유지된다</span></li>
+        <li><b>전달</b><span class="step-meta">메시지를 보낼 때마다 <code>x-chat-key</code> 헤더로 백엔드에 전달 &mdash; URL·쿼리로는 절대 보내지 않는다</span></li>
+        <li><b>사용</b><span class="step-meta">백엔드는 그 요청 안에서만 키를 쓰고 OpenAI SDK에 넘긴다 &mdash; 콘솔·파일 로그에 남기지 않는다</span></li>
+        <li><b>삭제</b><span class="step-meta">패널 헤더의 &ldquo;키 삭제&rdquo;로 즉시 제거 + 대화 초기화 &mdash; 401 응답도 재입력 화면으로 되돌린다(대화는 유지)</span></li>
+      </ol>
+      <h3>보안 원칙과 한계</h3>
+      <ul class="checks">
+        <li><span class="box"></span><span><b>영속 저장 금지</b> — <code>.env</code>, localStorage, 백엔드 저장소 어디에도 쓰지 않는다. 다른 탭·다른 창에서도 이 키를 볼 수 없다.</span></li>
+        <li><span class="box"></span><span><b>로그 금지</b> — 백엔드 미들웨어·오류 응답 어디에도 키 원문을 출력하지 않는다. 오류 메시지는 &ldquo;키가 거부되었습니다&rdquo;까지만.</span></li>
+        <li><span class="box"></span><span><b>공용 PC 안내</b> — 시작 화면에 &ldquo;키는 이 탭에만 저장됩니다. 공용 PC에서는 사용 후 키 삭제를 권장해요&rdquo; 문구를 넣는다.</span></li>
+        <li><span class="box"></span><span><b>알려진 한계 명시</b> — sessionStorage는 같은 탭의 스크립트(XSS)에는 노출될 수 있다. localStorage보다 좁은 선택이지 완전한 보호는 아니며, 이 점을 시작 화면 문구에 담는다.</span></li>
+      </ul></section>
+    <section id="s6">      <div class="sec-head"><span class="sec-no">06</span><h2>화면 구성안</h2></div>
+      <p class="sec-desc">대시보드 우하단에 사는 <strong>도크(dock)</strong>다. 대시보드를 가리지 않으면서 질문이 떠오르는 순간 바로 열 수 있는 자리다. 상태는 세 가지 &mdash; 키 입력, 대화, 답변 대기.</p>
+      <div class="dock-demo" role="img" aria-label="대시보드 우하단 도크 위치 다이어그램">
+        <div class="dd-page">
+          <div class="dd-nav"><i></i><i></i><i></i><i></i></div>
+          <div class="dd-kpis"><div class="dd-kpi"></div><div class="dd-kpi"></div><div class="dd-kpi"></div><div class="dd-kpi"></div></div>
+          <div class="dd-duo"><div class="dd-panel"></div><div class="dd-panel"></div></div>
+          <div class="dd-dock">
+            <div class="dd-mini">
+              <div class="dd-mini-head">나비 · 대시보드 도우미<span class="dot"></span></div>
+              <div class="dd-mini-body">
+                <div class="bub user">이번 주에 마감하는 공모전?</div>
+                <div class="bub bot">이번 주 마감은 1개예요. 통합 라디오 애플리케이션 아이디어 공모가 D-8입니다.</div>
+              </div>
+            </div>
+            <div class="dd-fab" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            </div>
+          </div>
+        </div>
+        <p class="dd-caption">배치 미리보기 — 닫힌 상태(말풍선 버튼)와 열린 상태(미니 패널). 실제 화면은 공내비 기존 카드 스타일(--accent 보라, 둥근 카드)을 따른다.</p>
+      </div>
+      <h3>도크의 두 상태</h3>
+      <div class="chatduo">
+        <div class="chatmock" role="img" aria-label="키 입력 화면 와이어프레임">
+          <div class="cm-head">
+            <span class="cm-avatar">나</span>
+            <div><div class="cm-name">나비</div><div class="cm-model">대시보드 도우미</div></div>
+            <span class="cm-badge warn">키 필요</span>
+          </div>
+          <div class="cm-body">
+            <div class="cm-form">
+              <div class="cm-label">API 키</div>
+              <div class="cm-pass">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</div>
+              <div class="cm-start">대화 시작</div>
+              <p class="cm-note">키는 이 탭(sessionStorage)에만 저장되며 서버에 남지 않아요. 공용 PC에서는 사용 후 키 삭제를 권장해요.</p>
+            </div>
+          </div>
+        </div>
+        <div class="chatmock" role="img" aria-label="대화 화면 와이어프레임">
+          <div class="cm-head">
+            <span class="cm-avatar">나</span>
+            <div><div class="cm-name">나비</div><div class="cm-model">openai/gpt-5-luna</div></div>
+            <span class="cm-badge">연결됨</span>
+          </div>
+          <div class="cm-body">
+            <div class="bub bot">안녕하세요, 나비예요. 대시보드의 공모전·응모·관심 현황을 물어보세요.<span class="bub-meta">기준일 2026-10-01</span></div>
+            <div class="chips">
+              <span class="chip">이번 주 마감 공모전</span>
+              <span class="chip">내 응모 정리해 줘</span>
+              <span class="chip">분야별 몇 개?</span>
+              <span class="chip">아이디어 주제 추천</span>
+            </div>
+            <div class="bub user">이번 주에 마감하는 공모전 알려줘</div>
+            <div class="bub bot">이번 주에 마감하는 공모전은 1개예요. <strong>통합 라디오 애플리케이션 아이디어 공모</strong>(한국방송통신전파진흥원)가 D-8입니다. 내용 기획이 필요한 시점이니 이번 주에 초안을 잡아 보세요.<span class="bub-meta">스냅숏 근거 · D-8</span></div>
+            <div class="typing"><i></i><i></i><i></i></div>
+          </div>
+          <div class="cm-input"><div class="cm-field">메시지를 입력하세요&hellip;</div><div class="cm-send">전송</div></div>
+        </div>
+      </div>
+      <p class="dd-caption">와이어프레임의 대화·배지·D-8은 예시이며, 실제 값은 전송 시점의 스냅숏에서 온다. 패널 하단에는 &ldquo;답변은 AI의 참고 의견&rdquo; 고지 문구가 상시 표시된다.</p>
+      <h3>동작 명세</h3>
+      <table class="data">
+        <thead><tr><th>상황</th><th>동작</th></tr></thead>
+        <tbody>
+          <tr><td>Enter / Shift+Enter</td><td>전송 / 줄바꿈</td></tr>
+          <tr><td>예시 질문 칩 클릭</td><td>입력창에 채우고 포커스 &mdash; 실수로 바로 전송되지 않게</td></tr>
+          <tr><td>답변 대기 중</td><td>전송 잠금 + 타이핑 인디케이터 (이중 전송 방지)</td></tr>
+          <tr><td>새 메시지 도착</td><td>목록 하단으로 자동 스크롤</td></tr>
+          <tr><td>401 키 거부</td><td>키 재입력 화면 전환 &mdash; 지금까지의 대화는 유지</td></tr>
+          <tr><td>패널 닫기·열기</td><td>헤더 닫기 버튼 &harr; 플로팅 버튼. 챗봇은 대시보드에만 마운트되므로 화면을 벗어나면 닫힌다</td></tr>
+          <tr><td>320px</td><td>도크가 화면 대부분을 덮는 시트로 확장</td></tr>
+        </tbody>
+      </table></section>
+    <section id="s7">      <div class="sec-head"><span class="sec-no">07</span><h2>대화 컨텍스트 설계</h2></div>
+      <p class="sec-desc">답변의 신뢰도는 프롬프트 설계에서 나온다. 매 전송마다 두 덩어리를 보낸다 &mdash; <strong>대화 기록(최근 12턴)</strong>과 <strong>대시보드 스냅숏(방금 재계산)</strong>.</p>
+      <h3>스냅숏 구조 &mdash; buildChatSnapshot()</h3>
+      <div class="codeblock"><span class="cmt">// data/chatContext.js — 값은 예시, 실제로는 전송 시점에 재계산</span>
+{
+  "asOf": "2026-10-01",              <span class="cmt">// mockData 기준일 (dashboard.js의 DATA_AS_OF)</span>
+  "today": "2026-10-02",             <span class="cmt">// 스냅숏 계산 시점</span>
+  "kpi": { "contests": 4, "myContests": 2, "wishlist": 3, "savedIdeas": 1 },
+  "deadlines": [
+    { "title": "통합 라디오 애플리케이션 아이디어 공모",
+      "organizer": "한국방송통신전파진흥원",
+      "deadline": "2026-10-09", "kinds": ["접수 중", "응모"],
+      "left": 8, "label": "D-8", "tone": "soon" }
+  ],
+  "fields": [{ "name": "기타", "count": 2 }, { "name": "환경", "count": 1 }, { "name": "생활", "count": 1 }],
+  "sparks": {
+    "combos": 384, "todayMission": "오늘의 미션 문구",
+    "fields": ["&hellip;"], "whos": ["&hellip;"], "forms": ["&hellip;"]
+  },
+  "notif": { "subscribers": 1, "email": { "total": 4, "real": 4 }, "sms": { "total": 2, "real": 0 } }
+}                                    <span class="cmt">// notif는 백엔드 실패 시 null</span></div>
+      <ul class="checks">
+        <li><span class="box"></span><span><b>D-x는 이미 계산된 값</b> — AI가 마감일에서 남은 일 수를 다시 계산하지 않는다. 스냅숏의 <code>left</code>·<code>label</code>·<code>tone</code>(urgent/soon/calm/closed)을 그대로 쓰게 강제한다.</span></li>
+        <li><span class="box"></span><span><b>전송마다 재계산</b> — 날짜가 바뀌면 D-x도 바뀌어야 하므로 스냅숏은 캐시하지 않는다.</span></li>
+        <li><span class="box"></span><span><b>릴 원본 포함</b> — 브레인스토밍 요청에 실제 조합(분야 6·대상 8·형태 8)으로 답하도록 슬롯머신 릴 배열을 그대로 넣는다.</span></li>
+      </ul>
+      <h3>시스템 프롬프트 (요약)</h3>
+      <div class="codeblock">당신은 공내비 대시보드 도우미 "나비"입니다.
+
+규칙:
+- 모든 사실은 [대시보드 스냅숏]에만 근거한다. 없는 정보는
+  "스냅숏에 없어요"라고 답한다.
+- 날짜 계산을 하지 않는다. 남은 일 수는 스냅숏의 left·label을 그대로 쓴다.
+- 데이터 기준일(asOf)을 함께 안내한다 — "기준일 2026-10-01 데이터예요".
+- 추천 후보는 스냅숏의 공모전만. 앱 밖은 "국내 공모전 전체 검색"을 안내한다.
+- 마감 임박(tone이 urgent) 공모전을 먼저 안내한다.
+- 답변은 한국어로 2~5문장. 정리가 도움되면 짧은 목록을 쓴다.</div>
+      <h3>토큰 절약 장치</h3>
+      <ul class="checks">
+        <li><span class="box"></span><span><b>스냅숏 축약</b> — 공모전은 제목·주최·마감일·상태만. 포스터·링크·설명은 제외한다.</span></li>
+        <li><span class="box"></span><span><b>대화 기록 상한</b> — 최근 12턴(사용자+봇 각 6)만 전송하고, 오래된 턴은 잘라낸다.</span></li>
+        <li><span class="box"></span><span><b>백엔드 무상태</b> — 서버는 대화 기록을 저장하지 않는다. 기록의 유일한 보관처는 브라우저 메모리다.</span></li>
+      </ul>
+      <div class="note"><b>결과 화면과 같은 고지 원칙.</b> 패널 하단에 &ldquo;답변은 AI의 참고 의견이며, 스냅숏 기준일 이후의 변동은 반영되지 않아요&rdquo;를 상시 표시한다. 2026-10-01에 결과 화면에 넣은 고지 문구와 같은 체계다.</div></section>
+    <section id="s8">      <div class="sec-head"><span class="sec-no">08</span><h2>구현 단계</h2></div>
+      <p class="sec-desc">한 단계가 끝나면 바로 확인하는 순서다. 단계 1&ndash;2(백엔드+스냅숏)와 단계 3(패널 골격)은 서로 독립이라 병렬로 진행할 수 있고, 단계 4부터 실키가 필요하다.</p>
+      <ol class="steps">
+        <li><b>백엔드 챗 엔드포인트</b><span class="step-meta"><code>chat.routes.ts</code> · <code>chat.controller.ts</code> · <code>chat.service.ts</code> + server.ts 마운트 / 확인: curl 두 번 — 키 없음 400, 가짜 키 401 매핑</span></li>
+        <li><b>스냅숏 모듈</b><span class="step-meta"><code>data/chatContext.js</code> — buildChatSnapshot() / 확인: 콘솔 출력이 dashboard.js 집계·마감 목록과 일치</span></li>
+        <li><b>도크 패널 골격</b><span class="step-meta"><code>DashboardChat.tsx</code>·<code>.css</code> — 키 입력 화면 + 목데이터 대화 / 확인: sessionStorage 저장·삭제, Enter 전송, 320px</span></li>
+        <li><b>실호출 연결</b><span class="step-meta">POST /api/chat 연동, 오류 3종 분기, 예시 칩, 타이핑 인디케이터 / 확인: 실제 키로 시나리오 질문 4종</span></li>
+        <li><b>검증 · 마무리</b><span class="step-meta">tsc · 백엔드 꺼짐 폴백 · 기존 화면 회귀 / 확인: 10장 체크리스트 전 항목 통과</span></li>
+      </ol></section>
+    <section id="s9">      <div class="sec-head"><span class="sec-no">09</span><h2>리스크와 대응</h2></div>
+      <p class="sec-desc">챗봇의 값은 모델 가용성과 키 관리에 달려 있다. 예상되는 문제와 대응을 미리 정한다.</p>
+      <table class="data">
+        <thead><tr><th>리스크</th><th>대응</th></tr></thead>
+        <tbody>
+          <tr><td>게이트웨이 CORS·직접 호출 불가</td><td>처음부터 백엔드 프록시로 설계 &mdash; 브라우저 직접 호출 경로를 아예 만들지 않는다</td></tr>
+          <tr><td>키 유출</td><td>영속 저장 금지 + 헤더 전송 + 로그 금지. 더 강한 운영이 필요해지면 &ldquo;서버 <code>.env</code>의 단일 운영 키로 전환&rdquo; 확장 경로를 남긴다(시작 화면 UX는 그대로 유지)</td></tr>
+          <tr><td>gpt-5-luna 응답 지연·장애</td><td>60초 타임아웃 + 타이핑 인디케이터 + 재시도 버튼. 챗봇이 죽어도 대시보드 본체는 영향 없다(별도 컴포넌트)</td></tr>
+          <tr><td>토큰 비용</td><td>스냅숏 축약 + 대화 12턴 상한. 길어진 대화는 자동 절단하고 안내 문구로 알린다</td></tr>
+          <tr><td>모델이 사실을 지어냄</td><td>시스템 프롬프트 규칙(스냅숏 밖은 모른다고 답하기) + 패널 하단 고지 문구</td></tr>
+          <tr><td>마감일이 지난 뒤 잘못된 D-x</td><td>전송마다 스냅숏 재계산 + <code>asOf</code>·<code>today</code>를 함께 전달해 기준을 명시</td></tr>
+          <tr><td>키 분실</td><td>키는 사용자가 보유한 것 &mdash; 재입력 화면이 곧 복구 절차다. 별도 복구 수단을 만들지 않는다</td></tr>
+        </tbody>
+      </table></section>
+    <section id="s10">      <div class="sec-head"><span class="sec-no">10</span><h2>검증 체크리스트</h2></div>
+      <p class="sec-desc">완성 판정 기준. 01장의 &ldquo;근거 있는 답변&rdquo; 원칙이 실제로 지켜지는지로 판정한다.</p>
+      <ul class="checks">
+        <li><span class="box"></span><span><b>키 없이는 전송되지 않음</b> — 전송이 차단되고 시작 화면이 유지된다</span></li>
+        <li><span class="box"></span><span><b>사실 답변이 스냅숏과 일치</b> — D-x·건수·목록을 대시보드 화면 값과 대조한다 (예: &ldquo;D-8 통합 라디오 애플리케이션 아이디어 공모&rdquo;)</span></li>
+        <li><span class="box"></span><span><b>오류 3종 동작</b> — 401 재입력 전환(대화 유지) / 502 재시도 버튼 / 백엔드 꺼짐 안내 문구</span></li>
+        <li><span class="box"></span><span><b>탭을 닫으면 키·대화 소멸</b> — sessionStorage 동작 확인, 백엔드 로그에 키 원문이 남지 않음</span></li>
+        <li><span class="box"></span><span><b>기술 검증</b> — tsc 통과, <code>npm run dev</code>로 백엔드+프론트 동시 구동 확인, 320px에서 가로 스크롤 없음</span></li>
+        <li><span class="box"></span><span><b>기존 화면 회귀 없음</b> — 대시보드 외 화면은 수정 없음, 대시보드 자체는 도크가 떠는 것 외 레이아웃 변화 없음</span></li>
+      </ul>
+      <div class="note"><b>이후 확장 (이번 범위 밖).</b> SSE 스트리밍 답변(타이핑 효과), 대화에서 바로 &ldquo;이 공모전 응모하기&rdquo; 액션 연결, 결과 화면의 아이디어를 컨텍스트로 이어받기. 스냅숏 구조를 만들어 두었기 때문에 셋 모두 프롬프트·스냅숏 확장으로 처리된다.</div></section>
+  </main>
+  <footer>
+    <span>공내비 (구 아이디어 내비게이션) — 대시보드 챗봇 계획서</span>
+    <span>2026-10-02 작성 · 대시보드 계획서의 후속 문서</span>
+  </footer>
+</div>
+<script>
+  window.addEventListener('message', e => {
+    const t = e.data && e.data.elicecodeTheme;
+    if (t === 'system') document.documentElement.removeAttribute('data-theme');
+    else if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+  });
+</script>
+</body>
+</html>

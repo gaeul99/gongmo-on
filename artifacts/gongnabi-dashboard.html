@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>공내비 현황 대시보드</title>
+<style>
+  :root {
+    --accent: #aa3bff;
+    --accent-soft: rgba(170, 59, 255, 0.09);
+    --accent-border: rgba(170, 59, 255, 0.45);
+    --ink: #08060d;
+    --text: #6b6375;
+    --bg: #ffffff;
+    --card: #ffffff;
+    --card-alt: #f7f4fb;
+    --line: #e9e3f2;
+    --strong-line: #d8cfeb;
+    --urgent: #c2364b;
+    --urgent-bg: rgba(194, 54, 75, 0.1);
+    --calm: #1f8a5d;
+    --calm-bg: rgba(31, 138, 93, 0.1);
+    --mono: "Consolas", "Menlo", monospace;
+  }
+  :root[data-theme="dark"] {
+    --accent: #c07aff;
+    --accent-soft: rgba(192, 122, 255, 0.12);
+    --accent-border: rgba(192, 122, 255, 0.5);
+    --ink: #f4f0fa;
+    --text: #a89fb5;
+    --bg: #14101a;
+    --card: #1d1726;
+    --card-alt: #231b2e;
+    --line: #2e2540;
+    --strong-line: #403459;
+    --urgent: #ef7288;
+    --urgent-bg: rgba(239, 114, 136, 0.14);
+    --calm: #4fc48f;
+    --calm-bg: rgba(79, 196, 143, 0.13);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --accent: #c07aff;
+      --accent-soft: rgba(192, 122, 255, 0.12);
+      --accent-border: rgba(192, 122, 255, 0.5);
+      --ink: #f4f0fa;
+      --text: #a89fb5;
+      --bg: #14101a;
+      --card: #1d1726;
+      --card-alt: #231b2e;
+      --line: #2e2540;
+      --strong-line: #403459;
+      --urgent: #ef7288;
+      --urgent-bg: rgba(239, 114, 136, 0.14);
+      --calm: #4fc48f;
+      --calm-bg: rgba(79, 196, 143, 0.13);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", ui-sans-serif, sans-serif;
+    font-size: 14px;
+    line-height: 1.65;
+    word-break: keep-all;
+    padding: 40px 22px 56px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  .eyebrow {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 8px;
+  }
+  h1 {
+    font-size: 28px;
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+    margin: 0 0 10px;
+    text-wrap: balance;
+  }
+  .lede { color: var(--text); font-size: 14.5px; max-width: 64ch; margin: 0 0 8px; }
+  .howto {
+    font-size: 12px;
+    color: var(--text);
+    background: var(--card-alt);
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 8px 13px;
+    margin: 0 0 22px;
+  }
+  .dash-head { border-bottom: 1px solid var(--line); padding-bottom: 22px; margin-bottom: 18px; }
+  section { margin-bottom: 14px; }
+  h2 { font-size: 15px; letter-spacing: -0.01em; margin: 0; }
+  /* --- KPI --- */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 13px 14px 11px;
+  }
+  .kpi.hot { border-color: var(--accent-border); background: var(--accent-soft); }
+  .kpi .k-label { font-size: 11.5px; color: var(--text); margin: 0; }
+  .kpi .k-num {
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    margin: 2px 0 0;
+  }
+  .kpi.hot .k-num { color: var(--accent); }
+  .kpi .k-sub { font-size: 10.5px; color: var(--text); margin: 2px 0 0; }
+  /* --- 패널 --- */
+  .duo { display: grid; grid-template-columns: 1.45fr 1fr; gap: 12px; }
+  .duo-even { grid-template-columns: 1fr 1fr; }
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    padding: 15px 16px;
+    min-width: 0;
+  }
+  .panel-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 11px;
+  }
+  .hint { font-size: 11px; color: var(--text); white-space: nowrap; }
+  /* --- 칩 필터 --- */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 11px; }
+  .chip {
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--strong-line);
+    border-radius: 999px;
+    padding: 3px 11px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .chip:hover { border-color: var(--accent-border); }
+  .chip[aria-pressed="true"] {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-color: var(--accent-border);
+  }
+  .chip .c-n { font-family: var(--mono); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+  /* --- 마감 목록 --- */
+  .deadline-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .d-row {
+    display: grid;
+    grid-template-columns: 54px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    padding: 9px 12px;
+    background: var(--card);
+  }
+  .d-row.closed-row { opacity: 0.55; }
+  .d-badge {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    border-radius: 7px;
+    padding: 3px 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .d-badge.tone-today, .d-badge.tone-urgent { color: var(--urgent); background: var(--urgent-bg); }
+  .d-badge.tone-upcoming { color: var(--accent); background: var(--accent-soft); }
+  .d-badge.tone-closed { color: var(--text); background: var(--card-alt); }
+  .d-info { min-width: 0; }
+  .d-title { font-size: 13px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .d-sub {
+    font-size: 11.5px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 1px;
+  }
+  .d-side { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+  .d-date { font-size: 11.5px; color: var(--text); font-variant-numeric: tabular-nums; }
+  .d-kinds { display: flex; gap: 4px; }
+  .kind {
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0 7px;
+    line-height: 1.7;
+  }
+  .kind-app { color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); }
+  .kind-applied { color: var(--calm); background: var(--calm-bg); border: 1px solid transparent; }
+  .kind-wished { color: var(--text); background: var(--card-alt); border: 1px solid var(--strong-line); }
+  .d-actions { display: flex; gap: 4px; }
+  .act {
+    font: inherit;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--strong-line);
+    border-radius: 999px;
+    padding: 1px 9px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .act:hover { border-color: var(--accent-border); color: var(--ink); }
+  .act[aria-pressed="true"].act-apply { color: var(--calm); background: var(--calm-bg); border-color: transparent; }
+  .act[aria-pressed="true"].act-wish { color: var(--accent); background: var(--accent-soft); border-color: var(--accent-border); }
+  .list-empty { font-size: 12.5px; color: var(--text); margin: 6px 2px; }
+  /* --- 분야 막대 --- */
+  .field-list { display: flex; flex-direction: column; gap: 11px; }
+  .f-row { display: grid; grid-template-columns: 46px 1fr 20px; gap: 8px; align-items: center; }
+  .f-name { font-size: 12.5px; font-weight: 600; }
+  .f-track { display: block; height: 10px; border-radius: 999px; background: var(--card-alt); border: 1px solid var(--line); overflow: hidden; }
+  .f-fill { display: block; height: 100%; border-radius: 999px; background: var(--accent); width: 0; transition: width 0.7s ease; }
+  @media (prefers-reduced-motion: reduce) { .f-fill { transition: none; } }
+  .f-n { font-family: var(--mono); font-size: 11.5px; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
+  /* --- 알림 --- */
+  .notif-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    font-size: 12.5px;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .notif-summary b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .notif-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .n-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 6px 10px;
+    font-size: 11.5px;
+  }
+  .n-ch { color: var(--accent); font-weight: 700; white-space: nowrap; }
+  .n-text { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .n-time { color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .notif-empty { font-size: 12.5px; color: var(--text); margin: 4px 2px; }
+  /* --- 스파크 --- */
+  .slot {
+    border: 1px solid var(--accent-border);
+    background: var(--accent-soft);
+    border-radius: 11px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .slot-window { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 9px; }
+  .slot-cell {
+    background: var(--card);
+    border: 1px solid var(--strong-line);
+    border-radius: 8px;
+    padding: 7px 4px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    min-height: 2.4em;
+    display: grid;
+    place-items: center;
+  }
+  .slot-roll {
+    width: 100%;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--bg);
+    background: var(--accent);
+    border: none;
+    border-radius: 9px;
+    padding: 8px 0;
+    cursor: pointer;
+    transition: transform 0.12s, filter 0.15s;
+  }
+  .slot-roll:hover { filter: brightness(1.06); }
+  .slot-roll:active { transform: scale(0.985); }
+  .slot-note { font-size: 10.5px; color: var(--text); text-align: center; margin: 7px 0 0; }
+  .spark-rows { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .spark-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 11px;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .spark-row b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .mission {
+    background: var(--card-alt);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--ink);
+    margin: 0;
+  }
+  .mission b { display: block; font-size: 10px; letter-spacing: 0.07em; color: var(--accent); margin-bottom: 2px; }
+  /* --- 참고 자료 --- */
+  .ref-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .ref-grid a {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 4px;
+    height: 100%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .ref-grid a:hover { border-color: var(--accent-border); background: var(--accent-soft); }
+  .r-title { font-size: 12px; font-weight: 600; color: var(--ink); }
+  .r-sub { display: flex; justify-content: space-between; gap: 6px; font-size: 10.5px; color: var(--text); }
+  .r-arrow { color: var(--accent); white-space: nowrap; }
+  .dash-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    color: var(--text);
+    font-size: 11px;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    margin-top: 22px;
+  }
+  @media (max-width: 760px) {
+    .duo, .duo-even { grid-template-columns: 1fr; }
+    .ref-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    h1 { font-size: 23px; }
+    .ref-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="dash-head">
+    <p class="eyebrow">GongNabi · 데이터 기준 2026-10-01</p>
+    <h1>공내비 현황 대시보드</h1>
+    <p class="lede">공모전 마감, 내 응모·관심, 알림 발송 기록을 한 화면에서 봅니다. 목록의 응모·관심 버튼을 누르면 수치와 분류가 즉시 반영돼요.</p>
+    <p class="howto">읽는 법 — 공모전·참고 자료는 실제 데이터(2026-10-01 위비티·공공기관 조사)이고, 내 응모·관심·보관함은 이 페이지 안의 예시 기록이며, 알림 기록은 같은 날 백엔드 기록 스냅숏입니다. D-day는 페이지를 연 날짜 기준으로 계산해요.</p>
+  </header>
+
+  <section class="kpi-row" id="kpis" aria-label="요약 수치"></section>
+
+  <section class="duo">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>마감 임박 공모전</h2>
+        <span class="hint">마감일 순 · 7일 이내 강조</span>
+      </div>
+      <div class="chips" id="timeline-filters" role="group" aria-label="마감 목록 필터"></div>
+      <ul class="deadline-list" id="deadline-list"></ul>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>분야별 분포</h2>
+        <span class="hint">접수 중 4건</span>
+      </div>
+      <div class="field-list" id="field-list"></div>
+    </div>
+  </section>
+
+  <section class="duo duo-even">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>알림 발송 현황</h2>
+        <span class="hint">2026-10-01 백엔드 기록 스냅숏</span>
+      </div>
+      <div class="notif-summary" id="notif-summary"></div>
+      <div class="chips" id="notif-filters" role="group" aria-label="알림 채널 필터"></div>
+      <ul class="notif-list" id="notif-list"></ul>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>아이디어 스파크</h2>
+        <span class="hint">첫화면 콘텐츠</span>
+      </div>
+      <div class="slot">
+        <div class="slot-window" aria-live="polite">
+          <span class="slot-cell" id="slot-field">—</span>
+          <span class="slot-cell" id="slot-who">—</span>
+          <span class="slot-cell" id="slot-form">—</span>
+        </div>
+        <button type="button" class="slot-roll" id="slot-roll">조합 뽑기</button>
+        <p class="slot-note">6분야 × 8대상 × 8형태 = 384가지 중 하나</p>
+      </div>
+      <div class="spark-rows">
+        <div class="spark-row"><span>일일 미션</span><b>10개 순환</b></div>
+        <div class="spark-row"><span>순환 예시 문구</span><b>8개</b></div>
+      </div>
+      <p class="mission" id="today-mission"></p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>참고 자료</h2>
+      <span class="hint">유사 사례 3 · 수상작 아카이브 3 · 실제 링크</span>
+    </div>
+    <ul class="ref-grid" id="ref-grid"></ul>
+  </section>
+
+  <footer class="dash-foot">
+    <span>공내비 현황 대시보드 — 계획서 기반 인터랙티브 버전</span>
+    <span>링크는 파일을 브라우저에서 직접 열 때 작동합니다</span>
+  </footer>
+</div>
+<script>
+  /* 아티팩트 패널 테마 동기화 */
+  window.addEventListener('message', e => {
+    const t = e.data && e.data.elicecodeTheme;
+    if (t === 'system') document.documentElement.removeAttribute('data-theme');
+    else if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+  });
+
+  /* ===== 데이터 (공내비 mockData.js · ideaSparks.js · 백엔드 기록 스냅숏) ===== */
+  const CONTESTS = [
+    { id: 1, title: '[기후에너지환경부] 제13회 대학생 물환경 정책·기술 공모전', organizer: '기후에너지환경부', field: '환경', deadline: '2026-10-25', eligibility: '국내 대학 재·휴학생 (2~3인 팀)', url: 'https://www.wevity.com/?c=find&s=1&gbn=view&gp=1&ix=111329' },
+    { id: 2, title: '통합 라디오 애플리케이션 대국민 아이디어 공모', organizer: '한국방송통신전파진흥원', field: '기타 (아이디어·방송통신)', deadline: '2026-10-09', eligibility: '국민 누구나', url: 'https://www.wevity.com/?c=find&s=1&gbn=view&gp=1&ix=111326' },
+    { id: 3, title: '2026 한국외식산업연구원 외식경영스타 아이디어 공모전', organizer: '한국외식산업연구원', field: '기타 (창업·외식경영)', deadline: '2026-11-02', eligibility: '국내 2·4년제 대학 재학생·휴학생 (최대 4인 팀)', url: 'https://www.wevity.com/?c=find&s=1&gbn=view&gp=1&ix=111378' },
+    { id: 4, title: '2026 모바일신분증 아이디어 공모전', organizer: '행정안전부 (주관: 한국조폐공사)', field: '생활 (행정·신분증)', deadline: '2026-10-30', eligibility: '대한민국 국민 누구나 (개인·팀)', url: 'https://www.wevity.com/?c=find&s=1&gbn=view&gp=1&ix=111291' },
+  ];
+  const REFS = [
+    { title: '스파크업 : 모두의 에너지 (에너지 창업 경연대회)', organizer: '기후에너지환경부', domain: '유사 사례 · 환경·에너지·창업', url: 'https://www.wevity.com/?c=find&s=1&gbn=view&gp=1&ix=111148' },
+    { title: '[과학기술정보통신부] 제3회 미래융합인재 발굴 소프트웨어 챌린지', organizer: '과학기술정보통신부', domain: '유사 사례 · 소프트웨어·기술 아이디어', url: 'https://www.wevity.com/?c=find&s=1&gbn=view&gp=1&ix=110675' },
+    { title: '2026년 국민체육진흥공단 공공데이터 활용 경진대회', organizer: '국민체육진흥공단', domain: '유사 사례 · 공공데이터·생활 서비스', url: 'https://www.wevity.com/?c=find&s=1&gbn=view&gp=1&ix=108240' },
+    { title: '국가데이터 활용대회 수상작 모음', organizer: '통계데이터센터', domain: '수상작 · 데이터 분석·정책', url: 'https://data.kostat.go.kr/sbchome/bbs/boardList.do?boardId=SBCSBBS_000000017002&curMenuNo=OPT_08_06_00_0' },
+    { title: '경기도 공공데이터·AI 활용 창업경진대회 수상작 공개', organizer: '소통혁신24', domain: '수상작 · 공공데이터·AI 창업', url: 'https://sotong.go.kr/front/epilogue/epilogueRsltViewPage.do?bbs_id=b5c6fe25990e40a291ed1d986b6ede73' },
+    { title: '농림축산식품 공공데이터 창업경진대회 수상작 보기', organizer: '농림축산식품부', domain: '수상작 · 농식품 공공데이터 창업', url: 'https://data.mafra.go.kr/contest/winnerListNew.do' },
+  ];
+  /* 2026-10-01 16:31경 백엔드 발송 기록 3건 (log 모드 테스트 기록) */
+  const NOTIF = {
+    subscribers: 1,
+    byChannel: { email: { total: 3, real: 0 }, sms: { total: 3, real: 0 } },
+    recent: [
+      { channel: 'sms', text: "'3일 마감 공모전'이 3일 남았어요. 마감 2026-10-04.", at: '2026-10-01T07:31:20.243Z' },
+      { channel: 'email', text: "'3일 마감 공모전' 마감 3일 전 안내", at: '2026-10-01T07:31:20.229Z' },
+      { channel: 'sms', text: "'모바일신분증 아이디어 공모전' 오늘 마감이에요. 마감 2026-10-01.", at: '2026-10-01T07:31:20.227Z' },
+    ],
+  };
+  const FIELDS = ['환경', '교육', '안전', '복지', '교통', '생활'];
+  const WHOS = ['학생', '직장인', '주부', '어르신', '반려동물 주인', '관광객', '지역 주민', '1인 가구'];
+  const FORMS = ['사진 인증 앱', '지도 기반 서비스', '챗봇 상담 서비스', '챌린지 프로그램', '구독 서비스', '포인트 리워드 앱', '알림 서비스', '온라인 플랫폼'];
+  const MISSIONS = [
+    '편의점에서 불편한 점 하나를 찾고, 해결 아이디어를 한 문장으로 적어 보세요.',
+    '가장 최근에 쓴 앱에서 아쉬운 점을 고른 뒤, 내가 만든다면 어떻게 바꿀지 생각해 보세요.',
+    '학교나 직장에서 반복되는 귀찮은 일 하나를 없애는 서비스를 구상해 보세요.',
+    '어르신이 스마트폰으로 어려워하는 것 하나를 골라 쉽게 만드는 방법을 적어 보세요.',
+    '버스나 지하철에서 겪는 불편을 줄이는 아이디어를 떠올려 보세요.',
+    '버리기 아까웠던 물건을 다시 쓸 수 있는 방법을 생각해 보세요.',
+    '반려동물과 외출할 때 필요한 것 하나를 골라 서비스로 만들어 보세요.',
+    '자주 가는 골목을 더 안전하게 만드는 방법을 상상해 보세요.',
+    '아침 준비 시간을 10분 줄여 주는 아이디어를 적어 보세요.',
+    '친구와 함께 참여할 수 있는 환경 챌린지를 하나 만들어 보세요.',
+  ];
+  const SAVED_IDEAS_EXAMPLE = 1; // 예시 보관 아이디어 수 (모바일 신분증 기반 도서관 무인 대출 앱)
+
+  /* 예시 활동 기록 — 앱에서 '응모하기'·'관심'을 누른 것과 같은 상태 */
+  const state = {
+    applied: new Set([2, 4]),
+    wished: new Set([1, 3]),
+    timelineFilter: 'all',
+    notifFilter: 'all',
+  };
+  const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (id) => document.getElementById(id);
+
+  /* ===== 마감일 계산 (앱의 utils/contestAlerts.js와 같은 기준) ===== */
+  function deadlineStatus(deadline) {
+    const start = new Date(`${deadline}T00:00:00`);
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const left = Math.round((start.getTime() - startOfToday.getTime()) / 86400000);
+    if (Number.isNaN(left)) return { left: null, tone: 'closed', label: '일정 확인 필요' };
+    if (left < 0) return { left, tone: 'closed', label: '마감' };
+    if (left === 0) return { left, tone: 'today', label: 'D-day' };
+    return { left, tone: left <= 7 ? 'urgent' : 'upcoming', label: `D-${left}` };
+  }
+  const fmtDate = (iso) => iso.slice(5).replace('-', '.');
+  const fmtTime = (iso) => {
+    const d = new Date(iso);
+    return new Intl.DateTimeFormat('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(d);
+  };
+
+  /* ===== 렌더 ===== */
+  function mergedRows() {
+    return CONTESTS.map((c) => ({ ...c, status: deadlineStatus(c.deadline) }))
+      .sort((a, b) => {
+        const closedDiff = (a.status.tone === 'closed' ? 1 : 0) - (b.status.tone === 'closed' ? 1 : 0);
+        if (closedDiff !== 0) return closedDiff;
+        return a.deadline.localeCompare(b.deadline);
+      });
+  }
+
+  function renderKpis() {
+    const rows = mergedRows().filter((r) => r.status.tone !== 'closed' && r.status.left !== null && r.status.left > 0);
+    const soonest = rows[0] ? `가장 임박 ${rows[0].status.label}` : '마감 데이터 없음';
+    $('kpis').innerHTML = `
+      <div class="kpi hot">
+        <p class="k-label">접수 중 공모전</p>
+        <p class="k-num">${CONTESTS.length}</p>
+        <p class="k-sub">${soonest}</p>
+      </div>
+      <div class="kpi">
+        <p class="k-label">내 응모</p>
+        <p class="k-num">${state.applied.size}</p>
+        <p class="k-sub">예시 · 버튼으로 바꿔 보세요</p>
+      </div>
+      <div class="kpi">
+        <p class="k-label">내 관심</p>
+        <p class="k-num">${state.wished.size}</p>
+        <p class="k-sub">예시 · 버튼으로 바꿔 보세요</p>
+      </div>
+      <div class="kpi">
+        <p class="k-label">보관한 아이디어</p>
+        <p class="k-num">${SAVED_IDEAS_EXAMPLE}</p>
+        <p class="k-sub">예시 기록</p>
+      </div>`;
+  }
+
+  function renderTimeline() {
+    const rows = mergedRows();
+    const counts = {
+      all: rows.length,
+      open: rows.filter((r) => r.status.tone !== 'closed').length,
+      applied: rows.filter((r) => state.applied.has(r.id)).length,
+      wished: rows.filter((r) => state.wished.has(r.id)).length,
+      closed: rows.filter((r) => r.status.tone === 'closed').length,
+    };
+    const defs = [
+      ['all', '전체'], ['open', '접수 중'], ['applied', '내 응모'], ['wished', '내 관심'], ['closed', '마감'],
+    ];
+    $('timeline-filters').innerHTML = defs.map(([key, label]) =>
+      `<button type="button" class="chip" data-filter="${key}" aria-pressed="${state.timelineFilter === key}">${label} <span class="c-n">${counts[key]}</span></button>`
+    ).join('');
+
+    const visible = rows.filter((r) => {
+      if (state.timelineFilter === 'all') return true;
+      if (state.timelineFilter === 'open') return r.status.tone !== 'closed';
+      if (state.timelineFilter === 'applied') return state.applied.has(r.id);
+      if (state.timelineFilter === 'wished') return state.wished.has(r.id);
+      return r.status.tone === 'closed';
+    });
+    if (visible.length === 0) {
+      $('deadline-list').innerHTML = '<li class="list-empty">이 필터에 해당하는 공모전이 없어요. 다른 칩을 눌러 보세요.</li>';
+      return;
+    }
+    $('deadline-list').innerHTML = visible.map((r) => {
+      const kinds = [`<span class="kind kind-app">접수 중</span>`];
+      if (state.applied.has(r.id)) kinds.push(`<span class="kind kind-applied">응모</span>`);
+      if (state.wished.has(r.id)) kinds.push(`<span class="kind kind-wished">관심</span>`);
+      return `
+        <li class="d-row${r.status.tone === 'closed' ? ' closed-row' : ''}">
+          <span class="d-badge tone-${r.status.tone}">${r.status.label}</span>
+          <span class="d-info">
+            <span class="d-title">${r.title}</span>
+            <span class="d-sub">${r.organizer} · ${r.eligibility}</span>
+          </span>
+          <span class="d-side">
+            <span class="d-date">${fmtDate(r.deadline)} 마감</span>
+            <span class="d-kinds">${kinds.join('')}</span>
+            <span class="d-actions">
+              <button type="button" class="act act-apply" data-id="${r.id}" aria-pressed="${state.applied.has(r.id)}">응모</button>
+              <button type="button" class="act act-wish" data-id="${r.id}" aria-pressed="${state.wished.has(r.id)}">관심</button>
+            </span>
+          </span>
+        </li>`;
+    }).join('');
+  }
+
+  function renderFields() {
+    const counts = new Map();
+    for (const c of CONTESTS) {
+      const name = c.field.split(' ')[0];
+      counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+    const bars = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    const max = Math.max(...bars.map(([, n]) => n), 1);
+    $('field-list').innerHTML = bars.map(([name, n]) => `
+      <div class="f-row">
+        <span class="f-name">${name}</span>
+        <span class="f-track"><span class="f-fill" data-w="${Math.round((n / max) * 100)}"></span></span>
+        <span class="f-n">${n}</span>
+      </div>`).join('');
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.f-fill').forEach((el) => { el.style.width = `${el.dataset.w}%`; });
+    });
+  }
+
+  function renderNotif() {
+    const c = NOTIF.byChannel;
+    $('notif-summary').innerHTML = `
+      <span>구독자 <b>${NOTIF.subscribers}</b>명</span>
+      <span>이메일 <b>${c.email.total}</b>건 (실발송 ${c.email.real} · log ${c.email.total - c.email.real})</span>
+      <span>문자 <b>${c.sms.total}</b>건 (실발송 ${c.sms.real} · log ${c.sms.total - c.sms.real})</span>`;
+    const defs = [['all', '전체'], ['email', '이메일'], ['sms', '문자']];
+    $('notif-filters').innerHTML = defs.map(([key, label]) => {
+      const n = key === 'all' ? NOTIF.recent.length : NOTIF.recent.filter((r) => r.channel === key).length;
+      return `<button type="button" class="chip" data-notif="${key}" aria-pressed="${state.notifFilter === key}">${label} <span class="c-n">${n}</span></button>`;
+    }).join('');
+    const visible = NOTIF.recent.filter((r) => state.notifFilter === 'all' || r.channel === state.notifFilter);
+    $('notif-list').innerHTML = visible.length === 0
+      ? '<li class="notif-empty">이 채널의 기록이 없어요.</li>'
+      : visible.map((r) => `
+          <li class="n-row">
+            <span class="n-ch">${r.channel === 'email' ? '이메일' : '문자'} · log</span>
+            <span class="n-text">${r.text}</span>
+            <span class="n-time">${fmtTime(r.at)}</span>
+          </li>`).join('');
+  }
+
+  function renderRefs() {
+    $('ref-grid').innerHTML = REFS.map((r) => `
+      <li>
+        <a href="${r.url}" target="_blank" rel="noreferrer" title="${r.url}">
+          <span class="r-title">${r.title}</span>
+          <span class="r-sub"><span>${r.organizer} · ${r.domain.split(' · ')[1]}</span><span class="r-arrow">열기 ↗</span></span>
+        </a>
+      </li>`).join('');
+  }
+
+  function renderMission() {
+    const today = MISSIONS[Math.floor(Date.now() / 86400000) % MISSIONS.length];
+    $('today-mission').innerHTML = `<b>오늘의 미션</b>${today}`;
+  }
+
+  /* ===== 슬롯머신 ===== */
+  let rolling = false;
+  function setSlot(f, w, s) {
+    $('slot-field').textContent = f;
+    $('slot-who').textContent = w;
+    $('slot-form').textContent = s;
+  }
+  function rollSlot() {
+    if (rolling) return;
+    const pick = () => [FIELDS[Math.floor(Math.random() * FIELDS.length)], WHOS[Math.floor(Math.random() * WHOS.length)], FORMS[Math.floor(Math.random() * FORMS.length)]];
+    if (REDUCED) { setSlot(...pick()); return; }
+    rolling = true;
+    $('slot-roll').disabled = true;
+    let ticks = 0;
+    const timer = setInterval(() => {
+      setSlot(...pick());
+      ticks += 1;
+      if (ticks >= 12) {
+        clearInterval(timer);
+        rolling = false;
+        $('slot-roll').disabled = false;
+      }
+    }, 60);
+  }
+
+  /* ===== 이벤트 ===== */
+  $('timeline-filters').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-filter]');
+    if (!btn) return;
+    state.timelineFilter = btn.dataset.filter;
+    renderTimeline();
+  });
+  $('deadline-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('.act');
+    if (!btn) return;
+    const id = Number(btn.dataset.id);
+    if (btn.classList.contains('act-apply')) {
+      // 앱과 같은 규칙: 응모하면 관심 목록에서 자동으로 옮겨 간다
+      if (state.applied.has(id)) state.applied.delete(id);
+      else { state.applied.add(id); state.wished.delete(id); }
+    } else {
+      if (state.wished.has(id)) state.wished.delete(id);
+      else if (!state.applied.has(id)) state.wished.add(id);
+    }
+    renderKpis();
+    renderTimeline();
+  });
+  $('notif-filters').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-notif]');
+    if (!btn) return;
+    state.notifFilter = btn.dataset.notif;
+    renderNotif();
+  });
+  $('slot-roll').addEventListener('click', rollSlot);
+
+  /* ===== 초기 상태 ===== */
+  setSlot(FIELDS[0], WHOS[0], FORMS[0]);
+  renderKpis();
+  renderTimeline();
+  renderFields();
+  renderNotif();
+  renderRefs();
+  renderMission();
+</script>
+</body>
+</html>

@@ -1,0 +1,693 @@
+/* 분석 결과 화면 스타일 */
+
+.result-page {
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px 88px;
+  box-sizing: border-box;
+  font-size: 14px;
+
+  @media (max-width: 768px) {
+    padding: 32px 20px 64px;
+  }
+}
+
+.result-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+/* 데모(오프라인) 결과 배지 */
+.result-badge.demo {
+  color: var(--text);
+  background: var(--code-bg);
+  border-color: var(--border);
+}
+
+/* 분석 진행 중 배지 */
+.result-badge.analyzing {
+  color: var(--text-h);
+  background: var(--bg);
+  border-color: var(--border);
+}
+
+/* AI 분석 중 로딩 패널 */
+.analysis-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: var(--code-bg);
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.analysis-loading p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 160%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.loading-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--accent-bg);
+  border-top-color: var(--accent);
+  animation: loading-spin 0.9s linear infinite;
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.result-header h1 {
+  margin: 12px 0 8px;
+  font-size: clamp(22px, 4vw, 26px);
+  font-weight: 700;
+}
+
+.result-caption {
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.result-section {
+  margin-top: 40px;
+}
+
+.result-section h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+
+/* 내 아이디어 */
+.idea-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.idea-card h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.idea-description {
+  line-height: 165%;
+  word-break: keep-all;
+  white-space: pre-line;
+}
+
+.idea-category {
+  display: inline-block;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+/* 전체 중복 가능성 안내 */
+.duplication-notice {
+  margin-top: 32px;
+  background: var(--accent-bg);
+  border-left: 4px solid var(--accent);
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+.duplication-notice strong {
+  color: var(--text-h);
+}
+
+.duplication-notice p {
+  margin-top: 4px;
+  word-break: keep-all;
+}
+
+/* 카드 공통 (유사 사례·공모전) */
+.case-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 유사도 기준 안내·빈 결과 */
+.similar-threshold {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.similar-empty {
+  background: var(--code-bg);
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.similar-empty strong {
+  color: var(--text-h);
+}
+
+.similar-empty p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 160%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.case-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.case-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.case-top h3 {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.case-source {
+  font-size: 11px;
+  color: var(--text);
+  background: var(--code-bg);
+  border-radius: 999px;
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+
+/* 유사도 */
+.similarity {
+  margin-top: 14px;
+}
+
+.similarity-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.similarity-bar {
+  margin-top: 6px;
+  height: 8px;
+  background: var(--code-bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.similarity-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+}
+
+.case-summary {
+  margin-top: 14px;
+  line-height: 165%;
+  word-break: keep-all;
+}
+
+.case-block {
+  margin-top: 16px;
+}
+
+.case-block h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.case-block ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.case-block li {
+  line-height: 170%;
+  word-break: keep-all;
+}
+
+.case-block p {
+  line-height: 165%;
+  word-break: keep-all;
+}
+
+/* 차별화 포인트 안내 */
+.differentiation-text {
+  background: var(--bg);
+  border: 1px dashed var(--accent-border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  line-height: 170%;
+  word-break: keep-all;
+}
+
+/* 추천 공모전 */
+.contest-info {
+  margin: 14px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.contest-info div {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 12px;
+}
+
+.contest-info dt {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.contest-info dd {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+/* 상세 정보 링크 (유사 사례·공모전 공통) */
+.detail-link {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.detail-link:hover {
+  text-decoration: underline;
+}
+
+.detail-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 유사 사례(왼쪽) + 지난 수상작 링크(오른쪽 좁게) 나란히 배치 */
+.similar-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+  margin-top: 40px;
+}
+
+.similar-main {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.archive-side {
+  width: 220px;
+  flex-shrink: 0;
+  margin-top: 0;
+  padding-left: 20px;
+  border-left: 1px solid var(--border);
+}
+
+.archive-side h2 {
+  font-size: 14px;
+  margin-bottom: 12px;
+  word-break: keep-all;
+}
+
+.archive-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.archive-links a {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  word-break: keep-all;
+}
+
+.archive-links a:hover {
+  text-decoration: underline;
+}
+
+.archive-organizer {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text);
+}
+
+@media (max-width: 768px) {
+  .similar-layout {
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .archive-side {
+    width: auto;
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+  }
+}
+
+/* 공모전 응모 버튼 · 응모 완료 표시 */
+.apply-button {
+  display: block;
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  padding: 11px 20px;
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    opacity 0.15s;
+}
+
+.apply-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.apply-done {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  background: var(--accent-bg);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.apply-done button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.apply-done button:hover {
+  text-decoration: underline;
+}
+
+/* 내 아이디어 카드: 관심 분야 + 보관함 저장 버튼 */
+.idea-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.save-button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.save-button:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+.save-done {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* 응모 버튼 + 관심 목록 버튼 영역 */
+.contest-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wish-button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.wish-button:hover {
+  background: var(--accent-bg);
+}
+
+.wish-button.active {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+/* 사례 카드(유사 사례·공모전 공통): 왼쪽 정보 + 오른쪽 포스터 이미지 */
+.case-body {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.case-detail {
+  flex: 1;
+  min-width: 0;
+}
+
+.case-image {
+  width: 140px;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  flex-shrink: 0;
+
+  @media (max-width: 600px) {
+    width: 100%;
+    max-height: 240px;
+  }
+}
+
+@media (max-width: 600px) {
+  .case-body {
+    flex-direction: column-reverse;
+  }
+}
+
+/* 다시 입력하기 */
+.result-actions {
+  margin-top: 48px;
+}
+
+/* --- 제출 전 자가 점검 --- */
+.checklist-caption {
+  margin: 4px 0 14px;
+  font-size: 13px;
+  line-height: 165%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.checklist-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.checklist-progress-track {
+  flex: 1;
+  height: 8px;
+  background: var(--accent-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.checklist-progress-track span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.2s;
+}
+
+.checklist-progress-label {
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+  font-variant-numeric: tabular-nums;
+}
+
+.checklist-complete {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  word-break: keep-all;
+}
+
+.checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.checklist label {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13.5px;
+  line-height: 155%;
+  color: var(--text);
+  cursor: pointer;
+  word-break: keep-all;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.checklist label input {
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+
+.checklist label.checked {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--text-h);
+}
+
+.checklist-reset {
+  margin-top: 12px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--text);
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.checklist-reset:hover {
+  color: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .checklist {
+    grid-template-columns: 1fr;
+  }
+}
+
+.restart-button {
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--bg);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 15px 32px;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    background 0.2s;
+}
+
+.restart-button:hover {
+  transform: translateY(-2px);
+  background: var(--accent-bg);
+}
+
+.restart-button:active {
+  transform: translateY(0);
+}
+
+.restart-button:focus-visible {
+  outline: 3px solid var(--accent-border);
+  outline-offset: 3px;
+}

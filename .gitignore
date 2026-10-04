@@ -1,0 +1,16 @@
+# 종속성
+node_modules/
+
+# 빌드 산출물
+dist/
+
+# 환경 변수 (API 키·토큰 포함 — 절대 커밋 금지)
+.env
+.env.local
+.env.*.local
+
+# 런타임 데이터 (구독자 이메일·전화번호 등 개인정보 포함)
+backend/src/data/*.json
+
+# 로그·임시 파일
+*.log

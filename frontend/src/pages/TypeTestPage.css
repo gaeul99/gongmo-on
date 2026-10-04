@@ -1,0 +1,666 @@
+/* 공모전 유형 검사 화면 스타일 */
+
+.type-test-page {
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px 88px;
+  box-sizing: border-box;
+  font-size: 14px;
+
+  @media (max-width: 768px) {
+    padding: 32px 20px 64px;
+  }
+}
+
+.type-test-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+.type-test-header h1 {
+  margin: 12px 0 8px;
+  font-size: clamp(22px, 4vw, 26px);
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.type-test-caption {
+  margin: 0 0 24px;
+  font-size: 13px;
+  line-height: 170%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.type-test-panel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+
+  @media (max-width: 640px) {
+    padding: 18px 16px;
+  }
+}
+
+.type-test-panel-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.type-test-panel-caption {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+/* --- 인트로 --- */
+.type-test-points {
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.type-test-points li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 13.5px;
+  line-height: 160%;
+  color: var(--text);
+}
+
+.type-test-points li::before {
+  content: '✓';
+  position: absolute;
+  left: 2px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.type-test-last-result {
+  display: block;
+  width: 100%;
+  font: inherit;
+  font-size: 13px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.type-test-last-result:hover {
+  opacity: 0.85;
+}
+
+.type-test-start {
+  display: block;
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.type-test-start:hover {
+  opacity: 0.9;
+}
+
+/* --- 진행 --- */
+.type-test-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.type-test-progress-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--accent-bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.type-test-progress-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.type-test-progress-text {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.type-test-question-text {
+  margin: 0 0 18px;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 150%;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.type-test-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.type-test-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 155%;
+  color: var(--text-h);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 13px 16px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+  word-break: keep-all;
+}
+
+.type-test-option:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.type-test-option-index {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 50%;
+}
+
+.type-test-prev {
+  margin-top: 16px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+  background: none;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.type-test-prev:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* --- 결과 --- */
+.type-test-result-card {
+  text-align: center;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 16px;
+  padding: 30px 24px 26px;
+  margin-bottom: 32px;
+}
+
+.type-test-result-emoji {
+  margin: 0 0 6px;
+  font-size: 40px;
+  line-height: 1;
+}
+
+.type-test-result-name {
+  margin: 0 0 6px;
+  font-size: clamp(22px, 4vw, 26px);
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.type-test-result-tagline {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  word-break: keep-all;
+}
+
+.type-test-result-percent {
+  margin: 0 auto 12px;
+  display: inline-block;
+  font-size: 12.5px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 5px 14px;
+}
+
+.type-test-result-percent b {
+  font-size: 16px;
+  color: var(--accent);
+  margin-left: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 유형 분포 막대 — 결과 유형은 보라로 강조 */
+.type-test-score-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.type-test-score-row {
+  display: grid;
+  grid-template-columns: 118px 1fr 48px;
+  align-items: center;
+  gap: 10px;
+}
+
+.type-test-score-name {
+  font-size: 12.5px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.type-test-score-track {
+  height: 10px;
+  background: var(--accent-bg);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.type-test-score-track span {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  background: var(--border);
+  border-radius: 999px;
+}
+
+.type-test-score-row.is-top .type-test-score-name {
+  color: var(--text-h);
+  font-weight: 700;
+}
+
+.type-test-score-row.is-top .type-test-score-track span {
+  background: var(--accent);
+}
+
+.type-test-score-pct {
+  font-size: 12px;
+  color: var(--text);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.type-test-score-row.is-top .type-test-score-pct {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .type-test-score-row {
+    grid-template-columns: 96px 1fr 44px;
+  }
+}
+
+.type-test-result-description {
+  margin: 0 auto;
+  max-width: 480px;
+  font-size: 13px;
+  line-height: 170%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.type-test-tip-text {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 170%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+/* --- 상세 분석 --- */
+.type-test-analysis {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.type-test-analysis-block h3 {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-h);
+}
+
+.type-test-analysis-block ul {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.type-test-analysis-block li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 13.5px;
+  line-height: 165%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.type-test-analysis-block li::before {
+  position: absolute;
+  left: 0;
+  font-weight: 800;
+}
+
+.type-test-analysis-block.is-strength li::before {
+  content: '✓';
+  color: #17995f;
+}
+
+.type-test-analysis-block.is-watchout li::before {
+  content: '!';
+  color: var(--error);
+}
+
+.type-test-role {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--accent-border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.type-test-role > span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+/* --- 준비 로드맵 --- */
+.type-test-roadmap {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.type-test-roadmap li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 160%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.type-test-roadmap-step {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* --- 잘 맞는 유형 --- */
+.type-test-synergy {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+}
+
+.type-test-synergy-emoji {
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.type-test-synergy b {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: var(--text-h);
+}
+
+.type-test-synergy p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 165%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.type-test-contest-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.type-test-contest-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.type-test-deadline {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+/* 마감 표시 3톤: 오늘 마감 빨강, 임박 보라, 여유 초록 */
+.type-test-deadline.tone-today {
+  color: var(--error);
+  background: rgba(229, 72, 77, 0.12);
+}
+
+.type-test-deadline.tone-urgent {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.type-test-deadline.tone-upcoming {
+  color: #17995f;
+  background: rgba(23, 153, 95, 0.12);
+}
+
+.type-test-deadline.tone-closed {
+  color: var(--text);
+  background: var(--accent-bg);
+}
+
+.type-test-contest-info {
+  min-width: 0;
+}
+
+.type-test-contest-info a {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-h);
+  text-decoration: none;
+  line-height: 150%;
+  word-break: keep-all;
+}
+
+.type-test-contest-info a:hover {
+  color: var(--accent);
+}
+
+.type-test-contest-info p {
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.type-test-votes {
+  flex: none;
+  display: flex;
+  gap: 6px;
+}
+
+.vote-button {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.vote-button:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.vote-button.is-active {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+  box-shadow: inset 0 0 0 1px var(--accent-border);
+}
+
+.type-test-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.type-test-analyze {
+  align-self: center;
+  width: 38%;
+  min-width: 170px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.type-test-analyze:hover {
+  opacity: 0.9;
+}
+
+.type-test-actions-row {
+  display: flex;
+  gap: 10px;
+}
+
+.type-test-retry,
+.type-test-copy {
+  flex: 1;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  padding: 11px 16px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.type-test-retry:hover,
+.type-test-copy:hover {
+  opacity: 0.85;
+}
+
+.type-test-copy-message {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--accent);
+}

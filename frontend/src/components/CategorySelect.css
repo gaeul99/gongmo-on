@@ -1,0 +1,145 @@
+/* 관심 분야 선택창(콤보박스) 스타일 */
+
+.category-select {
+  position: relative;
+}
+
+.category-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--text-h);
+  text-align: left;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.category-trigger:hover {
+  border-color: var(--accent-border);
+}
+
+.category-trigger:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.category-trigger .placeholder {
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.category-trigger .arrow {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.category-clear {
+  position: absolute;
+  top: 50%;
+  right: 38px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text);
+  background: var(--code-bg);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.category-clear:hover {
+  color: var(--error);
+}
+
+.category-clear:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.category-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 8px;
+}
+
+.category-search {
+  width: 100%;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-h);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  box-sizing: border-box;
+}
+
+.category-search:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.category-options {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.category-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-h);
+  background: none;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.category-option:hover {
+  background: var(--accent-bg);
+}
+
+.category-option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.category-option.selected {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.category-empty {
+  margin: 10px 4px 4px;
+  font-size: 13px;
+  color: var(--text);
+}

@@ -1,0 +1,137 @@
+/* 첫화면 히어로 아래(광고 마키 아래) 마감 임박 패널 — 대시보드와 같은 D-x 기준(contestAlerts.js)을 쓴다.
+   광고 마키처럼 가로 카드 3열로 배치한다. */
+
+.hero-deadlines {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 18px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.deadline-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.deadline-head h2 {
+  font-size: 17px;
+  margin: 0;
+}
+
+.deadline-more {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+.deadline-more:hover {
+  text-decoration: underline;
+}
+
+.deadline-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.deadline-item {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: border-color 0.2s;
+}
+
+.deadline-item:hover {
+  border-color: var(--accent-border);
+}
+
+.deadline-item:hover .deadline-title {
+  color: var(--accent);
+}
+
+.deadline-badge {
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+/* 오늘 마감 / 7일 이내 / 그 이후 — dashboard 알림과 같은 3단 톤 */
+.tone-today {
+  color: #fff;
+  background: var(--error);
+}
+
+.tone-urgent {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+
+.tone-upcoming {
+  color: #17995f;
+  background: rgba(23, 153, 95, 0.12);
+}
+
+.deadline-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.deadline-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.deadline-meta {
+  font-size: 12.5px;
+  color: var(--text);
+}
+
+.deadline-note {
+  font-size: 12.5px;
+  color: var(--text);
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin: 12px 0 0;
+}
+
+@media (max-width: 900px) {
+  .deadline-list {
+    grid-template-columns: 1fr;
+  }
+}

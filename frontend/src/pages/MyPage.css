@@ -1,0 +1,727 @@
+/* 마이페이지(간편 로그인 · 응모한 공모전 목록) 스타일 */
+
+.mypage-page {
+  flex: 1;
+}
+
+.mypage-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px 88px;
+}
+
+.back-button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: none;
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.back-button:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.mypage-header {
+  margin: 24px 0 28px;
+}
+
+.mypage-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin-bottom: 10px;
+}
+
+.mypage-header h1 {
+  margin: 0;
+  font-size: 26px;
+  color: var(--text-h);
+}
+
+/* 로그인 카드 */
+.login-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 360px;
+  margin: 0 auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 22px;
+  box-shadow: var(--shadow);
+}
+
+.login-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.login-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 155%;
+  word-break: keep-all;
+}
+
+.login-card input {
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-h);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 13px;
+}
+
+.login-card input:focus-visible {
+  outline: 3px solid var(--accent-border);
+  outline-offset: 1px;
+  border-color: var(--accent-border);
+}
+
+.login-button {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 28px;
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    opacity 0.15s;
+}
+
+.login-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.login-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.auth-error {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--error);
+  word-break: keep-all;
+}
+
+.login-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  transform: none;
+}
+
+/* 로그인 ↔ 회원가입 전환 링크 */
+.switch-mode-button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 2px 0;
+  cursor: pointer;
+}
+
+.switch-mode-button:hover {
+  text-decoration: underline;
+}
+
+/* 프로필 카드 */
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 32px;
+}
+
+.profile-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.profile-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.profile-since {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.logout-button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.logout-button:hover {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+/* 응모한 공모전 목록 */
+section h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  color: var(--text-h);
+}
+
+.contest-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-left: 6px;
+}
+
+.archive-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.archive-header h2 {
+  margin-bottom: 0;
+}
+
+.archive-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.idea-add-button {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    opacity 0.15s;
+}
+
+.idea-add-button:hover {
+  opacity: 0.85;
+}
+
+.idea-add-button[aria-expanded='true'] {
+  transform: rotate(45deg);
+}
+
+.my-contest-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.my-contest-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+
+.my-contest-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.my-contest-info h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.my-contest-meta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.my-contest-applied {
+  margin: 4px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.my-contest-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.my-contest-actions a {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.my-contest-actions a:hover {
+  text-decoration: underline;
+}
+
+.cancel-apply-button {
+  font: inherit;
+  font-size: 11px;
+  color: var(--text);
+  background: none;
+  border: none;
+  padding: 2px 0;
+  cursor: pointer;
+}
+
+.cancel-apply-button:hover {
+  color: var(--error);
+  text-decoration: underline;
+}
+
+/* 응모 목록이 비어 있을 때 */
+.empty-state {
+  text-align: center;
+  background: var(--code-bg);
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  padding: 40px 24px;
+}
+
+.empty-state p {
+  margin: 0 0 18px;
+  font-size: 13px;
+  line-height: 165%;
+  word-break: keep-all;
+}
+
+.empty-button {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--bg);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 11px 28px;
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    background 0.15s;
+}
+
+.empty-button:hover {
+  transform: translateY(-2px);
+  background: var(--accent-bg);
+}
+
+@media (max-width: 600px) {
+  .my-contest-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .my-contest-actions {
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+  }
+}
+
+/* 공모전 알림 센터 */
+.alert-section {
+  margin-top: 72px;
+}
+
+/* 이메일·문자 알림 수신 설정 */
+.notif-setting {
+  margin-bottom: 14px;
+}
+
+.notif-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.notif-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+.notif-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 155%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.notif-preview {
+  font: inherit;
+  font-size: 12px;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.notif-preview:hover {
+  opacity: 0.8;
+}
+
+.notif-preview-ready {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+  word-break: keep-all;
+}
+
+.mypage-inner section + section {
+  margin-top: 84px;
+}
+
+.alert-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alert-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.alert-badge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.alert-badge.tone-today {
+  color: #fff;
+  background: var(--error);
+}
+
+.alert-badge.tone-urgent {
+  color: #fff;
+  background: #d97706;
+}
+
+.alert-badge.tone-upcoming {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+
+.alert-badge.tone-closed {
+  color: var(--text);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+}
+
+.alert-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.alert-meta {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.alert-empty,
+.wishlist-empty {
+  margin: 0;
+  font-size: 13px;
+  line-height: 160%;
+  color: var(--text);
+  word-break: keep-all;
+  background: var(--code-bg);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+/* 관심 목록: 응모 전환 버튼 */
+.apply-from-wish-button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 999px;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    opacity 0.15s;
+}
+
+.apply-from-wish-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.wish-login-hint {
+  font-size: 11px;
+  color: var(--text);
+}
+
+/* 아이디어 보관함 직접 기록 폼 */
+.idea-form-hidden {
+  display: none;
+}
+
+.idea-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+
+.idea-form-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.idea-form input[type='text'],
+.idea-form textarea {
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-h);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 13px;
+  resize: vertical;
+}
+
+.idea-form input[type='text']:focus-visible,
+.idea-form textarea:focus-visible {
+  outline: 3px solid var(--accent-border);
+  outline-offset: 1px;
+  border-color: var(--accent-border);
+}
+
+.idea-form-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.idea-form-row .category-select {
+  flex: 1;
+}
+
+.idea-form-submit {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 11px 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    transform 0.15s,
+    opacity 0.15s;
+}
+
+.idea-form-submit:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.idea-form-message {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* 회고 노트 폼 — 응모 항목 카드 안에서 두 줄째로 펼쳐진다 */
+.retro-form {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px dashed var(--border);
+  padding-top: 12px;
+}
+
+.retro-form-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.retro-rating {
+  display: flex;
+  gap: 2px;
+}
+
+.retro-star {
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--border);
+  cursor: pointer;
+  padding: 2px 4px;
+  transition:
+    color 0.15s,
+    transform 0.1s;
+}
+
+.retro-star:hover {
+  transform: scale(1.15);
+}
+
+.retro-star.on {
+  color: #f59e0b;
+}
+
+.retro-form textarea {
+  font: inherit;
+  font-size: 13px;
+  color: var(--text-h);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.retro-form textarea:focus {
+  outline: 2px solid var(--accent-border);
+}
+
+.retro-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.retro-done {
+  font-size: 11px;
+  font-weight: 700;
+  color: #b45309;
+}
+
+.retro-form-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text);
+}

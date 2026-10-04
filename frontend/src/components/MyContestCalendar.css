@@ -1,0 +1,261 @@
+/* 마이페이지 마감 달력 — 응모·관심 공모전 마감일을 점으로 표시 */
+
+.calendar-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.calendar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+/* 마감 달력 헤더 — 제목 + .ics 내보내기 버튼 3종(전체·응모만·관심만) */
+.calendar-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.calendar-export-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.calendar-export {
+  flex: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 5px 11px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.calendar-export:hover:enabled {
+  opacity: 0.85;
+}
+
+.calendar-export:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.calendar-month {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.calendar-month-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-left: 6px;
+}
+
+.calendar-nav {
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.calendar-nav:hover {
+  color: var(--accent);
+  border-color: var(--accent-border);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-weekday {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  padding: 4px 0;
+}
+
+.calendar-day {
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-height: 44px;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  padding: 6px 2px 4px;
+}
+
+.calendar-day.blank {
+  pointer-events: none;
+}
+
+button.calendar-day.has-entries {
+  cursor: pointer;
+}
+
+button.calendar-day:not(.blank):hover {
+  background: var(--accent-bg);
+}
+
+.calendar-day.selected {
+  outline: 2px solid var(--accent-border);
+}
+
+.calendar-day-num {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+}
+
+.calendar-day.today .calendar-day-num {
+  color: #fff;
+  background: var(--accent);
+}
+
+.calendar-dots {
+  display: flex;
+  gap: 3px;
+}
+
+.calendar-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.dot-applied {
+  background: var(--accent);
+}
+
+.dot-wished {
+  background: #17995f;
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.calendar-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.calendar-detail {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.calendar-detail-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.calendar-detail-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-left: 6px;
+}
+
+.calendar-detail-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.calendar-detail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.calendar-detail-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.calendar-detail-list a {
+  color: var(--text-h);
+  text-decoration: none;
+  font-weight: 600;
+  word-break: keep-all;
+}
+
+.calendar-detail-list a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.calendar-detail-badge {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+}
+
+.calendar-detail-badge.applied {
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+
+.calendar-detail-badge.wished {
+  color: #17995f;
+  background: rgba(23, 153, 95, 0.08);
+  border: 1px solid rgba(23, 153, 95, 0.45);
+}
+
+.calendar-empty {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--text);
+}

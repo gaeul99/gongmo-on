@@ -1,0 +1,299 @@
+/* 공모전 상세 화면 — 검색 결과에서 연 공모전의 소개·응모 방법 */
+
+.detail-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 24px 80px;
+}
+
+/* 히어로: 포스터 + 제목 */
+.detail-hero {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  margin-top: 20px;
+}
+
+.detail-image {
+  width: 220px;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.detail-hero-text {
+  min-width: 0;
+}
+
+.detail-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.detail-field {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.detail-dday {
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  color: var(--text-h);
+}
+
+.detail-dday.tone-today {
+  color: #fff;
+  background: var(--error);
+  border-color: var(--error);
+}
+
+.detail-dday.tone-urgent {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.detail-dday.tone-upcoming {
+  color: #fff;
+  background: #17995f;
+  border-color: #17995f;
+}
+
+.detail-hero-text h1 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  line-height: 1.4;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.detail-organizer {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* 한눈에 보는 정보 */
+.detail-facts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 28px 0 0;
+  padding: 0;
+}
+
+.detail-facts > div {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+.detail-facts dt {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.detail-facts dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+/* 소개·응모 방법 섹션 */
+.detail-inner section {
+  margin-top: 40px;
+}
+
+.detail-inner section h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-h);
+  margin: 0 0 12px;
+}
+
+.detail-desc {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.detail-steps {
+  margin: 0;
+  padding: 0 0 0 4px;
+  list-style: none;
+  counter-reset: step;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-steps li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 38px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.detail-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 액션: 응모 · 사이트 이동 · 관심 */
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 36px;
+}
+
+.detail-apply-button {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 22px;
+  cursor: pointer;
+  transition:
+    transform 0.15s,
+    opacity 0.15s;
+}
+
+.detail-apply-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.detail-site-button {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  border: 1.5px solid var(--accent-border);
+  border-radius: 12px;
+  padding: 11px 20px;
+  transition: background 0.15s;
+}
+
+.detail-site-button:hover {
+  background: var(--accent-bg);
+}
+
+.detail-wish-button {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 11px 16px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.detail-wish-button:hover {
+  opacity: 0.85;
+}
+
+.detail-wish-button.active {
+  color: var(--accent);
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.detail-applied {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #17995f;
+}
+
+.detail-applied button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.detail-applied button:hover {
+  text-decoration: underline;
+}
+
+.detail-closed-note {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* 참고 안내 */
+.detail-note {
+  margin: 28px 0 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text);
+  background: var(--code-bg);
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  word-break: keep-all;
+}
+
+@media (max-width: 640px) {
+  .detail-hero {
+    flex-direction: column;
+  }
+
+  .detail-image {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .detail-facts {
+    grid-template-columns: 1fr;
+  }
+}
