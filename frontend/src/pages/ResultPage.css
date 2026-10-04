@@ -691,3 +691,124 @@
   outline: 3px solid var(--accent-border);
   outline-offset: 3px;
 }
+
+/* 데모 결과일 때 AI 분석을 다시 요청하는 버튼 */
+.retry-analysis-button {
+  display: inline-block;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 8px 18px;
+  margin-top: 12px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.retry-analysis-button:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+/* 응모 2단계 확인 — 실제 응모는 공모전 사이트에서 진행함을 안내 */
+.apply-confirm {
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  background: var(--accent-bg);
+  padding: 12px 14px;
+}
+
+.apply-confirm-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-h);
+  margin: 0 0 10px;
+}
+
+.apply-confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.apply-confirm-site {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-align: center;
+  background: var(--bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  padding: 9px 20px;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.apply-confirm-site:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+
+.apply-confirm-cancel {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: none;
+  padding: 2px 0;
+  cursor: pointer;
+}
+
+.apply-confirm-cancel:hover {
+  color: var(--text-h);
+  text-decoration: underline;
+}
+
+/* 분석 결과 피드백 */
+.feedback-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.feedback-button {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  padding: 10px 22px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.feedback-button:hover {
+  background: var(--accent-bg);
+  transform: translateY(-1px);
+}
+
+.feedback-button.is-active {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.feedback-thanks {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 10px 0 0;
+}

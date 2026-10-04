@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { buildMockAnalysis } from '../services/mockAnalysis.js'
 import { requestAiAnalysis } from '../services/aiAnalysis.js'
+import { recordAnalysisFeedback } from '../services/feedbackService.js'
 import { contests, referenceCases, winnerArchives } from '../data/mockData.js'
 import type { IdeaInput } from './IdeaInputPage'
 import type { AppliedContest, User, WishlistContest } from './MyPage'
@@ -80,6 +81,41 @@ const SUBMISSION_CHECKLIST = [
 ]
 
 const CHECKLIST_KEY = 'idea-navigation:submission-checklist'
+
+const RESULT_FEEDBACK_KEY = 'idea-navigation:result-feedback'
+// 유형 검사 피드백과 같은 브라우저 세션 ID를 공유해 한 사람 한 표를 유지합니다.
+const FEEDBACK_SESSION_KEY = 'gongnabi:feedback-session'
+
+type FeedbackVoteMap = Record<string, 'up' | 'down'>
+
+function loadFeedbackVotes(): FeedbackVoteMap {
+  try {
+    const raw = localStorage.getItem(RESULT_FEEDBACK_KEY)
+    return raw ? (JSON.parse(raw) as FeedbackVoteMap) : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveFeedbackVotes(votes: FeedbackVoteMap) {
+  try {
+    localStorage.setItem(RESULT_FEEDBACK_KEY, JSON.stringify(votes))
+  } catch {
+    // 저장 실패 시에도 화면 동작에는 지장 없습니다.
+  }
+}
+
+function loadFeedbackSessionId(): string {
+  try {
+    const stored = localStorage.getItem(FEEDBACK_SESSION_KEY)
+    if (stored) return stored
+    const fresh = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+    localStorage.setItem(FEEDBACK_SESSION_KEY, fresh)
+    return fresh
+  } catch {
+    return 'anonymous'
+  }
+}
 
 function loadChecklist(): Record<string, boolean> {
   try {
@@ -170,8 +206,15 @@ function ResultPage({
   // 분석이 끝나기 전(analysis === null)에는 '분석 중' 화면을 보여 줍니다.
   // 백엔드가 멈춰 있어도 요청이 실패한 뒤에는 항상 목업 결과로 표시됩니다.
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
+  // AI 요청 실패 후 사용자가 다시 시도하면 1씩 올라가며 분석을 다시 실행합니다.
+  const [attempt, setAttempt] = useState(0)
+  // 실제 응모 안내(2단계)를 보여 주는 추천 공모전 id. 확정·취소하면 null로 돌아갑니다.
+  const [confirmingApplyId, setConfirmingApplyId] = useState<number | null>(null)
   const [checklist, setChecklist] = useState<Record<string, boolean>>(loadChecklist)
+  const [feedbackVotes, setFeedbackVotes] = useState<FeedbackVoteMap>(loadFeedbackVotes)
+  const [sessionId] = useState(loadFeedbackSessionId)
   const checkedCount = SUBMISSION_CHECKLIST.filter((item) => checklist[item]).length
+  const feedbackVote = feedbackVotes[idea.title] ?? null
 
   useEffect(() => {
     // 결과 화면은 아이디어가 바뀔 때마다 새로 마운트되므로 state는 항상 null에서 시작합니다.
@@ -191,7 +234,28 @@ function ResultPage({
     return () => {
       cancelled = true
     }
-  }, [idea])
+  }, [idea, attempt])
+
+  // 데모 결과로 떨어졌을 때 AI 분석을 다시 요청합니다.
+  const retryAnalysis = () => {
+    setAnalysis(null)
+    setConfirmingApplyId(null)
+    setAttempt((n) => n + 1)
+  }
+
+  const handleFeedbackVote = (vote: 'up' | 'down') => {
+    const next = { ...feedbackVotes, [idea.title]: vote }
+    setFeedbackVotes(next)
+    saveFeedbackVotes(next)
+    recordAnalysisFeedback({
+      sessionId,
+      vote,
+      ideaTitle: idea.title,
+      category: idea.category,
+    }).catch(() => {
+      // 백엔드가 꺼져 있어도 화면의 평가 상태는 유지합니다.
+    })
+  }
 
   return (
     <div className="result-page">
@@ -211,6 +275,11 @@ function ResultPage({
               ? 'AI가 입력하신 아이디어를 분석했습니다. 유사 사례·추천 공모전·수상작의 제목·링크 등은 2026년 10월 1일 기준 실제 자료이며, 유사도·추천 점수와 모든 분석 문구는 AI의 참고 의견이므로 제출 전 직접 검토가 필요합니다.'
               : '백엔드 서버에 연결하지 못해 예시 분석을 보여 드려요. 유사 사례·추천 공모전·수상작의 제목·링크 등은 2026년 10월 1일 기준 실제 자료이며, 유사도·추천 점수와 모든 분석 문구는 입력을 반영해 만든 참고 자료입니다.'}
         </p>
+        {analysis?.source === 'demo' && (
+          <button type="button" className="retry-analysis-button" onClick={retryAnalysis}>
+            AI 분석 다시 시도
+          </button>
+        )}
       </header>
 
       <section className="result-section" aria-labelledby="my-idea-title">
@@ -371,19 +440,51 @@ function ResultPage({
                           마이페이지에서 보기 →
                         </button>
                       </div>
+                    ) : user && confirmingApplyId === contest.id ? (
+                      <div className="apply-confirm" role="group" aria-label="응모 확인">
+                        <p className="apply-confirm-text">
+                          실제 응모는 공모전 사이트에서 진행돼요. 사이트에서 제출을 마친 뒤 신청
+                          완료로 표시해 주세요.
+                        </p>
+                        <div className="apply-confirm-actions">
+                          <a
+                            className="apply-confirm-site"
+                            href={contest.url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            공모전 페이지 열기 ↗
+                          </a>
+                          <button
+                            type="button"
+                            className="apply-button"
+                            onClick={() => {
+                              onApplyContest({
+                                id: contest.id,
+                                title: contest.title,
+                                organizer: contest.organizer,
+                                deadline: contest.deadline,
+                                url: contest.url,
+                              })
+                              setConfirmingApplyId(null)
+                            }}
+                          >
+                            신청 완료로 표시
+                          </button>
+                          <button
+                            type="button"
+                            className="apply-confirm-cancel"
+                            onClick={() => setConfirmingApplyId(null)}
+                          >
+                            취소
+                          </button>
+                        </div>
+                      </div>
                     ) : user ? (
                       <button
                         type="button"
                         className="apply-button"
-                        onClick={() =>
-                          onApplyContest({
-                            id: contest.id,
-                            title: contest.title,
-                            organizer: contest.organizer,
-                            deadline: contest.deadline,
-                            url: contest.url,
-                          })
-                        }
+                        onClick={() => setConfirmingApplyId(contest.id)}
                       >
                         이 공모전 응모하기
                       </button>
@@ -482,6 +583,36 @@ function ResultPage({
           >
             점검 처음부터 다시 하기
           </button>
+        )}
+      </section>
+
+      <section className="result-section feedback-section" aria-labelledby="feedback-title">
+        <h2 id="feedback-title">이 분석 결과가 도움이 되었나요?</h2>
+        <p className="feedback-caption">
+          평가는 익명으로 기록되며 서비스 개선에만 사용돼요. 마음이 바뀌면 다시 눌러도 돼요.
+        </p>
+        <div className="feedback-actions" role="group" aria-label="분석 결과 평가">
+          <button
+            type="button"
+            className={feedbackVote === 'up' ? 'feedback-button is-active' : 'feedback-button'}
+            aria-pressed={feedbackVote === 'up'}
+            onClick={() => handleFeedbackVote('up')}
+          >
+            👍 도움이 됐어요
+          </button>
+          <button
+            type="button"
+            className={feedbackVote === 'down' ? 'feedback-button is-active' : 'feedback-button'}
+            aria-pressed={feedbackVote === 'down'}
+            onClick={() => handleFeedbackVote('down')}
+          >
+            👎 아쉬워요
+          </button>
+        </div>
+        {feedbackVote !== null && (
+          <p className="feedback-thanks" role="status">
+            소중한 의견이 기록됐어요.
+          </p>
         )}
       </section>
 

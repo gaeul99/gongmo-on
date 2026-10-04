@@ -14,3 +14,6 @@ backend/src/data/*.json
 
 # 로그·임시 파일
 *.log
+
+# 설계 문서 (로컬에만 보관 — GitLab에는 올리지 않음)
+artifacts/

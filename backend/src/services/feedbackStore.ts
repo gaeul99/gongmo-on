@@ -68,6 +68,42 @@ export function upsertFeedback(input: Omit<FeedbackEntry, 'id' | 'votedAt'>): Fe
   return record
 }
 
+// 아이디어 분석 결과에 대한 👍/👎 평가 한 건. 유형 검사 피드백과 파일을 분리해 보관합니다.
+export type AnalysisFeedbackEntry = {
+  id: string
+  sessionId: string
+  vote: FeedbackVote
+  ideaTitle: string
+  category: string
+  votedAt: string
+}
+
+const ANALYSIS_FEEDBACK_FILE = path.join(DATA_DIR, 'feedback-analysis.json')
+
+function listAnalysisFeedback(): AnalysisFeedbackEntry[] {
+  return readJson<AnalysisFeedbackEntry[]>(ANALYSIS_FEEDBACK_FILE, [])
+}
+
+// 같은 브라우저가 같은 아이디어(제목 기준)에 다시 평가하면 최신 표로 교체합니다.
+export function upsertAnalysisFeedback(
+  input: Omit<AnalysisFeedbackEntry, 'id' | 'votedAt'>,
+): AnalysisFeedbackEntry {
+  const entries = listAnalysisFeedback()
+  const existing = entries.find(
+    (item) => item.sessionId === input.sessionId && item.ideaTitle === input.ideaTitle,
+  )
+  const record: AnalysisFeedbackEntry = {
+    ...input,
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    votedAt: new Date().toISOString(),
+  }
+  const next = existing
+    ? entries.map((item) => (item.id === existing.id ? record : item))
+    : [...entries, record].slice(-MAX_FEEDBACK)
+  writeJson(ANALYSIS_FEEDBACK_FILE, next)
+  return record
+}
+
 export type FeedbackTally = {
   total: number
   up: number

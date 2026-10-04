@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { AppliedContest, User, WishlistContest } from './MyPage'
 import { contests } from '../data/mockData.js'
 import './ContestDetailPage.css'
@@ -39,6 +40,8 @@ function ContestDetailPage({
   onBack,
 }: Props) {
   const contest = contests.find((item) => item.id === contestId)
+  // 실제 응모 안내(2단계)를 보여 줄지 — 확정·취소하면 false로 돌아갑니다.
+  const [confirming, setConfirming] = useState(false)
 
   if (!contest) {
     return (
@@ -129,19 +132,43 @@ function ContestDetailPage({
                 마이페이지에서 보기 →
               </button>
             </div>
+          ) : user && confirming ? (
+            <div className="detail-apply-confirm" role="group" aria-label="응모 확인">
+              <p className="detail-apply-confirm-text">
+                실제 응모는 공모전 사이트에서 진행돼요. 옆의 '공모전 사이트로 이동'에서 제출을
+                마친 뒤 신청 완료로 표시해 주세요.
+              </p>
+              <div className="detail-apply-confirm-actions">
+                <button
+                  type="button"
+                  className="detail-apply-button"
+                  onClick={() => {
+                    onApplyContest({
+                      id: contest.id,
+                      title: contest.title,
+                      organizer: contest.organizer,
+                      deadline: contest.deadline,
+                      url: contest.url,
+                    })
+                    setConfirming(false)
+                  }}
+                >
+                  신청 완료로 표시
+                </button>
+                <button
+                  type="button"
+                  className="detail-apply-confirm-cancel"
+                  onClick={() => setConfirming(false)}
+                >
+                  취소
+                </button>
+              </div>
+            </div>
           ) : user ? (
             <button
               type="button"
               className="detail-apply-button"
-              onClick={() =>
-                onApplyContest({
-                  id: contest.id,
-                  title: contest.title,
-                  organizer: contest.organizer,
-                  deadline: contest.deadline,
-                  url: contest.url,
-                })
-              }
+              onClick={() => setConfirming(true)}
             >
               이 공모전 응모하기
             </button>
