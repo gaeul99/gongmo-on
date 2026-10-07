@@ -1,0 +1,59 @@
+/* 모든 화면 맨 아래에 붙는 공통 푸터. 색은 index.css의 토큰을 그대로 씁니다. */
+.site-footer {
+  margin-top: 56px;
+  padding: 36px 24px 44px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* 문의 안내·버튼·저작권 세 줄을 다닥다닥 붙이는 간격 */
+  gap: 6px;
+  text-align: center;
+}
+
+.site-footer-lead {
+  margin: 0;
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--text-h);
+}
+
+.site-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.site-footer-mail-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 900;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.site-footer-mail-button:hover {
+  text-decoration: underline;
+}
+
+.site-footer-email {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.site-footer-copy {
+  margin: 0;
+  color: var(--text);
+  /* 푸터에서 가장 작은 글줄 — 저작권 문구는 조용히 아래에 깔리게 */
+  font-size: 11px;
+  opacity: 0.85;
+}

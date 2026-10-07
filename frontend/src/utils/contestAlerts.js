@@ -37,6 +37,7 @@ export function buildContestAlerts(applied = [], wishlist = []) {
 
       return {
         id: `${contest.kindLabel}-${contest.id}`,
+        contestId: contest.id,
         title: contest.title,
         kindLabel: contest.kindLabel,
         deadline: contest.deadline,
@@ -68,4 +69,46 @@ export function deadlineStatus(deadline, now = new Date()) {
     tone: left <= 7 ? 'urgent' : 'upcoming',
     label: `D-${left}`,
   }
+}
+
+// 접수가 시작된(또는 시작일 정보가 없는) 공모전인지. startDate가 오늘보다 뒤면
+// 아직 '접수 예정'이므로 접수 중 목록(마키·곧 마감 박스)에서는 제외한다.
+export function isApplicationOpen(contest, now = new Date()) {
+  if (!contest.startDate) return true
+  const start = new Date(`${contest.startDate}T00:00:00`)
+  if (Number.isNaN(start.getTime())) return true
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  return start.getTime() <= startOfToday.getTime()
+}
+
+// 내가 개별로 확인(읽음)한 마감 알림 id 목록. 브라우저마다 따로 저장합니다.
+const DISMISSED_ALERTS_STORAGE_KEY = 'idea-navigation:dismissed-alerts'
+
+export function loadDismissedAlertIds() {
+  try {
+    const raw = localStorage.getItem(DISMISSED_ALERTS_STORAGE_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+export function saveDismissedAlertIds(ids) {
+  try {
+    localStorage.setItem(DISMISSED_ALERTS_STORAGE_KEY, JSON.stringify(ids))
+  } catch {
+    // 저장에 실패해도 이 세션 안에서는 확인 상태를 유지합니다.
+  }
+}
+
+// 마감 상태가 바뀌면(예: 임박 → 오늘 마감) 알림 id는 같아도 내용이 달라지므로,
+// id + tone 조합을 확인 기록의 단위로 쓴다.
+export function alertDismissKey(alert) {
+  return `${alert.id}:${alert.tone}`
+}
+
+export function markAlertDismissed(ids, alert) {
+  const key = alertDismissKey(alert)
+  return ids.includes(key) ? ids : [...ids, key]
 }

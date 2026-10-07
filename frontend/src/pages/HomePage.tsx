@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import ContestMarquee from '../components/ContestMarquee'
 import HeroDeadlines from '../components/HeroDeadlines'
+import HeroUpcoming from '../components/HeroUpcoming'
 import NewContestBanner from '../components/NewContestBanner'
 import { IDEA_EXAMPLES } from '../data/ideaSparks.js'
 import './HomePage.css'
@@ -9,10 +10,11 @@ type Props = {
   onStart: () => void
   onDashboard: () => void
   onTypeTest: () => void
+  onNotes: () => void
   onOpenContest: (id: number) => void
 }
 
-const TYPING_TEXT = '아이디어에서 공모전까지, 가장 빠른 길을 안내해 드립니다.'
+const TYPING_TEXT = '아이디어에서 공모전까지, 가장 빠른 지름길로 안내해 드립니다.'
 
 function useTypewriter(text: string, speed = 40) {
   const [typedLength, setTypedLength] = useState(0)
@@ -52,7 +54,7 @@ function RotatingExample() {
   )
 }
 
-function HomePage({ onStart, onDashboard, onTypeTest, onOpenContest }: Props) {
+function HomePage({ onStart, onDashboard, onTypeTest, onNotes, onOpenContest }: Props) {
   const { typed, done } = useTypewriter(TYPING_TEXT, 75)
 
   return (
@@ -63,7 +65,7 @@ function HomePage({ onStart, onDashboard, onTypeTest, onOpenContest }: Props) {
         <span className="home-glow glow-c" />
       </div>
 
-      <NewContestBanner />
+      <NewContestBanner onOpenContest={onOpenContest} />
 
       <header className="hero">
         <div className="hero-copy">
@@ -77,28 +79,63 @@ function HomePage({ onStart, onDashboard, onTypeTest, onOpenContest }: Props) {
             {typed}
             {!done && <span className="caret" aria-hidden="true" />}
           </p>
-          <p className="description">
-            공내비는 여러분의 아이디어를 국내외 유사 사례와 비교 분석하고,
-            그 결과를 바탕으로 아이디어와 잘 맞는 공모전을 추천해 드립니다.
-          </p>
         </div>
       </header>
 
-      <ContestMarquee />
+      <section className="service-tabs" aria-label="서비스 바로가기">
+        <p className="service-tabs-label">🧭 서비스 바로가기</p>
+        <div className="service-tab-row">
+          <button type="button" className="service-tab" onClick={onTypeTest}>
+            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+              <rect x="4.5" y="3.5" width="15" height="17" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M8.5 9 h7 M8.5 13 h7 M8.5 17 h4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+            <span className="service-tab-text">
+              <span className="service-tab-title">유형 검사</span>
+              <span className="service-tab-sub">30문항 성향 검사로 시작</span>
+            </span>
+          </button>
+          <button type="button" className="service-tab" onClick={onDashboard}>
+            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+              <path d="M6.5 19 V12.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <path d="M12 19 V5.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <path d="M17.5 19 V9.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <line x1="4" y1="19.4" x2="20" y2="19.4" stroke="currentColor" strokeWidth="1.8" />
+            </svg>
+            <span className="service-tab-text">
+              <span className="service-tab-title">대시보드</span>
+              <span className="service-tab-sub">마감·통계 한눈에</span>
+            </span>
+          </button>
+          <button type="button" className="service-tab" onClick={onNotes}>
+            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+              <path
+                d="M5 4.5 h11 l3 3 v12 a1 1 0 0 1 -1 1 H6 a1 1 0 0 1 -1 -1 Z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinejoin="round"
+              />
+              <path d="M8.5 9.5 h7 M8.5 13 h7 M8.5 16.5 h4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+            <span className="service-tab-text">
+              <span className="service-tab-title">
+                연습 노트<span className="service-tab-new">NEW</span>
+              </span>
+              <span className="service-tab-sub">응모 전 심사 연습 노트</span>
+            </span>
+          </button>
+        </div>
+      </section>
 
       <div className="home-start">
         <button type="button" className="start-button" onClick={onStart}>
           아이디어 분석 시작
         </button>
-        <button type="button" className="type-test-link" onClick={onTypeTest}>
-          아직 아이디어가 없나요? 2분 유형 검사로 시작하기 →
-        </button>
         <RotatingExample />
       </div>
 
-      <div className="home-deadlines">
-        <HeroDeadlines onOpenDashboard={onDashboard} onOpenContest={onOpenContest} />
-      </div>
+      <ContestMarquee onOpenContest={onOpenContest} />
 
       <section className="features" aria-labelledby="features-title">
         <h2 id="features-title">이렇게 도와드립니다</h2>
@@ -106,7 +143,7 @@ function HomePage({ onStart, onDashboard, onTypeTest, onOpenContest }: Props) {
           <article className="feature-card">
             <span className="feature-number">1</span>
             <h3>공모전 유형 검사</h3>
-            <p>아직 아이디어가 없어도 괜찮아요. 24문항 검사로 나의 공모전 성향과 어울리는 공모전을 찾아 드립니다.</p>
+            <p>아직 아이디어가 없어도 괜찮아요. 30문항 검사로 나의 공모전 성향과 어울리는 공모전을 찾아 드립니다.</p>
           </article>
           <article className="feature-card">
             <span className="feature-number">2</span>
@@ -126,9 +163,10 @@ function HomePage({ onStart, onDashboard, onTypeTest, onOpenContest }: Props) {
         </div>
       </section>
 
-      <footer className="footer">
-        <p>© 2026 공내비</p>
-      </footer>
+      <div className="home-deadlines">
+        <HeroDeadlines onOpenDashboard={onDashboard} onOpenContest={onOpenContest} />
+        <HeroUpcoming onOpenContest={onOpenContest} />
+      </div>
     </div>
   )
 }

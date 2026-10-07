@@ -9,12 +9,24 @@ type Props = {
   notificationCount?: number;
   // 종 아이콘 패널에 보여 줄 전체 마감 알림 목록
   alerts: ContestAlert[];
+  // 알림 항목을 하나 확인(읽음) 처리 — 확인한 것은 배지 개수에서 빠집니다.
+  onDismissAlert: (alert: ContestAlert) => void;
   onGoHome: () => void;
-  onGoDashboard: () => void;
+  // 목록 아이콘 패널에 모아 보여 줄 전체 서비스 목록
+  menuItems: MenuItem[];
   onGoMyPage: () => void;
   onOpenContest: (id: number) => void;
   onToggleWish: (target: Omit<WishlistContest, "addedAt">) => void;
   wishlistedContestIds: number[];
+};
+
+// 전체 서비스 패널의 한 줄 — 이모지·이름·한 줄 설명·이동 동작
+export type MenuItem = {
+  key: string;
+  emoji: string;
+  label: string;
+  description: string;
+  onSelect: () => void;
 };
 
 const NOTIF_BADGE_TEXT: Record<ContestAlert["tone"], string> = {
@@ -87,8 +99,9 @@ function TopNav({
   loggedIn,
   notificationCount = 0,
   alerts,
+  onDismissAlert,
   onGoHome,
-  onGoDashboard,
+  menuItems,
   onGoMyPage,
   onOpenContest,
   onToggleWish,
@@ -96,6 +109,7 @@ function TopNav({
 }: Props) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -104,18 +118,19 @@ function TopNav({
     searchInputRef.current?.focus();
   }, [searchOpen]);
 
-  // 검색·알림 패널은 Escape로도 닫습니다.
+  // 검색·알림·서비스 패널은 Escape로도 닫습니다.
   useEffect(() => {
-    if (!searchOpen && !notifOpen) return;
+    if (!searchOpen && !notifOpen && !menuOpen) return;
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setSearchOpen(false);
         setNotifOpen(false);
+        setMenuOpen(false);
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [searchOpen, notifOpen]);
+  }, [searchOpen, notifOpen, menuOpen]);
 
   const trimmed = query.trim();
   const results = trimmed
@@ -161,42 +176,43 @@ function TopNav({
         </button>
         <button
           type="button"
-          className="nav-icon-button"
-          onClick={onGoDashboard}
-          aria-label="대시보드"
-          title="대시보드"
+          className={menuOpen ? "nav-icon-button menu-open" : "nav-icon-button"}
+          onClick={() => setMenuOpen((open) => !open)}
+          aria-label="전체 서비스"
+          title="전체 서비스"
+          aria-expanded={menuOpen}
         >
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-            <path
-              d="M6.5 19 V12.5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-            <path
-              d="M12 19 V5.5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-            <path
-              d="M17.5 19 V9.5"
-              fill="none"
+            <line
+              x1="9.5"
+              y1="6.2"
+              x2="19.5"
+              y2="6.2"
               stroke="currentColor"
               strokeWidth="1.8"
               strokeLinecap="round"
             />
             <line
-              x1="4"
-              y1="19.4"
-              x2="20"
-              y2="19.4"
-              fill="none"
+              x1="9.5"
+              y1="12"
+              x2="19.5"
+              y2="12"
               stroke="currentColor"
               strokeWidth="1.8"
+              strokeLinecap="round"
             />
+            <line
+              x1="9.5"
+              y1="17.8"
+              x2="19.5"
+              y2="17.8"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+            <circle cx="4.9" cy="6.2" r="1.3" fill="currentColor" />
+            <circle cx="4.9" cy="12" r="1.3" fill="currentColor" />
+            <circle cx="4.9" cy="17.8" r="1.3" fill="currentColor" />
           </svg>
         </button>
         <button
@@ -297,6 +313,52 @@ function TopNav({
         </button>
       </div>
 
+      {menuOpen && (
+        <div className="menu-overlay" onClick={() => setMenuOpen(false)}>
+          <div
+            className="menu-panel"
+            role="dialog"
+            aria-modal="false"
+            aria-label="전체 서비스 메뉴"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="notif-head">
+              <p className="notif-head-title">전체 서비스</p>
+              <button
+                type="button"
+                className="notif-close"
+                onClick={() => setMenuOpen(false)}
+                aria-label="메뉴 닫기"
+              >
+                ×
+              </button>
+            </div>
+            <ul className="menu-list">
+              {menuItems.map((item) => (
+                <li key={item.key}>
+                  <button
+                    type="button"
+                    className="menu-item"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      item.onSelect();
+                    }}
+                  >
+                    <span className="menu-item-emoji" aria-hidden="true">
+                      {item.emoji}
+                    </span>
+                    <span className="menu-item-text">
+                      <span className="menu-item-label">{item.label}</span>
+                      <span className="menu-item-desc">{item.description}</span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
       {notifOpen && (
         <div className="notif-overlay" onClick={() => setNotifOpen(false)}>
           <div
@@ -324,7 +386,26 @@ function TopNav({
             ) : (
               <ul className="notif-list">
                 {alerts.map((alert) => (
-                  <li key={alert.id} className="notif-item">
+                  <li
+                    key={alert.id}
+                    className="notif-item notif-item-clickable"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${alert.title} 상세 보기`}
+                    onClick={() => {
+                      onDismissAlert(alert);
+                      setNotifOpen(false);
+                      onOpenContest(alert.contestId);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onDismissAlert(alert);
+                        setNotifOpen(false);
+                        onOpenContest(alert.contestId);
+                      }
+                    }}
+                  >
                     <span className={`notif-tone tone-${alert.tone}`}>
                       {NOTIF_BADGE_TEXT[alert.tone]}
                     </span>

@@ -9,6 +9,14 @@ export type IdeaInput = {
   category: string
 }
 
+// 유형 검사 결과 '이 유형으로 아이디어 분석 시작'으로 넘어오는 유형 맞춤 힌트.
+// examples는 설명란에 미리 채워 주는 예시 문장들이고, 화면 제출 값에는 포함되지 않습니다.
+export type TypeIdeaHints = {
+  typeName: string
+  emoji: string
+  examples: string[]
+}
+
 const CATEGORIES = ['환경', '교육', '안전', '복지', '교통', '생활', '기타']
 
 type Props = {
@@ -16,6 +24,8 @@ type Props = {
   onAnalyze: (idea: IdeaInput) => void
   // 유형 검사 결과 등, 화면이 열릴 때 미리 채워 넣을 값
   initialIdea?: IdeaInput | null
+  // 유형 검사에서 넘어온 맞춤 힌트 (없으면 힌트 패널을 보여 주지 않음)
+  typeHints?: TypeIdeaHints | null
 }
 
 type FieldErrors = {
@@ -23,9 +33,12 @@ type FieldErrors = {
   description?: string
 }
 
-function IdeaInputPage({ onBack, onAnalyze, initialIdea }: Props) {
+function IdeaInputPage({ onBack, onAnalyze, initialIdea, typeHints }: Props) {
+  const hints = typeHints?.examples ?? []
   const [title, setTitle] = useState(initialIdea?.title ?? '')
-  const [description, setDescription] = useState(initialIdea?.description ?? '')
+  const [description, setDescription] = useState(
+    () => initialIdea?.description || hints[0] || '',
+  )
   const [category, setCategory] = useState(initialIdea?.category ?? '')
   const [errors, setErrors] = useState<FieldErrors>({})
 
@@ -90,6 +103,32 @@ function IdeaInputPage({ onBack, onAnalyze, initialIdea }: Props) {
           <label htmlFor="idea-description">
             아이디어 설명 <span className="required" aria-hidden="true">*</span>
           </label>
+          {typeHints && hints.length > 0 && (
+            <div className="hint-panel">
+              <p className="hint-panel-title">
+                <span aria-hidden="true">{typeHints.emoji}</span> {typeHints.typeName} 맞춤 아이디어
+                힌트
+              </p>
+              <p className="hint-panel-caption">
+                검사 결과에 어울리는 예시예요. 눌러 넣거나 자유롭게 고쳐 쓰세요.
+              </p>
+              <div className="hint-chips" role="group" aria-label="유형 맞춤 아이디어 힌트">
+                {hints.map((hint, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    className="hint-chip"
+                    onClick={() => {
+                      setDescription(hint)
+                      clearError('description')
+                    }}
+                  >
+                    {hint}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <textarea
             id="idea-description"
             value={description}

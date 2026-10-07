@@ -76,8 +76,8 @@
 
 .result-header h1 {
   margin: 12px 0 8px;
-  font-size: clamp(22px, 4vw, 26px);
-  font-weight: 700;
+  font-size: clamp(24px, 4.5vw, 30px);
+  font-weight: 500;
 }
 
 .result-caption {
@@ -92,6 +92,108 @@
 .result-section h2 {
   margin: 0 0 16px;
   font-size: 18px;
+}
+
+/* --- 제안서 초안 만들기 --- */
+.proposal-intro {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  word-break: keep-all;
+}
+
+.proposal-waiting {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.proposal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.proposal-copy,
+.proposal-download,
+.proposal-toggle {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.proposal-copy:hover,
+.proposal-download:hover,
+.proposal-toggle:hover {
+  border-color: var(--accent-border);
+}
+
+.proposal-copy {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+
+.proposal-preview {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 22px;
+}
+
+.proposal-title-line {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.proposal-meta-line {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  color: var(--accent);
+  word-break: keep-all;
+}
+
+.proposal-block {
+  margin-top: 12px;
+}
+
+.proposal-block h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--text-h);
+}
+
+.proposal-block ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.proposal-block li {
+  font-size: 13px;
+  line-height: 160%;
+  word-break: keep-all;
+}
+
+.proposal-note {
+  margin: 16px 0 0;
+  font-size: 12px;
+  color: var(--text);
+  word-break: keep-all;
 }
 
 /* 내 아이디어 */
@@ -141,6 +243,8 @@
 
 .duplication-notice p {
   margin-top: 4px;
+  /* 문장 안의 줄바꿈(\n)을 화면에도 반영 — 'AI 분석…' 문장은 다음 줄에 표시 */
+  white-space: pre-line;
   word-break: keep-all;
 }
 
@@ -273,6 +377,128 @@
   border-radius: 16px;
   padding: 20px 24px;
   line-height: 170%;
+  /* 문장 안의 줄바꿈(\n)을 화면에도 반영 */
+  white-space: pre-line;
+  word-break: keep-all;
+}
+
+/* 예시로 따라해 보기 — 차별화 문장을 실제 예시로 단계별로 만들어 보는 패널 */
+.diff-example-toggle {
+  margin: 12px 0 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.diff-example-toggle.is-open {
+  color: #fff;
+  background: var(--accent);
+}
+
+.diff-example {
+  margin: 14px 0 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.diff-example-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  counter-reset: diff-step;
+}
+
+.diff-example-steps li {
+  counter-increment: diff-step;
+  position: relative;
+  padding-left: 34px;
+}
+
+.diff-example-steps li::before {
+  content: counter(diff-step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.diff-example-steps strong {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text-h);
+}
+
+.diff-example-steps p {
+  margin: 3px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.diff-example-steps .diff-example-final {
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.diff-example-compare {
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.diff-example-compare p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 10px 12px;
+  border-radius: 10px;
+  word-break: keep-all;
+}
+
+.diff-example-compare .diff-bad {
+  background: rgba(229, 72, 77, 0.08);
+  color: var(--error);
+  font-weight: 600;
+}
+
+.diff-example-compare .diff-good {
+  background: rgba(31, 180, 111, 0.1);
+  color: #17995f;
+  font-weight: 600;
+}
+
+.diff-example-note {
+  margin: 14px 0 0;
+  font-size: 12.5px;
+  color: var(--text);
+  border-top: 1px dashed var(--border);
+  padding-top: 12px;
   word-break: keep-all;
 }
 
@@ -703,7 +929,6 @@
   border: 1px solid var(--accent-border);
   border-radius: 999px;
   padding: 8px 18px;
-  margin-top: 12px;
   cursor: pointer;
   transition:
     background 0.15s,
@@ -713,6 +938,52 @@
 .retry-analysis-button:hover {
   background: var(--accent-bg);
   border-color: var(--accent);
+}
+
+/* 로딩 중 AI 분석 지연 안내 */
+.result-loading-hint {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  line-height: 160%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+/* AI 분석 실패 공지 — 재시도 경로를 명확히 제시 */
+.analysis-retry {
+  margin-top: 16px;
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  background: var(--accent-bg);
+  padding: 14px 18px;
+  text-align: left;
+}
+
+.analysis-retry-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.analysis-retry-desc {
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 160%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.analysis-retry-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.analysis-retry-count {
+  font-size: 12px;
+  color: var(--text);
 }
 
 /* 응모 2단계 확인 — 실제 응모는 공모전 사이트에서 진행함을 안내 */
@@ -728,6 +999,22 @@
   line-height: 1.5;
   color: var(--text-h);
   margin: 0 0 10px;
+}
+
+.apply-confirm-title {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.apply-confirm-steps {
+  margin: 0 0 10px;
+  padding-left: 18px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text);
+  word-break: keep-all;
 }
 
 .apply-confirm-actions {
@@ -772,43 +1059,143 @@
   text-decoration: underline;
 }
 
-/* 분석 결과 피드백 */
-.feedback-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+/* --- 아이디어 상세 분석 --- */
+.detail-panel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
 }
 
-.feedback-button {
-  font: inherit;
-  font-size: 14px;
+.detail-summary {
+  margin: 0;
+  font-size: 15px;
   font-weight: 600;
+  line-height: 170%;
+  color: var(--text-h);
+  word-break: keep-all;
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+}
+
+.detail-target {
+  margin-top: 20px;
+}
+
+.detail-target h4,
+.detail-block h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.target-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.target-chips li {
+  font-size: 12.5px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 5px 12px;
+  word-break: keep-all;
+}
+
+.detail-grid {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.detail-block {
+  background: var(--code-bg);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.detail-block ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detail-block li {
+  font-size: 13px;
+  line-height: 165%;
+  word-break: keep-all;
+}
+
+.detail-note {
+  margin: 18px 0 0;
+  font-size: 12px;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+@media (max-width: 640px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- 추천 공모전 페이지네이션 --- */
+.contest-pagination {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.contest-pagination-info {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.contest-pagination-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.contest-pagination-buttons button {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  min-width: 34px;
+  padding: 7px 10px;
   color: var(--accent);
   background: var(--bg);
   border: 1px solid var(--accent-border);
-  border-radius: 10px;
-  padding: 10px 22px;
+  border-radius: 8px;
   cursor: pointer;
   transition:
     background 0.15s,
-    border-color 0.15s,
-    transform 0.15s;
+    border-color 0.15s;
 }
 
-.feedback-button:hover {
+.contest-pagination-buttons button:hover:not(:disabled) {
   background: var(--accent-bg);
-  transform: translateY(-1px);
 }
 
-.feedback-button.is-active {
+.contest-pagination-buttons button.active {
   color: #fff;
   background: var(--accent);
   border-color: var(--accent);
 }
 
-.feedback-thanks {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent);
-  margin: 10px 0 0;
+.contest-pagination-buttons button:disabled {
+  opacity: 0.4;
+  cursor: default;
 }

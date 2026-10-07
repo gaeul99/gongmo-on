@@ -16,7 +16,6 @@ export type SubscriberContest = {
 export type Subscriber = {
   nickname: string
   email?: string | undefined
-  phone?: string | undefined
   ideaCategories: string[]
   contests: SubscriberContest[]
   optIn: boolean
@@ -28,11 +27,11 @@ export type Subscriber = {
 export type OutboxEntry = {
   id: string
   at: string
-  channel: 'email' | 'sms'
+  channel: 'email'
   to: string
   subject?: string
   text: string
-  // 실제 발송 여부 — 'smtp' | 'solapi'는 실제 전송, 'log'는 설정 부재로 기록만
+  // 실제 발송 여부 — 'smtp'는 실제 전송, 'log'는 설정 부재로 기록만
   via: string
 }
 
@@ -63,10 +62,6 @@ function writeJson(file: string, value: unknown) {
 
 export function listSubscribers(): Subscriber[] {
   return readJson<Subscriber[]>(SUBSCRIBERS_FILE, [])
-}
-
-export function getSubscriber(nickname: string): Subscriber | undefined {
-  return listSubscribers().find((item) => item.nickname === nickname)
 }
 
 export function upsertSubscriber(input: Omit<Subscriber, 'sentKeys' | 'updatedAt'>): Subscriber {
@@ -104,15 +99,10 @@ export function appendOutbox(entry: Omit<OutboxEntry, 'id' | 'at'>): OutboxEntry
   return record
 }
 
-export function listOutbox(limit = 50): OutboxEntry[] {
-  return readJson<OutboxEntry[]>(OUTBOX_FILE, []).slice(-limit)
-}
-
 export type NotificationStats = {
   subscribers: number
   byChannel: {
     email: { total: number; real: number }
-    sms: { total: number; real: number }
   }
   recent: OutboxEntry[]
 }
@@ -124,12 +114,12 @@ export function getNotificationStats(): NotificationStats {
     const rows = outbox.filter((entry) => entry.channel === channel)
     return {
       total: rows.length,
-      real: rows.filter((entry) => entry.via === 'smtp' || entry.via === 'solapi').length,
+      real: rows.filter((entry) => entry.via === 'smtp').length,
     }
   }
   return {
     subscribers: listSubscribers().length,
-    byChannel: { email: tally('email'), sms: tally('sms') },
+    byChannel: { email: tally('email') },
     recent: outbox.slice(-3).reverse(),
   }
 }

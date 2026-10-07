@@ -26,8 +26,8 @@
 
 .dashboard-header h1 {
   margin: 12px 0 8px;
-  font-size: clamp(22px, 4vw, 26px);
-  font-weight: 700;
+  font-size: clamp(24px, 4.5vw, 30px);
+  font-weight: 500;
   color: var(--text-h);
 }
 
@@ -37,6 +37,37 @@
   line-height: 170%;
   color: var(--text);
   word-break: keep-all;
+}
+
+/* 로그인 상태 — 배지를 채워 개인 화면임을 구분 */
+.dashboard-header.is-personal .dashboard-badge {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* 로그아웃 상태의 로그인 유도 버튼 */
+.dash-login-cta {
+  margin: -12px 0 24px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 9px 18px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dash-login-cta:hover {
+  border-color: var(--accent);
+}
+
+.dash-login-cta:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* --- 요약 KPI --- */
@@ -90,14 +121,6 @@
 }
 
 /* --- 패널 공통 --- */
-/* 아이디어 스파크 패널 정리 후 알림 발송 현황 단독 — 한 컬럼 */
-.dashboard-duo {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
 .dash-panel {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -105,10 +128,6 @@
   padding: 16px;
   min-width: 0;
   margin-bottom: 12px;
-}
-
-.dashboard-duo .dash-panel {
-  margin-bottom: 0;
 }
 
 .panel-head {
@@ -211,7 +230,7 @@
 
 .deadline-title {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-h);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -249,13 +268,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* --- 분야별 분포 --- */
-.field-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
+/* --- 분야 막대(도전 히스토리 '도전한 분야' 등) --- */
 .field-row {
   display: grid;
   grid-template-columns: 48px 1fr 20px;
@@ -293,149 +306,78 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* --- 알림 발송 현황 --- */
-.notif-summary {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.notif-subscribers {
-  font-size: 13px;
-  color: var(--text-h);
-}
-
-.notif-subscribers b {
-  font-size: 16px;
-  font-variant-numeric: tabular-nums;
-}
-
-.notif-channels {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.notif-channel {
-  font-size: 12.5px;
-  color: var(--text);
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.notif-via {
-  font-style: normal;
-  font-size: 11px;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-
-.notif-recent {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.notif-recent-row {
+/* --- 도전 히스토리(내 응모 결과의 성장 기록) --- */
+.challenge-layout {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 8px;
+  grid-template-columns: minmax(260px, 1fr) minmax(220px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.challenge-counts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.challenge-count {
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  gap: 2px;
+  padding: 14px 8px;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 11.5px;
+  border-radius: 12px;
+  background: var(--panel);
+  text-align: center;
 }
 
-.notif-recent-channel {
-  color: var(--accent);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.notif-recent-text {
+.challenge-num {
+  font-family: var(--heading);
+  font-size: 22px;
+  line-height: 1.1;
   color: var(--text-h);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.notif-recent-time {
-  color: var(--text);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 
-/* --- 참고 자료 --- */
-.ref-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+.challenge-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+}
 
-  @media (max-width: 640px) {
+.challenge-count.is-total .challenge-num {
+  color: var(--accent);
+}
+
+.challenge-count.is-won .challenge-num {
+  color: #1fb46f;
+}
+
+.challenge-count.is-lost .challenge-num {
+  color: var(--error);
+}
+
+.challenge-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.challenge-fields-title {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+@media (max-width: 720px) {
+  .challenge-layout {
     grid-template-columns: 1fr;
   }
 }
 
-.ref-list li {
-  min-width: 0;
-}
-
-.ref-list a {
-  display: block;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 12px;
-  text-decoration: none;
-  transition: border-color 0.15s, background 0.15s;
-  height: 100%;
-  box-sizing: border-box;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.ref-list a:hover {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-}
-
-.ref-title {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 1.45;
-  color: var(--text-h);
-  overflow-wrap: anywhere;
-}
-
-.ref-sub {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 3px;
-  font-size: 11px;
-  color: var(--text);
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.ref-arrow {
-  color: var(--accent);
-  white-space: nowrap;
-}
-
-/* --- 지난 공모전 아카이브 --- */
+/* --- 로드맵 공모전 선택 탭 --- */
 .archive-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -464,84 +406,6 @@
   border-color: var(--accent);
   background: var(--accent);
   color: #fff;
-}
-
-.archive-note {
-  margin: 0 0 10px;
-  font-size: 12px;
-  color: var(--text);
-}
-
-.archive-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.archive-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 12px;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.archive-row:hover {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-}
-
-.archive-year {
-  flex: 0 0 auto;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--accent);
-  border: 1px solid var(--accent-border);
-  border-radius: 8px;
-  padding: 2px 7px;
-  margin-top: 1px;
-}
-
-.archive-main {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.archive-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-h);
-  text-decoration: none;
-}
-
-.archive-row:hover .archive-title {
-  color: var(--accent);
-  text-decoration: underline;
-}
-
-.archive-meta {
-  font-size: 11.5px;
-  color: var(--text);
-}
-
-.archive-elig {
-  font-size: 11px;
-  color: var(--text);
-  opacity: 0.85;
-}
-
-.archive-arrow {
-  margin-left: auto;
-  color: var(--accent);
-  font-size: 13px;
-  flex: 0 0 auto;
 }
 
 /* --- 목록 페이지 네비게이션 --- */
@@ -580,4 +444,179 @@
   border-color: var(--accent);
   background: var(--accent);
   color: #fff;
+}
+
+/* --- 출품 로드맵(5단계 출품 경로) --- */
+.roadmap-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.roadmap-next {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text);
+  min-width: 0;
+}
+
+.roadmap-next b {
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.roadmap-percent {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.roadmap-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.roadmap-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.2s;
+}
+
+.roadmap-stages {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  counter-reset: roadmap-stage;
+}
+
+.roadmap-stage {
+  counter-increment: roadmap-stage;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  padding: 12px 14px 14px;
+  min-width: 0;
+}
+
+.roadmap-stage.is-active {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.roadmap-stage.is-done {
+  opacity: 0.72;
+}
+
+.roadmap-stage.is-over {
+  border-color: var(--error);
+}
+
+.roadmap-stage-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.roadmap-stage-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.roadmap-stage-label::before {
+  content: counter(roadmap-stage);
+  display: inline-block;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  line-height: 17px;
+  text-align: center;
+  margin-right: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.roadmap-stage.is-done .roadmap-stage-label::before {
+  content: '✓';
+}
+
+.roadmap-due {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.roadmap-stage.is-over .roadmap-due {
+  color: var(--error);
+  font-weight: 700;
+}
+
+.roadmap-tasks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.roadmap-tasks label {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+  cursor: pointer;
+  word-break: keep-all;
+}
+
+.roadmap-tasks label input {
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.roadmap-tasks label.is-checked span {
+  text-decoration: line-through;
+  opacity: 0.66;
+}
+
+.roadmap-tasks label.is-checked {
+  color: var(--text);
+}
+
+/* 모바일: 페이지 버튼·탭·제목 링크를 손가락 탭 크기로 키운다 */
+@media (max-width: 640px) {
+  .pager-btn {
+    padding: 8px 12px;
+  }
+
+  .archive-tab {
+    padding: 8px 14px;
+  }
+
+  .archive-title {
+    display: inline-block;
+    padding: 5px 0;
+  }
 }

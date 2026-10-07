@@ -7,12 +7,10 @@ import {
 } from '../data/contestTypeTest.js'
 import { contests } from '../data/mockData.js'
 import { deadlineStatus } from '../utils/contestAlerts.js'
-import { recordFeedback } from '../services/feedbackService.js'
+import type { TypeIdeaHints } from './IdeaInputPage'
 import './TypeTestPage.css'
 
 const LAST_RESULT_KEY = 'gongnabi:type-test'
-const FEEDBACK_VOTES_KEY = 'gongnabi:type-test-feedback'
-const FEEDBACK_SESSION_KEY = 'gongnabi:feedback-session'
 
 type LastResult = {
   typeId: string
@@ -27,38 +25,6 @@ type TestResult = {
   type: ContestType
   percentage: number
   distribution: ScoreRow[]
-}
-
-type VoteMap = Record<string, 'up' | 'down'>
-
-function loadVotes(): VoteMap {
-  try {
-    const raw = localStorage.getItem(FEEDBACK_VOTES_KEY)
-    return raw ? (JSON.parse(raw) as VoteMap) : {}
-  } catch {
-    return {}
-  }
-}
-
-function saveVotes(votes: VoteMap) {
-  try {
-    localStorage.setItem(FEEDBACK_VOTES_KEY, JSON.stringify(votes))
-  } catch {
-    // 저장에 실패해도 이 세션 안에서는 투표 상태를 유지합니다.
-  }
-}
-
-// 재평가 시 같은 표를 교체하기 위한 익명 세션 ID. 백엔드 계정이 없어 브라우저 단위로 구분합니다.
-function loadSessionId(): string {
-  try {
-    const stored = localStorage.getItem(FEEDBACK_SESSION_KEY)
-    if (stored) return stored
-    const fresh = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
-    localStorage.setItem(FEEDBACK_SESSION_KEY, fresh)
-    return fresh
-  } catch {
-    return 'anonymous'
-  }
 }
 
 function loadLastResult(): LastResult | null {
@@ -80,8 +46,8 @@ function saveLastResult(result: LastResult) {
 
 type Props = {
   onBack: () => void
-  // 결과 유형의 관심 분야를 입력 화면에 미리 채우면서 분석을 시작합니다.
-  onGoInput: (category: string) => void
+  // 결과 유형의 관심 분야와 맞춤 힌트를 입력 화면에 미리 채우면서 분석을 시작합니다.
+  onGoInput: (category: string, hints: TypeIdeaHints) => void
 }
 
 type Stage = 'intro' | 'quiz' | 'result'
@@ -104,8 +70,6 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
   const [result, setResult] = useState<TestResult | null>(null)
   const [lastResult, setLastResult] = useState<LastResult | null>(loadLastResult)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
-  const [votes, setVotes] = useState<VoteMap>(loadVotes)
-  const [sessionId] = useState(loadSessionId)
 
   // 답하지 않은 첫 문항이 현재 문항입니다. 전부 답했으면 마지막 문항을 가리킵니다.
   const firstEmpty = answers.findIndex((answer) => answer === null)
@@ -178,25 +142,6 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
     }
   }
 
-  // 추천 평가를 로컬에 저장하고 백엔드에 기록합니다. 백엔드 실패는 조용히 무시합니다.
-  const handleVote = (contestId: number, contestTitle: string, vote: 'up' | 'down') => {
-    if (!resultTypeId) return
-    const key = `${resultTypeId}:${contestId}`
-    if (votes[key] === vote) return
-    const next = { ...votes, [key]: vote }
-    setVotes(next)
-    saveVotes(next)
-    recordFeedback({
-      sessionId,
-      typeId: resultTypeId,
-      contestId,
-      contestTitle,
-      vote,
-    }).catch(() => {
-      // 백엔드가 꺼져 있어도 로컬 투표는 유지합니다.
-    })
-  }
-
   return (
     <div className="type-test-page">
       {stage !== 'quiz' && (
@@ -217,7 +162,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
           </header>
           <section className="type-test-panel type-test-intro">
             <ul className="type-test-points">
-              <li>총 {TYPE_TEST_QUESTIONS.length}문항 · 약 2분</li>
+              <li>총 {TYPE_TEST_QUESTIONS.length}문항 · 약 3분</li>
               <li>결과는 7가지 공내비 유형 중 하나 + 성향 일치율</li>
               <li>결과 화면에서 접수 중인 공모전 3곳을 추천</li>
             </ul>
@@ -382,13 +327,11 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
           <section className="type-test-panel">
             <h2 className="type-test-panel-title">이 유형에게 추천하는 공모전</h2>
             <p className="type-test-panel-caption">
-              지금 접수 중인 공모전 중에서 골랐어요. 추천이 어땠나요? 각 공모전에 👍/👎로 알려
-              주세요.
+              지금 접수 중인 공모전 중에서 골랐어요. 마감일을 확인해 보세요.
             </p>
             <ul className="type-test-contest-list">
               {recommendations.map((contest) => {
                 const status = deadlineStatus(contest.deadline)
-                const voteKey = `${resultTypeId}:${contest.id}`
                 return (
                   <li key={contest.id} className="type-test-contest-item">
                     <span className={`type-test-deadline tone-${status.tone}`}>
@@ -402,30 +345,6 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
                         {contest.organizer} · 마감 {contest.deadline}
                       </p>
                     </div>
-                    <div className="type-test-votes" role="group" aria-label="추천 평가">
-                      <button
-                        type="button"
-                        className={`vote-button${
-                          votes[voteKey] === 'up' ? ' is-active' : ''
-                        }`}
-                        aria-pressed={votes[voteKey] === 'up'}
-                        aria-label={`${contest.title} 추천이 도움이 됐어요`}
-                        onClick={() => handleVote(contest.id, contest.title, 'up')}
-                      >
-                        👍
-                      </button>
-                      <button
-                        type="button"
-                        className={`vote-button${
-                          votes[voteKey] === 'down' ? ' is-active' : ''
-                        }`}
-                        aria-pressed={votes[voteKey] === 'down'}
-                        aria-label={`${contest.title} 추천이 맞지 않아요`}
-                        onClick={() => handleVote(contest.id, contest.title, 'down')}
-                      >
-                        👎
-                      </button>
-                    </div>
                   </li>
                 )
               })}
@@ -435,7 +354,13 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
               <button
                 type="button"
                 className="type-test-analyze"
-                onClick={() => onGoInput(result.type.primaryCategory)}
+                onClick={() =>
+                  onGoInput(result.type.primaryCategory, {
+                    typeName: result.type.name,
+                    emoji: result.type.emoji,
+                    examples: result.type.ideaHints,
+                  })
+                }
               >
               이 유형으로 아이디어 분석 시작
             </button>

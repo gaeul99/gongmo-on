@@ -6,7 +6,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  padding: 14px 22px 0;
+  padding: 8px 22px 0;
 }
 
 .nav-menu-row {
@@ -14,7 +14,7 @@
   justify-content: center;
   align-items: center;
   gap: 10px;
-  padding: 12px 22px 14px;
+  padding: 6px 22px 8px;
   /* 메뉴 행과 본문을 가르는 가로선 */
   border-bottom: 1px solid var(--border);
 }
@@ -24,8 +24,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   color: var(--accent);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
@@ -35,6 +35,12 @@
     background 0.15s,
     border-color 0.15s,
     transform 0.15s;
+}
+
+/* 글리프(SVG) 크기 — 모바일 축소는 index.css의 body zoom이 일괄 처리한다 */
+.nav-icon-button svg {
+  width: 18px;
+  height: 18px;
 }
 
 .nav-icon-button:hover {
@@ -56,19 +62,21 @@
   border: 2px solid var(--bg);
 }
 
-/* 확인할 알림 개수 배지 (마이페이지·종 버튼, 오늘 마감·임박 공모전 수) */
+/* 확인할 알림 개수 배지 (마이페이지·종 버튼, 오늘 마감·임박 공모전 수)
+   border-box 19px + 모서리 밖으로 밀어 글리프를 가리지 않게 한다 */
 .nav-badge {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  min-width: 18px;
-  height: 18px;
+  top: -8px;
+  right: -8px;
+  box-sizing: border-box;
+  min-width: 19px;
+  height: 19px;
   padding: 0 5px;
-  border-radius: 9px;
+  border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
   line-height: 1;
   color: #fff;
@@ -76,10 +84,86 @@
   border: 2px solid var(--bg);
 }
 
-/* 열림 상태 종 버튼 */
-.nav-icon-button.notif-open {
+/* 열림 상태 버튼 (종·목록 아이콘 공통) */
+.nav-icon-button.notif-open,
+.nav-icon-button.menu-open {
   background: var(--accent);
   color: #fff;
+}
+
+/* 목록 아이콘 전체 서비스 패널 — 메뉴 행 왼쪽 아래로 펼친다 */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.menu-panel {
+  position: absolute;
+  top: 56px;
+  left: max(16px, calc(50% - 380px));
+  width: min(300px, calc(100vw - 32px));
+  max-height: min(70vh, 480px);
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 14px 10px 10px;
+}
+
+.menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* width 100% + padding 조합 — 전역 border-box 규칙이 없어 명시 필요 */
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 10px;
+  font: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.menu-item:hover {
+  background: var(--accent-bg);
+}
+
+.menu-item-emoji {
+  font-size: 19px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.menu-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.menu-item-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.menu-item-desc {
+  font-size: 12px;
+  color: var(--text);
 }
 
 /* 종 아이콘 알림 패널 — 메뉴 행 오른쪽 아래로 펼친다 */
@@ -91,7 +175,7 @@
 
 .notif-panel {
   position: absolute;
-  top: 76px;
+  top: 56px;
   right: max(16px, calc(50% - 380px));
   width: min(340px, calc(100vw - 32px));
   max-height: min(70vh, 480px);
@@ -124,7 +208,7 @@
   line-height: 1;
   color: var(--text);
   cursor: pointer;
-  padding: 2px 6px;
+  padding: 6px 8px;
   border-radius: 6px;
 }
 
@@ -178,8 +262,8 @@
 
 .notif-tone.tone-urgent {
   color: #fff;
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--error);
+  border-color: var(--error);
 }
 
 .notif-tone.tone-upcoming {
@@ -378,4 +462,15 @@
   font-size: 12px;
   color: var(--text);
   word-break: keep-all;
+}
+
+/* 알림 항목 클릭 → 공모전 상세 화면 이동 */
+.notif-item-clickable {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.notif-item-clickable:hover,
+.notif-item-clickable:focus-visible {
+  background: var(--accent-bg);
 }

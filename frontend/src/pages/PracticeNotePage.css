@@ -1,0 +1,452 @@
+/* 연습 노트 — 응모 전 심사 관점 연습 노트 화면.
+   입력 화면(IdeaInputPage)의 폭·필드 스타일과 같은 계열로 맞췄다. */
+
+.notes-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 24px 88px;
+  box-sizing: border-box;
+  font-size: 14px;
+
+  @media (max-width: 768px) {
+    padding: 32px 20px 64px;
+  }
+}
+
+.back-button {
+  align-self: flex-start;
+  font: inherit;
+  font-size: 13px;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.back-button:hover {
+  text-decoration: underline;
+}
+
+/* 헤더 — 제목 + 무엇을 준비하는 노트인지 안내 */
+.notes-header h1 {
+  margin: 12px 0 8px;
+  font-size: clamp(24px, 4.5vw, 30px);
+  font-weight: 500;
+}
+
+.notes-header p {
+  color: var(--text);
+  line-height: 165%;
+  word-break: keep-all;
+}
+
+/* 도구 줄 — 새 노트 만들기 + 분석으로 이어가는 입구 */
+.notes-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 22px;
+}
+
+.notes-new-button {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.notes-new-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.notes-to-input {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.notes-to-input:hover {
+  text-decoration: underline;
+}
+
+/* 비어 있을 때 */
+.notes-empty {
+  margin-top: 26px;
+  padding: 34px 20px;
+  text-align: center;
+  background: var(--code-bg);
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+}
+
+.notes-empty p {
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.notes-empty-sub {
+  margin-top: 6px;
+  font-weight: 400 !important;
+  font-size: 13px;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.notes-empty-button {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  padding: 9px 18px;
+  margin-top: 16px;
+  cursor: pointer;
+}
+
+.notes-empty-button:hover {
+  opacity: 0.9;
+}
+
+/* 노트 목록 */
+.notes-list {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.note-card {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.note-card-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font: inherit;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.note-card-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.note-card-main:hover .note-card-title {
+  color: var(--accent);
+}
+
+.note-card-pitch {
+  font-size: 13px;
+  line-height: 155%;
+  color: var(--text);
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.note-card-meta {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.note-card-delete {
+  align-self: center;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.note-card-delete:hover {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+/* 작성 화면 */
+.note-editor {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.note-editor h1 {
+  margin: 12px 0 0;
+  font-size: clamp(22px, 4vw, 28px);
+  font-weight: 500;
+}
+
+.note-editor-lead {
+  margin-top: 8px;
+  color: var(--text);
+  line-height: 165%;
+  word-break: keep-all;
+}
+
+.note-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.note-field label {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-h);
+}
+
+.note-required {
+  color: var(--error);
+}
+
+.note-optional {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--text);
+  margin-left: 6px;
+  word-break: keep-all;
+}
+
+.note-field input[type='text'],
+.note-field textarea,
+.note-qa input[type='text'],
+.note-qa textarea {
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.note-field textarea,
+.note-qa textarea {
+  resize: vertical;
+  line-height: 160%;
+  word-break: keep-all;
+}
+
+.note-field input::placeholder,
+.note-field textarea::placeholder,
+.note-qa input::placeholder,
+.note-qa textarea::placeholder {
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.note-field input:focus-visible,
+.note-field textarea:focus-visible,
+.note-qa input:focus-visible,
+.note-qa textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.note-field input[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+.note-error {
+  font-size: 12px;
+  color: var(--error);
+}
+
+/* 예상 질문·답변 묶음 */
+.note-qa {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--code-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.note-qa legend {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-h);
+  padding: 0 4px;
+}
+
+.note-qa-lead {
+  font-size: 12.5px;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.note-qa-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.note-qa-remove {
+  align-self: flex-start;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.note-qa-remove:hover {
+  color: var(--error);
+  text-decoration: underline;
+}
+
+.note-qa-add {
+  align-self: flex-start;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--bg);
+  border: 1px dashed var(--accent-border);
+  border-radius: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.note-qa-add:hover {
+  background: var(--accent-bg);
+}
+
+/* 저장·취소 */
+.note-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.note-save-button {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 11px 24px;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.note-save-button:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.note-cancel-button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: none;
+  padding: 8px 4px;
+  cursor: pointer;
+}
+
+.note-cancel-button:hover {
+  color: var(--text-h);
+  text-decoration: underline;
+}
+
+/* 실전 팁 */
+.notes-tips {
+  margin-top: 40px;
+  padding: 18px 20px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 14px;
+}
+
+.notes-tips h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.notes-tips ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notes-tips li {
+  position: relative;
+  padding-left: 16px;
+  font-size: 13px;
+  line-height: 165%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.notes-tips li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}

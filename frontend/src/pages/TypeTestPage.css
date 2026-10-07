@@ -15,19 +15,16 @@
 
 .type-test-badge {
   display: inline-block;
+  margin: 0 0 16px;
   font-size: 12px;
   font-weight: 600;
   color: var(--accent);
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-  border-radius: 999px;
-  padding: 6px 14px;
 }
 
 .type-test-header h1 {
   margin: 12px 0 8px;
-  font-size: clamp(22px, 4vw, 26px);
-  font-weight: 700;
+  font-size: clamp(24px, 4.5vw, 30px);
+  font-weight: 500;
   color: var(--text-h);
 }
 
@@ -528,15 +525,15 @@
   white-space: nowrap;
 }
 
-/* 마감 표시 3톤: 오늘 마감 빨강, 임박 보라, 여유 초록 */
+/* 마감 표시 3톤: 오늘 마감 채운 빨강, 임박 연한 빨강, 여유 초록 */
 .type-test-deadline.tone-today {
   color: var(--error);
   background: rgba(229, 72, 77, 0.12);
 }
 
 .type-test-deadline.tone-urgent {
-  color: var(--accent);
-  background: var(--accent-bg);
+  color: var(--error);
+  background: rgba(229, 72, 77, 0.12);
 }
 
 .type-test-deadline.tone-upcoming {
@@ -570,40 +567,6 @@
   margin: 3px 0 0;
   font-size: 12px;
   color: var(--text);
-}
-
-.type-test-votes {
-  flex: none;
-  display: flex;
-  gap: 6px;
-}
-
-.vote-button {
-  width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  line-height: 1;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  cursor: pointer;
-  transition:
-    border-color 0.15s,
-    background 0.15s;
-}
-
-.vote-button:hover {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-}
-
-.vote-button.is-active {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
-  box-shadow: inset 0 0 0 1px var(--accent-border);
 }
 
 .type-test-actions {

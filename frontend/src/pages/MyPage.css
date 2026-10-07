@@ -139,7 +139,7 @@
   color: var(--accent);
   background: none;
   border: none;
-  padding: 2px 0;
+  padding: 8px 0;
   cursor: pointer;
 }
 
@@ -211,6 +211,44 @@
   border-color: var(--error);
 }
 
+.profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* 회원정보 수정 — 프로필 카드의 버튼으로 열고 닫는다 */
+.profile-edit-button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.profile-edit-button:hover,
+.profile-edit-button[aria-expanded='true'] {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+@media (max-width: 560px) {
+  .profile-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 /* 응모한 공모전 목록 */
 section h2 {
   margin: 0 0 16px;
@@ -244,8 +282,8 @@ section h2 {
 }
 
 .idea-add-button {
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -316,6 +354,52 @@ section h2 {
   font-size: 11px;
   font-weight: 600;
   color: var(--accent);
+}
+
+/* 응모 결과 기록 칩(진행 중·수상·탈락) — 대시보드 도전 히스토리의 재료 */
+.result-group {
+  display: inline-flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.result-chip {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+}
+
+.result-chip:hover {
+  border-color: var(--accent-border);
+}
+
+.result-chip.is-active {
+  color: #fff;
+  border-color: transparent;
+  background: var(--text);
+}
+
+.result-chip.tone-progress.is-active {
+  background: var(--accent);
+}
+
+.result-chip.tone-won.is-active {
+  background: #1fb46f;
+}
+
+.result-chip.tone-lost.is-active {
+  background: var(--error);
 }
 
 .my-contest-actions {
@@ -406,7 +490,7 @@ section h2 {
   margin-top: 72px;
 }
 
-/* 이메일·문자 알림 수신 설정 */
+/* 이메일 알림 수신 설정 */
 .notif-setting {
   margin-bottom: 14px;
 }
@@ -435,13 +519,55 @@ section h2 {
   word-break: keep-all;
 }
 
+/* 주간 새 공모전 이메일 */
+.weekly-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.weekly-send-button {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-top: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--accent);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.weekly-send-button:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
+.weekly-send-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.weekly-status {
+  margin: 8px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  word-break: keep-all;
+}
+
 .notif-preview {
   font: inherit;
   font-size: 12px;
   color: var(--accent);
   background: none;
   border: none;
-  padding: 0;
+  padding: 6px 0;
   text-decoration: underline;
   cursor: pointer;
 }
@@ -481,6 +607,26 @@ section h2 {
   padding: 12px 14px;
 }
 
+/* 오늘 마감·임박 알림만 붙는 확인 버튼 — 누르면 그 항목만 배지 개수에서 빠진다 */
+.alert-dismiss {
+  flex-shrink: 0;
+  margin-left: auto;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.alert-dismiss:hover {
+  background: var(--accent-bg);
+}
+
 .alert-badge {
   flex-shrink: 0;
   font-size: 11px;
@@ -496,7 +642,7 @@ section h2 {
 
 .alert-badge.tone-urgent {
   color: #fff;
-  background: #d97706;
+  background: var(--error);
 }
 
 .alert-badge.tone-upcoming {
@@ -519,7 +665,7 @@ section h2 {
 .alert-title {
   margin: 0;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-h);
   word-break: keep-all;
 }
@@ -650,78 +796,167 @@ section h2 {
   color: var(--accent);
 }
 
-/* 회고 노트 폼 — 응모 항목 카드 안에서 두 줄째로 펼쳐진다 */
-.retro-form {
-  flex-basis: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-top: 1px dashed var(--border);
-  padding-top: 12px;
+/* --- 데이터 관리 (내보내기·가져오기) --- */
+.data-section {
+  margin-top: 34px;
 }
 
-.retro-form-title {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-h);
+.data-caption {
+  margin: 6px 0 14px;
+  font-size: 12.5px;
+  line-height: 160%;
+  color: var(--text);
   word-break: keep-all;
 }
 
-.retro-rating {
+.data-actions {
   display: flex;
-  gap: 2px;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
-.retro-star {
-  background: none;
-  border: none;
-  font-size: 24px;
-  line-height: 1;
-  color: var(--border);
+.data-export-button {
+  border: 1px solid var(--accent-border);
+  background: var(--bg);
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 9px 16px;
   cursor: pointer;
-  padding: 2px 4px;
-  transition:
-    color 0.15s,
-    transform 0.1s;
 }
 
-.retro-star:hover {
-  transform: scale(1.15);
+.data-export-button:hover {
+  background: var(--accent-bg);
 }
 
-.retro-star.on {
-  color: #f59e0b;
+.data-import-label {
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  color: var(--text-h);
+  font-size: 12.5px;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 9px 16px;
+  cursor: pointer;
 }
 
-.retro-form textarea {
+.data-import-label:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.data-import-input {
+  display: none;
+}
+
+.data-status {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--text);
+}
+
+/* --- 회원정보 수정 --- */
+.profile-edit {
+  margin: 14px 0 0;
+  padding: 16px 18px 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.profile-edit h2 {
+  margin: 0;
+  font-size: 15.5px;
+  color: var(--text-h);
+}
+
+.profile-edit-hint {
+  margin: 6px 0 14px;
+  font-size: 12.5px;
+  line-height: 165%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.profile-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 14px;
+}
+
+.profile-edit-grid label {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.profile-edit-grid input {
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 12px;
+  min-width: 0;
+}
+
+.profile-edit-grid input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent-border);
+}
+
+.profile-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.profile-save-button {
   font: inherit;
   font-size: 13px;
-  color: var(--text-h);
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 10px;
-  resize: vertical;
-}
-
-.retro-form textarea:focus {
-  outline: 2px solid var(--accent-border);
-}
-
-.retro-form-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.retro-done {
-  font-size: 11px;
   font-weight: 700;
-  color: #b45309;
+  color: #fff;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 9px 20px;
+  cursor: pointer;
+  transition: opacity 0.15s;
 }
 
-.retro-form-note {
+.profile-save-button:hover {
+  opacity: 0.9;
+}
+
+.profile-save-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.profile-edit-status {
   margin: 0;
-  font-size: 11px;
-  color: var(--text);
+  font-size: 12.5px;
+  word-break: keep-all;
+}
+
+.profile-edit-status.tone-ok {
+  color: var(--ok, #17995f);
+}
+
+.profile-edit-status.tone-error {
+  color: var(--error);
+}
+
+@media (max-width: 640px) {
+  .profile-edit-grid {
+    grid-template-columns: 1fr;
+  }
 }

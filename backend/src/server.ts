@@ -5,16 +5,19 @@ import type { NextFunction, Request, Response } from "express";
 import { ideaRouter } from "./routes/idea.routes";
 import { chatRouter } from "./routes/chat.routes";
 import { notificationRouter } from "./routes/notification.routes";
-import { feedbackRouter } from "./routes/feedback.routes";
+import { accountRouter, userDataRouter } from "./routes/account.routes";
 import { startNotificationScheduler } from "./services/notificationScheduler";
-import { emailConfigured, smsConfigured } from "./services/notificationSenders";
+import { emailConfigured } from "./services/notificationSenders";
+import { getAiTokenNotice } from "./services/ai.service";
+import { pruneExpiredSessions } from "./services/userStore";
 
 dotenv.config();
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+// 사용자 데이터(아이디어 분석 스냅숏 포함)가 커질 수 있어 기본 100kb를 넉넉히 올립니다.
+app.use(express.json({ limit: "2mb" }));
 
 // 3000 포트는 데이터 전용 API 서버라서 화면은 따로 없다. 브라우저로 직접 열었을 때
 // "Cannot GET /" 대신 웹사이트 주소를 안내해 주는 용도의 페이지.
@@ -83,6 +86,7 @@ app.get("/", (_req, res) => {
   }
   .get { background: #e7f6ec; color: #1e7c3a; }
   .post { background: #f1eafd; color: #6d28d9; }
+  .put { background: #fff6e0; color: #b45309; }
   .desc { margin-left: auto; color: #9a94ad; font-size: 12px; }
   footer { margin-top: 24px; font-size: 12px; color: #b3adc2; }
 </style>
@@ -103,12 +107,13 @@ app.get("/", (_req, res) => {
       <div class="row"><span class="method post">POST</span><code>/api/chat</code><span class="desc">나비 챗봇</span></div>
       <div class="row"><span class="method get">GET</span><code>/api/chat/config</code><span class="desc">챗봇 서버 키 보유 여부</span></div>
       <div class="row"><span class="method post">POST</span><code>/api/notifications/subscribe</code><span class="desc">알림 구독 등록</span></div>
-      <div class="row"><span class="method get">GET</span><code>/api/notifications/stats</code><span class="desc">알림 발송 통계</span></div>
-      <div class="row"><span class="method get">GET</span><code>/api/notifications/outbox</code><span class="desc">발송 기록</span></div>
-      <div class="row"><span class="method get">GET</span><code>/api/notifications/channels</code><span class="desc">채널 상태</span></div>
+      <div class="row"><span class="method get">GET</span><code>/api/notifications/stats</code><span class="desc">알림 발송 통계 (챗봇 근거)</span></div>
       <div class="row"><span class="method post">POST</span><code>/api/notifications/run</code><span class="desc">알림 수동 점검</span></div>
-      <div class="row"><span class="method post">POST</span><code>/api/feedback</code><span class="desc">유형 검사 추천 평가 기록</span></div>
-      <div class="row"><span class="method get">GET</span><code>/api/feedback/stats</code><span class="desc">추천 평가 집계</span></div>
+      <div class="row"><span class="method post">POST</span><code>/api/auth/signup</code><span class="desc">회원가입 (계정 서버 저장)</span></div>
+      <div class="row"><span class="method post">POST</span><code>/api/auth/login</code><span class="desc">로그인</span></div>
+      <div class="row"><span class="method post">POST</span><code>/api/auth/logout</code><span class="desc">로그아웃</span></div>
+      <div class="row"><span class="method get">GET</span><code>/api/userdata</code><span class="desc">내 데이터 불러오기</span></div>
+      <div class="row"><span class="method put">PUT</span><code>/api/userdata</code><span class="desc">내 데이터 저장</span></div>
     </section>
     <footer>GongNabi API &middot; 개발 서버 &middot; http://localhost:3000</footer>
   </main>
@@ -126,7 +131,8 @@ app.get("/api/health", (req, res) => {
 app.use("/api/ideas", ideaRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/notifications", notificationRouter);
-app.use("/api/feedback", feedbackRouter);
+app.use("/api/auth", accountRouter);
+app.use("/api/userdata", userDataRouter);
 
 // JSON 파싱 실패 등 라우트에서 잡지 못한 오류도 표준 응답 형식({ success, error })으로 돌려줍니다.
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
@@ -147,10 +153,14 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");
   console.log(
-    `[알림] 이메일: ${emailConfigured() ? "SMTP 발송" : "로그 모드(SMTP 미설정)"} / 문자: ${
-      smsConfigured() ? "Solapi 발송" : "로그 모드(Solapi 미설정)"
-    }`,
+    `[알림] 이메일: ${emailConfigured() ? "SMTP 발송" : "로그 모드(SMTP 미설정)"}`,
   );
+  // 게이트웨이 토큰(JWT)은 유효기간이 있어 만료되면 분석·챗봇이 함께 멈춘다.
+  // 시작 시 남은 기간을 보여 관리자가 미리 갱신하도록 한다.
+  const tokenNotice = getAiTokenNotice();
+  if (tokenNotice) console.log(tokenNotice);
+  // 만료된 로그인 세션을 시작 때 한 번 정리합니다.
+  pruneExpiredSessions();
   startNotificationScheduler();
 });
 

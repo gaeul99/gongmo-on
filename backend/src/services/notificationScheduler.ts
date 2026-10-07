@@ -1,13 +1,13 @@
 // ==========================================================
 // 공모전 마감 알림 스케줄러
 // 30분마다 구독자의 응모·관심 공모전 마감일을 확인해
-// D-7·D-3·당일에 이메일과 문자로 알립니다.
+// D-7·D-3·당일에 이메일로 알립니다.
 // 같은 알림을 하루에 여러 번 보내지 않도록 sentKeys로 기록합니다.
 // ==========================================================
 
 import type { Subscriber } from './notificationStore'
 import { listSubscribers, saveSubscriber } from './notificationStore'
-import { sendEmail, sendSms } from './notificationSenders'
+import { sendEmail } from './notificationSenders'
 
 const CHECK_INTERVAL_MS = 30 * 60 * 1000
 const REMIND_DAYS_BEFORE = [7, 3, 0]
@@ -28,7 +28,7 @@ function daysUntil(deadline: string, now = new Date()): number | null {
 }
 
 async function notifySubscriber(subscriber: Subscriber, now = new Date()): Promise<number> {
-  if (!subscriber.optIn || (!subscriber.email && !subscriber.phone)) return 0
+  if (!subscriber.optIn || !subscriber.email) return 0
 
   const today = todayKey(now)
   const seen = new Set(subscriber.sentKeys)
@@ -55,10 +55,8 @@ async function notifySubscriber(subscriber: Subscriber, now = new Date()): Promi
     ]
       .filter(Boolean)
       .join('\n')
-    const smsText = `[공내비] '${contest.title}' ${when}이에요. 마감 ${contest.deadline}.`
 
     if (subscriber.email) await sendEmail(subscriber.email, emailSubject, emailText)
-    if (subscriber.phone) await sendSms(subscriber.phone, smsText)
     sentCount += 1
   }
 

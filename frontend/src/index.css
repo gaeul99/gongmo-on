@@ -8,8 +8,6 @@
   --accent: #6d28d9;
   --accent-bg: rgba(109, 40, 217, 0.1);
   --accent-border: rgba(109, 40, 217, 0.5);
-  /* 제목 볼드 보강용 스트로크(HomePage) 색 */
-  --accent-stroke: #5b21b6;
   /* 첫화면 배경 광원(HomePage .home-glow)과 그라데이션 색 */
   --glow-a: rgba(124, 58, 237, 0.1);
   --glow-b: rgba(23, 153, 95, 0.1);
@@ -21,7 +19,8 @@
     rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* 제목용 폰트 — 묵직한 Black Han Sans(브랜드 임팩트용). 로드 실패 시 시스템 글꼴로 대체 */
+  --heading: 'Black Han Sans', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
   font: 18px/145% var(--sans);
@@ -52,7 +51,6 @@
   --accent: #7c3aed;
   --accent-bg: rgba(139, 92, 246, 0.16);
   --accent-border: rgba(167, 139, 250, 0.5);
-  --accent-stroke: #a78bfa;
   --glow-a: rgba(139, 92, 246, 0.17);
   --glow-b: rgba(31, 180, 111, 0.14);
   --grad-a: rgba(139, 92, 246, 0.12);
@@ -84,12 +82,20 @@
 
 body {
   margin: 0;
+
+  /* 모바일: 아이콘·글씨·여백 전체를 웹보다 작게(70% 축척).
+     zoom은 자식 전체에 상속되므로 px 고정값도 함께 줄어든다. */
+  @media (max-width: 768px) {
+    zoom: 0.7;
+  }
 }
 
 h1,
 h2 {
   font-family: var(--heading);
   font-weight: 500;
+  /* 조상의 고정 줄높이를 상속해 큰 제목이 줄 상자에 잘리지 않게 함 */
+  line-height: 1.2;
   color: var(--text-h);
 }
 

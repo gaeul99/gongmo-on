@@ -1,7 +1,9 @@
 // 공모전에서 빛나는 방식에 따라 유형을 찾아 주는 짧은 자가 진단입니다.
 // 심리 진단이 아닌 아이디어·공모전 선택을 위한 재미있는 참고 결과입니다.
 
-// 총 24문항. 각 선택지는 한 유형에 2점, 관련 유형에 1점을 줍니다.
+// 총 30문항. 각 선택지는 한 유형에 2점, 관련 유형에 1점을 줍니다.
+// 2점 슬롯은 7개 유형에 골고루 배분돼 있어요(유형당 17~18개) — 특정 유형으로
+// 기우는 구조적 편향이 생기지 않게 하기 위함입니다.
 export const TYPE_TEST_QUESTIONS = [
   {
     id: 'spark',
@@ -19,7 +21,7 @@ export const TYPE_TEST_QUESTIONS = [
     options: [
       { text: '해결해야 하는 사회 문제와 목표', scores: { civic: 2, solver: 1 } },
       { text: '제출 형식과 결과물의 기술적 조건', scores: { maker: 2, explorer: 1 } },
-      { text: '참신함과 표현의 자유도', scores: { creator: 2, storyteller: 1 } },
+      { text: '참신함과 표현의 자유도', scores: { storyteller: 2, creator: 1 } },
       { text: '팀을 꾸릴 수 있는지와 사람들의 반응', scores: { connector: 2, civic: 1 } },
     ],
   },
@@ -38,7 +40,7 @@ export const TYPE_TEST_QUESTIONS = [
     question: '내 아이디어가 어떤 변화를 만들면 가장 뿌듯할까요?',
     options: [
       { text: '누군가의 불편한 일상이 실제로 편해지는 것', scores: { solver: 2, civic: 1 } },
-      { text: '전에 없던 방식으로 새로운 가능성을 여는 것', scores: { explorer: 2, creator: 1 } },
+      { text: '전에 없던 방식으로 새로운 가능성을 여는 것', scores: { creator: 2, explorer: 1 } },
       { text: '많은 사람이 공감하고 이야기를 나누는 것', scores: { storyteller: 2, connector: 1 } },
       { text: '지역이나 공동체가 더 따뜻해지는 것', scores: { civic: 2, connector: 1 } },
     ],
@@ -47,8 +49,8 @@ export const TYPE_TEST_QUESTIONS = [
     id: 'material',
     question: '아이디어를 발전시킬 때 가장 잘하는 것은?',
     options: [
-      { text: '사용자의 입장에서 문제를 구체화하기', scores: { solver: 2, connector: 1 } },
-      { text: '데이터와 사례를 찾아 근거 만들기', scores: { explorer: 2, civic: 1 } },
+      { text: '사람들의 입장에 서서 문제를 구체화하기', scores: { connector: 2, solver: 1 } },
+      { text: '데이터와 사례를 찾아 근거 만들기', scores: { civic: 2, explorer: 1 } },
       { text: '기억에 남는 문장과 콘셉트 만들기', scores: { storyteller: 2, creator: 1 } },
       { text: '직접 만들고 테스트하며 완성도 높이기', scores: { maker: 2, creator: 1 } },
     ],
@@ -77,7 +79,7 @@ export const TYPE_TEST_QUESTIONS = [
     id: 'output',
     question: '만들고 싶은 공모전 결과물은 무엇에 가깝나요?',
     options: [
-      { text: '구체적인 정책이나 서비스 제안서', scores: { solver: 2, civic: 1 } },
+      { text: '구체적인 정책이나 서비스 제안서', scores: { civic: 2, solver: 1 } },
       { text: '작동하는 앱·프로토타입·데이터 시각화', scores: { maker: 2, explorer: 1 } },
       { text: '영상·캠페인·사람을 움직이는 콘텐츠', scores: { storyteller: 2, connector: 1 } },
       { text: '포스터·제품·새로운 시각 디자인', scores: { creator: 2, maker: 1 } },
@@ -117,7 +119,7 @@ export const TYPE_TEST_QUESTIONS = [
     id: 'next-level',
     question: '다음 공모전에 완승하려면 무엇이 가장 필요할까요?',
     options: [
-      { text: '더 단단한 데이터와 근거', scores: { explorer: 2, civic: 1 } },
+      { text: '더 단단한 데이터와 근거', scores: { civic: 2, explorer: 1 } },
       { text: '더 완성도 높은 시제품', scores: { maker: 2, solver: 1 } },
       { text: '더 많은 사람의 목소리와 참여', scores: { connector: 2, storyteller: 1 } },
       { text: '더 새로운 표현과 콘셉트', scores: { creator: 2, storyteller: 1 } },
@@ -129,7 +131,7 @@ export const TYPE_TEST_QUESTIONS = [
     options: [
       { text: '문제 하나에 집중할 수 있는 조용한 곳', scores: { solver: 2, explorer: 1 } },
       { text: '자료와 도구를 마음껏 쓸 수 있는 곳', scores: { explorer: 2, maker: 1 } },
-      { text: '사람들과 이야기가 오가는 활기찬 곳', scores: { connector: 2, storyteller: 1 } },
+      { text: '사람들과 이야기가 오가는 활기찬 곳', scores: { storyteller: 2, connector: 1 } },
       { text: '나만의 감각에 몰입할 수 있는 곳', scores: { creator: 2, storyteller: 1 } },
     ],
   },
@@ -148,7 +150,7 @@ export const TYPE_TEST_QUESTIONS = [
     question: '친구가 고민을 상담해 왔다. 나의 첫 마디는?',
     options: [
       { text: '"문제를 하나씩 쪼개서 순서를 정해 보자"', scores: { solver: 2, maker: 1 } },
-      { text: '"비슷한 사례를 찾아서 참고해 보자"', scores: { explorer: 2, civic: 1 } },
+      { text: '"비슷한 사례를 찾아서 참고해 보자"', scores: { civic: 2, explorer: 1 } },
       { text: '"네 이야기가 사람들에게 전해지게 해 보자"', scores: { storyteller: 2, connector: 1 } },
       { text: '"그 마음, 같이 있어 줄게"', scores: { connector: 2, civic: 1 } },
     ],
@@ -197,7 +199,7 @@ export const TYPE_TEST_QUESTIONS = [
     id: 'conflict',
     question: '팀원과 의견이 갈렸을 때 나는?',
     options: [
-      { text: '"기준을 정해서 객관적으로 비교하자"', scores: { explorer: 2, civic: 1 } },
+      { text: '"공공성 관점에서 더 나은 쪽을 골라 보자"', scores: { civic: 2, explorer: 1 } },
       { text: '"각자 작은 시제품을 만들어 보고 골라자"', scores: { maker: 2, solver: 1 } },
       { text: '"서로의 의도를 먼저 이야기해 보자"', scores: { connector: 2, storyteller: 1 } },
       { text: '"주제 취지에 더 맞는 쪽으로 가자"', scores: { civic: 2, solver: 1 } },
@@ -243,11 +245,72 @@ export const TYPE_TEST_QUESTIONS = [
       { text: '사람들과의 추억 사진 정리', scores: { connector: 2, civic: 1 } },
     ],
   },
+  {
+    id: 'medium',
+    question: '내 생각을 가장 잘 펼쳐 보일 수 있는 방법은?',
+    options: [
+      { text: '짧은 영상·카피로 이야기를 푸는 것', scores: { storyteller: 2, creator: 1 } },
+      { text: '화면 시안·포스터로 그려 보이는 것', scores: { creator: 2, maker: 1 } },
+      { text: '작동하는 프로토타입으로 굴려 보이는 것', scores: { maker: 2, explorer: 1 } },
+      { text: '정책 제안서로 논리를 펼치는 것', scores: { civic: 2, solver: 1 } },
+    ],
+  },
+  {
+    id: 'weekend',
+    question: '한가한 주말 오전에 가장 끌리는 일은?',
+    options: [
+      { text: '동네를 걸으며 불편한 점 찾기', scores: { civic: 2, solver: 1 } },
+      { text: '새로 나온 앱·기술 따라 해 보기', scores: { explorer: 2, maker: 1 } },
+      { text: '지인들 모임을 기획하고 다 데려오기', scores: { connector: 2, storyteller: 1 } },
+      { text: '사진을 찍고 색감으로 다듬기', scores: { creator: 2, storyteller: 1 } },
+    ],
+  },
+  {
+    id: 'judge-seat',
+    question: '내가 심사위원이라면 가장 높은 점수를 줄 결과물은?',
+    options: [
+      { text: '설문·데이터로 근거를 증명한 제안서', scores: { civic: 2, explorer: 1 } },
+      { text: '직접 만들어 돌아가는 시제품', scores: { maker: 2, solver: 1 } },
+      { text: '마음을 울리는 한 편의 캠페인', scores: { storyteller: 2, connector: 1 } },
+      { text: '정책·제도를 바꿀 구체적인 방안', scores: { civic: 2, solver: 1 } },
+    ],
+  },
+  {
+    id: 'presentation',
+    question: '결과물 발표에서 맡고 싶은 몫은?',
+    options: [
+      { text: '기획 논리를 순서대로 정리하기', scores: { solver: 2, maker: 1 } },
+      { text: '시연 화면을 직접 굴려 보여 주기', scores: { maker: 2, explorer: 1 } },
+      { text: '팀이 현장에서 들은 목소리 전하기', scores: { connector: 2, storyteller: 1 } },
+      { text: '슬라이드 비주얼로 첫인상 잡기', scores: { creator: 2, maker: 1 } },
+    ],
+  },
+  {
+    id: 'group-work',
+    question: '공동 작업에서 사람들이 나에게 찾아오는 이유는?',
+    options: [
+      { text: '막힌 문제를 정리해 주려고', scores: { solver: 2, explorer: 1 } },
+      { text: '"매끄러운 발표 문장을 다듬어 주려고"', scores: { storyteller: 2, maker: 1 } },
+      { text: '분위기가 가라앉았을 때', scores: { connector: 2, storyteller: 1 } },
+      { text: '뭔가 멋진 걸 만들고 싶을 때', scores: { maker: 2, creator: 1 } },
+    ],
+  },
+  {
+    id: 'dream',
+    question: '10년 뒤 내 모습 중 가장 끌리는 그림은?',
+    options: [
+      { text: '사회 문제를 제안으로 풀어내는 사람', scores: { civic: 2, solver: 1 } },
+      { text: '새 기술로 전에 없던 것을 만드는 사람', scores: { explorer: 2, maker: 1 } },
+      { text: '사람들의 이야기에 목소리가 되는 사람', scores: { storyteller: 2, connector: 1 } },
+      { text: '세상의 장면을 예쁘게 바꾸는 사람', scores: { creator: 2, maker: 1 } },
+    ],
+  },
 ]
 
-// 결과 유형 6개. keywords는 접수 중 공모전(mockData.js의 contests)의 제목·분야에서
+// 결과 유형 7개. keywords는 접수 중 공모전(mockData.js의 contests)의 제목·분야에서
 // 추천 후보를 뽑을 때 쓰는 단어이고, primaryCategory는 '이 유형으로 분석 시작'을 눌렀을 때
 // 입력 화면의 관심 분야로 미리 채워지는 값(입력 화면 CATEGORIES 중 하나)입니다.
+// ideaHints는 같은 버튼을 눌렀을 때 입력 화면 설명란에 미리 채워 주는 유형 맞춤 예시 문장입니다.
 export const CONTEST_TYPES = {
   solver: {
     id: 'solver',
@@ -279,6 +342,11 @@ export const CONTEST_TYPES = {
     },
     keywords: ['아이디어', '정책', '서비스', '생활'],
     primaryCategory: '생활',
+    ideaHints: [
+      '대학가 식당 "줄 서기" 스트레스를 줄이는 실시간 혼잡 알림 앱을 제안합니다. 학생들이 대기 인원을 미리 보고 빈 식당을 고를 수 있어 이동·대기 시간을 아껴 줍니다.',
+      '도서관 좌석에 물건만 두고 비어 있는 문제를, 30분 간격 간단 인증으로 자리를 되돌려 주는 좌석 관리 시스템으로 해결해 보려 합니다.',
+      '분실물이 주인을 찾지 못하는 문제를 학교·지역 단위 통합 등록 앱으로 풀어, 습득물 등록부터 수령 알림까지 한 번에 연결합니다.',
+    ],
   },
   explorer: {
     id: 'explorer',
@@ -309,6 +377,11 @@ export const CONTEST_TYPES = {
     },
     keywords: ['AI', '데이터', '디지털', '기술'],
     primaryCategory: '기타',
+    ideaHints: [
+      '지하철역 사진 한 장으로 주변 카페 혼잡도를 AI가 추정해 알려 주는 서비스를 실험해 보려 합니다.',
+      '시각장애인용 키오스크에 음성 AI를 접목해 메뉴 탐색부터 결제까지 말로 끝내는 주문 경험을 만들어 보려 합니다.',
+      '교과서 페이지를 찍으면 핵심 개념 정리와 예상 문제를 만들어 주는 AI 학습 도구를 제안합니다.',
+    ],
   },
   maker: {
     id: 'maker',
@@ -340,6 +413,11 @@ export const CONTEST_TYPES = {
     },
     keywords: ['창업', '경영', '외식', '애플리케이션', '경제'],
     primaryCategory: '생활',
+    ideaHints: [
+      '자주 잃어버리는 물건에 태그를 달고, 사진으로 등록한 위치를 기준으로 찾아 주는 미니 앱을 직접 만들어 보려 합니다.',
+      '매일의 식단 기록을 사진 한 장으로 끝내는 프로토타입 앱을 만들어, 실제로 일주일 써 볼 수 있는 수준까지 구현해 보려 합니다.',
+      '한 번 쓰고 버려지는 택배 상자를 모아 재사용하는 캠퍼스 회수함 시제품을 제안합니다.',
+    ],
   },
   storyteller: {
     id: 'storyteller',
@@ -370,6 +448,11 @@ export const CONTEST_TYPES = {
     },
     keywords: ['콘텐츠', '영상', '캠페인', '문화'],
     primaryCategory: '기타',
+    ideaHints: [
+      '"퇴근길 5분"이라는 장면 하나로 시작해, 하루를 정리하는 작은 습관을 만들어 주는 캠페인을 기획합니다.',
+      '떨어져 사는 가족과의 설날 통화 장면으로 시작하는 감성 콘텐츠 시리즈를 제안합니다.',
+      '버려진 우산을 모아 다시 나눠 주는 동네 순환 이야기를 3편의 짧은 영상으로 담아 봅니다.',
+    ],
   },
   creator: {
     id: 'creator',
@@ -400,6 +483,11 @@ export const CONTEST_TYPES = {
     },
     keywords: ['디자인', '미술', '사진', '제품'],
     primaryCategory: '기타',
+    ideaHints: [
+      '지루한 대기 시간을 색과 그림으로 바꾸는 "쉬어가는 횡단보도" 같은 도시 디자인을 제안합니다.',
+      '하루의 기분을 한 장의 포스터에 담는 "감정 온도계" 일러스트 시리즈로 기록의 즐거움을 전달합니다.',
+      '한식 도시락의 여백을 살린 미니멀 포장 디자인으로, 먹는 즐거움을 눈으로 먼저 전달합니다.',
+    ],
   },
   connector: {
     id: 'connector',
@@ -430,6 +518,11 @@ export const CONTEST_TYPES = {
     },
     keywords: ['복지', '교육', '지역', '참여'],
     primaryCategory: '복지',
+    ideaHints: [
+      '1인 가구 어르신의 안부를 이웃 인증으로 확인하는 "종이 종소리" 프로젝트를 제안합니다.',
+      '이주 배경 아동의 첫 학기 적응을 돕는 버디 매칭 프로그램을 기획합니다.',
+      '동네 문제를 주민 목소리로 모아 답하는 "동네 응답함" 참여 플랫폼을 만들어 봅니다.',
+    ],
   },
   civic: {
     id: 'civic',
@@ -460,29 +553,42 @@ export const CONTEST_TYPES = {
     },
     keywords: ['환경', '공공', '정책', '지속가능'],
     primaryCategory: '환경',
+    ideaHints: [
+      '카페 일회용컵을 줄이기 위해 개인 컵 보증금 앱을 지역 단위로 시범 운영하는 정책을 제안합니다.',
+      '통학 시간대 학교 앞 횡단보도 사고 데이터를 근거로 안전 요원 배치를 요청하는 제안서를 만듭니다.',
+      '동 단위 음식물 쓰레기를 줄이는 포인트 리워드 캠페인을 지속 가능하게 운영하는 방안을 제안합니다.',
+    ],
   },
 }
 
 // answers: 질문 순서대로 고른 선택지 번호(0부터) 배열. 부분 응답이어도 계산됩니다.
 // percentage는 결과 유형의 성향 일치율(%) — 한 문항에서 한 유형이 받을 수 있는 최대 2점,
 // 즉 전체 문항수 × 2점을 100% 기준으로 환산한 값입니다.
+// 동점 처리는 '강한 신호(2점 선택) 개수'로 가릅니다 — 점수만 같아도 확신 있게 고른
+// 유형이 더 정확한 결과이기 때문입니다. 그래도 같으면 기존처럼 유형 정의 순서를 따릅니다.
 export function calculateContestType(answers) {
-  const scores = Object.keys(CONTEST_TYPES).reduce((result, id) => {
+  const initial = Object.keys(CONTEST_TYPES).reduce((result, id) => {
     result[id] = 0
     return result
   }, {})
+  const scores = { ...initial }
+  const strongPicks = { ...initial }
 
   answers.forEach((answerIndex, questionIndex) => {
     const option = TYPE_TEST_QUESTIONS[questionIndex]?.options[answerIndex]
     if (!option) return
     Object.entries(option.scores).forEach(([id, score]) => {
       scores[id] += score
+      if (score >= 2) strongPicks[id] += 1
     })
   })
 
   const maxScore = TYPE_TEST_QUESTIONS.length * 2
   const percentOf = (score) => Math.round((score / maxScore) * 100)
-  const sorted = Object.entries(scores).sort(([, a], [, b]) => b - a)
+  const sorted = Object.entries(scores).sort(([idA, scoreA], [idB, scoreB]) => {
+    if (scoreB !== scoreA) return scoreB - scoreA
+    return strongPicks[idB] - strongPicks[idA]
+  })
   const distribution = sorted.map(([id, score]) => ({ id, score, percent: percentOf(score) }))
   return {
     type: CONTEST_TYPES[sorted[0][0]],

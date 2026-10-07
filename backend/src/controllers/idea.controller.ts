@@ -4,6 +4,7 @@
 // ==========================================================
 import type { Request, Response } from 'express'
 import {
+  AiKeyExpiredError,
   AiNotConfiguredError,
   AiUpstreamError,
   analyzeIdea,
@@ -61,6 +62,18 @@ export async function postIdeaAnalysis(req: Request, res: Response): Promise<voi
   } catch (error) {
     if (error instanceof AiNotConfiguredError) {
       errorResponse(res, 503, 'AI_NOT_CONFIGURED', 'OpenAI API 키가 설정되지 않았어요.')
+      return
+    }
+    if (error instanceof AiKeyExpiredError) {
+      console.error(
+        '[ai] AI 인증 토큰이 만료되었습니다. mlapi.run에서 토큰을 재발급해 backend/.env의 OPENAI_API_KEY를 교체한 뒤 서버를 재시작하세요.',
+      )
+      errorResponse(
+        res,
+        503,
+        'AI_TOKEN_EXPIRED',
+        'AI 인증 토큰이 만료되었어요. 토큰이 갱신되면 다시 분석할 수 있어요.',
+      )
       return
     }
     if (error instanceof AiUpstreamError) {

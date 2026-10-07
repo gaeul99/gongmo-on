@@ -1,164 +1,115 @@
-/* 마이페이지 성장 타임라인 — 활동 이력 세로 흐름 */
-
-.growth-section {
-  margin-top: 56px;
-}
-
-.growth-section h2 {
-  font-size: 24px;
-  font-weight: 800;
-  margin: 0 0 16px;
-  color: var(--text);
-}
-
-.growth-summary {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.growth-chip {
-  font-size: 13px;
-  color: var(--text);
-  background: var(--code-bg);
+/* 성장 타임라인 — 공모전 준비 5걸음 진행 트래커 */
+.growth-timeline {
+  background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 5px 12px;
-}
-
-.growth-chip b {
-  color: var(--accent);
-  font-weight: 800;
-  margin-right: 2px;
-}
-
-.growth-empty {
-  color: var(--text);
-  background: var(--code-bg);
-  border: 1px dashed var(--border);
   border-radius: 12px;
-  padding: 18px 20px;
-  font-size: 14px;
-  line-height: 1.6;
+  padding: 16px;
+  margin-bottom: 12px;
 }
 
-/* 세로 흐름: 왼쪽 도트 줄 + 오른쪽 카드 */
-.growth-list {
+.growth-steps {
   list-style: none;
-  margin: 0;
+  margin: 12px 0 0;
   padding: 0;
-  position: relative;
 }
 
-.growth-item {
+.growth-step {
+  display: flex;
+  gap: 12px;
   position: relative;
-  padding: 0 0 14px 28px;
+  padding: 0 0 16px 0;
 }
 
-.growth-item::before {
+/* 걸음을 잇는 세로 선 */
+.growth-step:not(:last-child)::before {
   content: '';
   position: absolute;
-  left: 6px;
-  top: 16px;
-  bottom: -4px;
+  left: 13px;
+  top: 30px;
+  bottom: 2px;
   width: 2px;
   background: var(--border);
 }
 
-.growth-item:last-child::before {
-  display: none;
+.growth-step.is-done:not(:last-child)::before {
+  background: var(--accent-border);
 }
 
-.growth-dot {
-  position: absolute;
-  left: 0;
-  top: 6px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 3px solid var(--bg);
-  box-shadow: 0 0 0 2px var(--border);
-}
-
-.dot-apply {
-  background: var(--accent);
-}
-
-.dot-retro {
-  background: #f59e0b;
-}
-
-.dot-idea {
-  background: #17995f;
-}
-
-.dot-wish {
-  background: #64748b;
-}
-
-.dot-test {
-  background: #a78bfa;
-}
-
-.growth-card {
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px 16px;
-}
-
-.growth-card-head {
+.growth-marker {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.growth-badge {
-  font-size: 12px;
-  font-weight: 700;
-  color: #fff;
-  border-radius: 999px;
-  padding: 2px 10px;
-}
-
-.badge-apply {
-  background: var(--accent);
-}
-
-.badge-retro {
-  background: #f59e0b;
-}
-
-.badge-idea {
-  background: #17995f;
-}
-
-.badge-wish {
-  background: #64748b;
-}
-
-.badge-test {
-  background: #a78bfa;
-}
-
-.growth-date {
-  font-size: 12px;
-  color: var(--text);
-}
-
-.growth-title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.5;
-}
-
-.growth-meta {
-  margin: 4px 0 0;
+  justify-content: center;
   font-size: 13px;
+  font-weight: 700;
+  background: var(--panel);
+  border: 1px solid var(--border);
   color: var(--text);
+  z-index: 1;
+}
+
+.growth-step.is-done .growth-marker {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.growth-step.is-active .growth-marker {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.growth-body {
+  min-width: 0;
+  padding-top: 3px;
+}
+
+.growth-label {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-h);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.growth-step.is-done .growth-label {
+  color: var(--text);
+}
+
+.growth-now {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.growth-status {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.growth-step.is-active .growth-status {
+  color: var(--text-h);
+}
+
+.growth-summary {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .growth-step {
+    gap: 10px;
+  }
 }

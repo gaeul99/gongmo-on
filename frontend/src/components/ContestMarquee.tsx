@@ -1,22 +1,43 @@
 // ==========================================================
 // 첫화면 광고 배너 — 접수 중인 공모전 포스터가 왼쪽으로 계속
-// 흐르는 마키(strip). 카드를 누르면 해당 공모전 상세 페이지로
-// 이동하고, 포인터를 올리면 잠시 멈춘다. 좌우 화살표를 누르면
-// 자동 흐름을 멈추고 한 장씩 옮겨 가며 고를 수 있다. D-x 라벨은
-// utils/contestAlerts.js의 deadlineStatus 기준을 그대로 쓴다.
+// 흐르는 마키(strip). 카드를 누르면 앱 안의 공모전 상세 페이지로
+// 이동하고(실제 사이트는 상세 화면의 버튼으로 접속), 포인터를
+// 올리면 잠시 멈춘다. 좌우 화살표를 누르면 자동 흐름을 멈추고
+// 한 장씩 옮겨 가며 고를 수 있다. D-x 라벨은 utils/contestAlerts.js의
+// deadlineStatus 기준을 그대로 쓴다.
 // ==========================================================
 import { useEffect, useRef, useState } from 'react'
 import { contests } from '../data/mockData.js'
-import { deadlineStatus } from '../utils/contestAlerts.js'
+import { deadlineStatus, isApplicationOpen } from '../utils/contestAlerts.js'
 import './ContestMarquee.css'
 
-// 카드 폭 200px + 오른쪽 여백 12px — 화살표 한 번에 이동하는 픽셀 기준
-const CARD_STEP = 212
+// 카드 폭 280px + 오른쪽 여백 16px(ContestMarquee.css의 .marquee-card) —
+// 화살표 한 번에 이동하는 픽셀 기준. 카드 실제 폭과 맞아야 수동 모드에서
+// 카드가 정확히 한 장씩 정렬된다.
+const CARD_STEP = 296
 
-function ContestMarquee() {
+// 마감 상태별 배지 이모지 (tone은 deadlineStatus 기준)
+const TONE_EMOJI: Record<string, string> = {
+  today: '🔥',
+  urgent: '⏰',
+  upcoming: '📅',
+  closed: '📌',
+}
+
+type Props = {
+  onOpenContest: (id: number) => void
+}
+
+function ContestMarquee({ onOpenContest }: Props) {
   const rows = contests
     .map((contest) => ({ contest, status: deadlineStatus(contest.deadline) }))
-    .filter((row) => row.status.left !== null && row.status.left >= 0)
+    .filter(
+      (row) =>
+        row.status.left !== null &&
+        row.status.left >= 0 &&
+        // 접수가 아직 시작되지 않은 공모전(접수 예정)은 '곧 시작되는 공모전' 박스가 담당한다
+        isApplicationOpen(row.contest),
+    )
 
   // 화살표를 누르기 전엔 끊김 없는 무한 흐름(같은 목록을 두 번 이어 붙임),
   // 누른 뒤엔 한 장씩 옮기는 수동 모드로 바뀐다.
@@ -58,7 +79,8 @@ function ContestMarquee() {
 
   return (
     <section className="contest-marquee" aria-label="접수 중인 공모전 배너">
-      <p className="marquee-heading">접수 중인 공모전</p>
+      <p className="marquee-heading">📢 접수 중인 공모전</p>
+      <p className="marquee-sub">포스터를 누르면 상세 정보로 이동해요</p>
       <div className="marquee-slider">
         <button
           type="button"
@@ -99,24 +121,23 @@ function ContestMarquee() {
                   className="marquee-card"
                   aria-hidden={hidden || undefined}
                 >
-                  <a
-                    href={contest.url}
-                    target="_blank"
-                    rel="noreferrer"
+                  <button
+                    type="button"
                     tabIndex={hidden ? -1 : undefined}
-                    title={`${contest.title} 상세 페이지 열기`}
+                    title={`${contest.title} 상세 보기`}
+                    onClick={() => onOpenContest(contest.id)}
                   >
                     <span className="marquee-thumb">
                       <img src={contest.image} alt="" loading="lazy" />
                       <span className={`marquee-badge tone-${status.tone}`}>
-                        {status.label}
+                        {TONE_EMOJI[status.tone] ?? '📌'} {status.label}
                       </span>
                     </span>
                     <span className="marquee-info">
                       <span className="marquee-name">{contest.title}</span>
                       <span className="marquee-org">{contest.organizer}</span>
                     </span>
-                  </a>
+                  </button>
                 </li>
               )
             })}

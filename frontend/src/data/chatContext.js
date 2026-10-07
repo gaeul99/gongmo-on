@@ -40,7 +40,6 @@ function slimNotif(stats) {
   return {
     subscribers: typeof stats.subscribers === 'number' ? stats.subscribers : null,
     email: channelStat(channels.email),
-    sms: channelStat(channels.sms),
     recent: Array.isArray(stats.recent) ? stats.recent.slice(-3) : [],
   }
 }
@@ -100,7 +99,9 @@ export function buildChatSnapshot(notifStats = null, now = new Date()) {
       savedIdeas: activity.savedIdeas,
     },
     // 공모전은 제목·주최·마감일·상태만 축약해 실는다(토큰 절약).
+    // id는 AI가 [[contest:ID]] 액션 태그로 상세 화면 이동을 유도할 때 쓴다.
     deadlines: deadlineRows.map((row) => ({
+      id: row.id,
       title: row.title,
       organizer: row.organizer,
       deadline: row.deadline,

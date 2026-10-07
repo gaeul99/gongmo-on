@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import type { AppliedContest, User, WishlistContest } from './MyPage'
+import type { AppliedContest, AuthResult, User, WishlistContest } from './MyPage'
+import InlineAuthPanel from '../components/InlineAuthPanel'
 import { contests } from '../data/mockData.js'
 import './ContestDetailPage.css'
 
@@ -12,6 +13,8 @@ type Props = {
   onToggleWish: (target: Omit<WishlistContest, 'addedAt'>) => void
   onGoMyPage: () => void
   onBack: () => void
+  onSignIn: (nickname: string, password: string) => Promise<AuthResult>
+  onSignUp: (nickname: string, password: string, email: string, phone: string) => Promise<AuthResult>
 }
 
 // 마감까지 남은 일수(마감 지남은 음수). 오늘 0시 기준으로 날짜 차이를 계산합니다.
@@ -38,10 +41,14 @@ function ContestDetailPage({
   onToggleWish,
   onGoMyPage,
   onBack,
+  onSignIn,
+  onSignUp,
 }: Props) {
   const contest = contests.find((item) => item.id === contestId)
   // 실제 응모 안내(2단계)를 보여 줄지 — 확정·취소하면 false로 돌아갑니다.
   const [confirming, setConfirming] = useState(false)
+  // 로그인하지 않은 사용자가 응모 버튼을 눌렀을 때 인라인 로그인 패널을 보여 줍니다.
+  const [showAuthPanel, setShowAuthPanel] = useState(false)
 
   if (!contest) {
     return (
@@ -98,6 +105,12 @@ function ContestDetailPage({
             <dt>분야</dt>
             <dd>{contest.field}</dd>
           </div>
+          {contest.startDate && (
+            <div>
+              <dt>접수 시작</dt>
+              <dd>{contest.startDate}</dd>
+            </div>
+          )}
           <div>
             <dt>접수 마감</dt>
             <dd>{contest.deadline}</dd>
@@ -134,10 +147,13 @@ function ContestDetailPage({
             </div>
           ) : user && confirming ? (
             <div className="detail-apply-confirm" role="group" aria-label="응모 확인">
-              <p className="detail-apply-confirm-text">
-                실제 응모는 공모전 사이트에서 진행돼요. 옆의 '공모전 사이트로 이동'에서 제출을
-                마친 뒤 신청 완료로 표시해 주세요.
+              <p className="detail-apply-confirm-title">
+                실제 응모는 공모전 사이트에서 제출해요.
               </p>
+              <ol className="detail-apply-confirm-steps">
+                <li>먼저 공모전 사이트에 접속해 제출을 마쳐 주세요.</li>
+                <li>제출이 끝나면 '제출했어요'를 눌러 내 응모 목록에 기록하세요.</li>
+              </ol>
               <div className="detail-apply-confirm-actions">
                 <button
                   type="button"
@@ -153,7 +169,7 @@ function ContestDetailPage({
                     setConfirming(false)
                   }}
                 >
-                  신청 완료로 표시
+                  제출했어요 — 완료로 표시
                 </button>
                 <button
                   type="button"
@@ -172,8 +188,22 @@ function ContestDetailPage({
             >
               이 공모전 응모하기
             </button>
+          ) : showAuthPanel ? (
+            <InlineAuthPanel
+              onSignIn={onSignIn}
+              onSignUp={onSignUp}
+              contextNote="응모하려면 로그인이 필요해요."
+              onAuthed={() => {
+                setShowAuthPanel(false)
+                setConfirming(true)
+              }}
+            />
           ) : (
-            <button type="button" className="detail-apply-button" onClick={onGoMyPage}>
+            <button
+              type="button"
+              className="detail-apply-button"
+              onClick={() => setShowAuthPanel(true)}
+            >
               로그인하고 응모하기
             </button>
           )}

@@ -36,7 +36,11 @@ type ChatBubble = {
   kind?: 'error'
   meta?: string
   retry?: boolean
+  // 답변에 붙은 액션 태그([[contest:ID]]·[[input]])를 버튼으로 바꿔 보여 준다.
+  actions?: ChatAction[]
 }
+
+type ChatAction = { kind: 'contest'; id: number } | { kind: 'input' }
 
 type ChatApiPayload = {
   success?: boolean
@@ -57,6 +61,30 @@ class ChatRequestError extends Error {
     super(message)
     this.code = code
   }
+}
+
+// 답변 본문 속 액션 태그([[contest:ID]]·[[input]])를 뽑아 내고 본문에서는 제거한다.
+function parseReplyActions(content: string): { text: string; actions: ChatAction[] } {
+  const actions: ChatAction[] = []
+  const text = content.replace(
+    /\[\[(contest:\d+|input)\]\]/g,
+    (_match: string, inner: string) => {
+      if (inner === 'input') {
+        if (!actions.some((a) => a.kind === 'input')) actions.push({ kind: 'input' })
+        return ''
+      }
+      const id = Number(inner.slice('contest:'.length))
+      if (
+        Number.isInteger(id) &&
+        id > 0 &&
+        !actions.some((a) => a.kind === 'contest' && a.id === id)
+      ) {
+        actions.push({ kind: 'contest', id })
+      }
+      return ''
+    },
+  )
+  return { text: text.trim(), actions }
 }
 
 function readSavedKey(): string {
@@ -115,7 +143,10 @@ async function requestChat(
   return payload.data.reply
 }
 
-function NabiChat() {
+function NabiChat({ onOpenContest, onGoInput }: {
+  onOpenContest?: (contestId: number) => void
+  onGoInput?: () => void
+} = {}) {
   const [open, setOpen] = useState(false)
   // 서버 키가 있으면 키 입력 없이 바로 대화한다. 마운트 때 서버 키 여부를 확인하며,
   // 확인 전에는 낙관적으로 대화 화면을 보여 준다(백엔드가 꺼져 있으면 전송 시 안내 말풍선).
@@ -251,7 +282,8 @@ function NabiChat() {
     setSending(true)
     try {
       const reply = await requestChat(keyRef.current, history, notif)
-      appendBubble({ role: 'assistant', content: reply })
+      const { text, actions } = parseReplyActions(reply)
+      appendBubble({ role: 'assistant', content: text, actions })
     } catch (error) {
       if (error instanceof ChatKeyRejected) {
         // 키만 다시 받고, 지금까지의 대화는 그대로 유지한다.
@@ -300,7 +332,15 @@ function NabiChat() {
         aria-expanded="false"
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          <path d="M11.1 10.8 C9.7 7.9 6.2 5.9 4.4 7.3 C2.7 8.6 3.5 11.7 6.4 12.9 C8.3 13.7 10.1 13.3 11.1 12.3 Z" />
+          <path d="M11.1 13.5 C9.5 13.1 7.1 13.7 6.1 15.4 C5.2 17.1 6.4 18.9 8.3 18.6 C10.1 18.3 11.2 16.5 11.2 14.5 Z" />
+          <g transform="translate(24 0) scale(-1 1)">
+            <path d="M11.1 10.8 C9.7 7.9 6.2 5.9 4.4 7.3 C2.7 8.6 3.5 11.7 6.4 12.9 C8.3 13.7 10.1 13.3 11.1 12.3 Z" />
+            <path d="M11.1 13.5 C9.5 13.1 7.1 13.7 6.1 15.4 C5.2 17.1 6.4 18.9 8.3 18.6 C10.1 18.3 11.2 16.5 11.2 14.5 Z" />
+          </g>
+          <ellipse cx="12" cy="13.8" rx="1.25" ry="4.4" />
+          <circle cx="12" cy="8.3" r="1.5" />
+          <path d="M11.2 7.2 C10.4 5.8 9.4 4.9 8.2 4.4 M12.8 7.2 C13.6 5.8 14.6 4.9 15.8 4.4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       </button>
     )
@@ -416,6 +456,27 @@ function NabiChat() {
                   >
                     다시 시도
                   </button>
+                )}
+                {bubble.role === 'assistant' && bubble.kind !== 'error' && bubble.actions?.map((action, index) =>
+                  action.kind === 'contest' ? (
+                    <button
+                      key={`action-${index}`}
+                      type="button"
+                      className="chat-action"
+                      onClick={() => onOpenContest?.(action.id)}
+                    >
+                      공모전 상세 보기 →
+                    </button>
+                  ) : (
+                    <button
+                      key={`action-${index}`}
+                      type="button"
+                      className="chat-action"
+                      onClick={() => onGoInput?.()}
+                    >
+                      아이디어 분석 시작하기 →
+                    </button>
+                  ),
                 )}
               </div>
             ))}

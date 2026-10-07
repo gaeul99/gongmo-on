@@ -1,8 +1,11 @@
 /* 첫화면 히어로 아래(광고 마키 아래) 마감 임박 패널 — 대시보드와 같은 D-x 기준(contestAlerts.js)을 쓴다.
-   광고 마키처럼 가로 카드 3열로 배치한다. */
+   '곧 시작되는 공모전' 패널과 나란히 2단 배치라 목록은 세로 한 줄로 쌓는다. */
 
 .hero-deadlines {
   width: 100%;
+  min-width: 0;
+  /* padding·border를 폭에 포함 — content-box면 트랙보다 커져 옆 박스와 겹친다 */
+  box-sizing: border-box;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -21,7 +24,7 @@
 }
 
 .deadline-head h2 {
-  font-size: 17px;
+  font-size: 19px;
   margin: 0;
 }
 
@@ -32,8 +35,18 @@
   color: var(--accent);
   background: none;
   border: none;
-  padding: 2px 4px;
+  padding: 8px 6px;
+  margin: -4px 0;
+  /* 스티커가 제목 옆에 붙어도 버튼은 오른쪽 끝에 유지 */
+  margin-left: auto;
   cursor: pointer;
+}
+
+/* 제목 옆 마감 이모지 — 장식(aria-hidden)이라 낭독기에는 제목만 읽힌다 */
+.deadline-emoji {
+  align-self: center;
+  font-size: 19px;
+  line-height: 1;
 }
 
 .deadline-more:hover {
@@ -45,13 +58,14 @@
   margin: 10px 0 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
 .deadline-item {
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -82,16 +96,17 @@
   padding: 3px 9px;
 }
 
-/* 오늘 마감 / 7일 이내 / 그 이후 — dashboard 알림과 같은 3단 톤 */
+/* 오늘 마감 / 7일 이내 / 그 이후 — dashboard 알림과 같은 3단 톤.
+   임박도 마감 계열이므로 빨간색(오늘 마감은 채운 빨강, 임박은 연한 빨강) */
 .tone-today {
   color: #fff;
   background: var(--error);
 }
 
 .tone-urgent {
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
+  color: var(--error);
+  background: rgba(229, 72, 77, 0.1);
+  border: 1px solid rgba(229, 72, 77, 0.4);
 }
 
 .tone-upcoming {
@@ -108,7 +123,7 @@
 
 .deadline-title {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 800;
   color: var(--text-h);
   line-height: 1.45;
   display: -webkit-box;
@@ -128,10 +143,4 @@
   border-top: 1px solid var(--border);
   padding-top: 10px;
   margin: 12px 0 0;
-}
-
-@media (max-width: 900px) {
-  .deadline-list {
-    grid-template-columns: 1fr;
-  }
 }

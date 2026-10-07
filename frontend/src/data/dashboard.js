@@ -78,6 +78,32 @@ export function buildDeadlineRows(now = new Date()) {
     })
 }
 
+// 접수가 곧 시작되는 공모전(startDate가 오늘 이후)을 시작일 가까운 순으로 정렬합니다.
+// 첫화면 '곧 시작되는 공모전' 박스의 '전체 보기'가 이 목록을 가리킵니다.
+// left는 접수 시작일까지 남은 일수(오늘 0시 기준).
+/**
+ * @param {Date} [now]
+ * @returns {Array<{ id: number, title: string, organizer: string, field: string, startDate: string, left: number }>}
+ */
+export function buildUpcomingStartRows(now = new Date()) {
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  return contests
+    .map((contest) => {
+      const start = new Date(`${contest.startDate}T00:00:00`)
+      return { contest, start }
+    })
+    .filter((row) => !Number.isNaN(row.start.getTime()) && row.start.getTime() > startOfToday.getTime())
+    .map(({ contest, start }) => ({
+      id: contest.id,
+      title: contest.title,
+      organizer: contest.organizer,
+      field: contest.field,
+      startDate: contest.startDate,
+      left: Math.round((start.getTime() - startOfToday.getTime()) / DAY_MS),
+    }))
+    .sort((a, b) => a.left - b.left)
+}
+
 // 공모전 분야의 첫 단어('기타 (아이디어·방송통신)' → '기타')로 묶어 건수를 셉니다.
 export function buildFieldBreakdown() {
   const counts = new Map()
@@ -90,12 +116,53 @@ export function buildFieldBreakdown() {
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
 }
 
+// 로드맵을 만들 수 있는 공모전 — 내 응모·관심 목록 중 아직 마감하지 않은 것.
+// 응모가 관심보다 앞에 오게 하고, 같은 공모전이 양쪽에 있으면 응모 쪽을 살립니다.
+/**
+ * @param {Date} [now]
+ * @returns {Array<{ id: number|string, title: string, organizer: string, deadline: string, kind: string, status: { left: number|null, tone: string, label: string } }>}
+ */
+export function buildRoadmapCandidates(now = new Date()) {
+  const seen = new Map()
+  const push = (item, kind) => {
+    if (item && !seen.has(item.id)) seen.set(item.id, { ...item, kind })
+  }
+  readStoredList(MY_CONTESTS_STORAGE_KEY).forEach((row) => push(row, '응모'))
+  readStoredList(WISHLIST_STORAGE_KEY).forEach((row) => push(row, '관심'))
+
+  return [...seen.values()]
+    .map((row) => ({ ...row, status: deadlineStatus(row.deadline, now) }))
+    .filter((row) => row.status.tone !== 'closed')
+    .sort((a, b) => String(a.deadline).localeCompare(String(b.deadline)))
+}
+
 // 이 브라우저에 저장된 내 활동 건수. 로그인 여부와 관계없이 저장된 목록 기준입니다.
 export function buildActivityCounts() {
   return {
     myContests: readStoredList(MY_CONTESTS_STORAGE_KEY).length,
     wishlist: readStoredList(WISHLIST_STORAGE_KEY).length,
     savedIdeas: readStoredList(SAVED_IDEAS_STORAGE_KEY).length,
+  }
+}
+
+// 내 응모 기록을 도전 히스토리로 요약 — 누적 도전 수, 수상·탈락·진행 중 건수와
+// 응모한 공모전의 분야 분포. 결과 기록(마이페이지) 전에는 전부 '진행 중'으로 셉니다.
+export function buildChallengeHistory() {
+  const rows = readStoredList(MY_CONTESTS_STORAGE_KEY)
+  const tally = { total: rows.length, progress: 0, won: 0, lost: 0 }
+  const fields = new Map()
+  for (const row of rows) {
+    const key = row.result === 'won' ? 'won' : row.result === 'lost' ? 'lost' : 'progress'
+    tally[key] += 1
+    const known = contests.find((contest) => contest.id === row.id)
+    const field = String(known?.field ?? row.field ?? '기타').split(' ')[0] || '기타'
+    fields.set(field, (fields.get(field) ?? 0) + 1)
+  }
+  return {
+    ...tally,
+    fields: [...fields.entries()]
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)),
   }
 }
 

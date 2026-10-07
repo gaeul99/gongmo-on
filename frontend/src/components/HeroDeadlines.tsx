@@ -7,7 +7,7 @@
 // ==========================================================
 import { useMemo } from 'react'
 import { contests } from '../data/mockData.js'
-import { deadlineStatus } from '../utils/contestAlerts.js'
+import { deadlineStatus, isApplicationOpen } from '../utils/contestAlerts.js'
 import { getNewContests } from '../utils/contestOpenAlerts.js'
 import './HeroDeadlines.css'
 
@@ -24,7 +24,13 @@ function HeroDeadlines({ onOpenDashboard, onOpenContest }: Props) {
 
   const rows = contests
     .map((contest) => ({ contest, status: deadlineStatus(contest.deadline) }))
-    .filter((row) => row.status.left !== null && row.status.left >= 0)
+    .filter(
+      (row) =>
+        row.status.left !== null &&
+        row.status.left >= 0 &&
+        // 접수가 아직 시작되지 않은 공모전(접수 예정)은 '곧 시작되는 공모전' 박스가 담당한다
+        isApplicationOpen(row.contest),
+    )
     .sort((a, b) => (a.status.left ?? 0) - (b.status.left ?? 0))
     .slice(0, SHOW_LIMIT)
 
@@ -32,6 +38,9 @@ function HeroDeadlines({ onOpenDashboard, onOpenContest }: Props) {
     <aside className="hero-deadlines" aria-label="곧 마감되는 공모전">
       <div className="deadline-head">
         <h2>곧 마감되는 공모전</h2>
+        <span className="deadline-emoji" aria-hidden="true">
+          ⏰
+        </span>
         <button type="button" className="deadline-more" onClick={onOpenDashboard}>
           전체 보기
         </button>

@@ -1,16 +1,14 @@
 import { Router } from 'express'
 import {
-  getChannelStatus,
-  getOutbox,
   getStats,
   postRunCheck,
   postSubscribe,
+  postWeeklyDigest,
 } from '../controllers/notification.controller'
 
 export const notificationRouter = Router()
 
 notificationRouter.post('/subscribe', postSubscribe)
-notificationRouter.get('/outbox', getOutbox)
-notificationRouter.get('/channels', getChannelStatus)
+notificationRouter.post('/weekly', postWeeklyDigest)
 notificationRouter.get('/stats', getStats)
 notificationRouter.post('/run', postRunCheck)

@@ -1,72 +1,24 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { buildMockAnalysis } from '../services/mockAnalysis.js'
 import { requestAiAnalysis } from '../services/aiAnalysis.js'
-import { recordAnalysisFeedback } from '../services/feedbackService.js'
+import { buildProposalDraft, proposalToText } from '../services/proposalDraft.js'
+import InlineAuthPanel from '../components/InlineAuthPanel'
 import { contests, referenceCases, winnerArchives } from '../data/mockData.js'
 import type { IdeaInput } from './IdeaInputPage'
-import type { AppliedContest, User, WishlistContest } from './MyPage'
+import type { AppliedContest, AuthResult, User, WishlistContest } from './MyPage'
+import type { Analysis, AiAnalysisPayload, AnalysisDetail } from '../types/analysis'
 import './ResultPage.css'
 
-// 유사 사례(실제 공모전 데이터 + 분석 문구) 한 건
-type SimilarCase = {
-  id: number
-  title: string
-  organizer: string
-  domain: string
-  image: string
-  url: string
-  source: string
-  similarity: number
-  summary: string
-  overlap: string[]
-  difference: string
-}
-
-// 추천 공모전(실제 데이터 + 추천 문구) 한 건
-type AnalyzedContest = {
-  id: number
-  title: string
-  organizer: string
-  field: string
-  deadline: string
-  eligibility: string
-  image: string
-  url: string
-  matchReason: string
-}
-
-type Analysis = {
-  source: 'ai' | 'demo'
-  overallNotice: string
-  differentiationTip: string
-  similarCases: SimilarCase[]
-  contests: AnalyzedContest[]
-}
-
-// 백엔드 AI 응답 (services/aiAnalysis.js는 JS라 타입을 여기서 정의합니다)
-type AiAnalysisPayload = {
-  overallNotice?: string
-  differentiationTip?: string
-  similarCases?: {
-    id: number
-    similarity: number
-    summary: string
-    overlap: string[]
-    difference: string
-  }[]
-  contests?: {
-    id: number
-    matchScore: number
-    matchReason: string
-  }[]
-}
-
-const DEMO_NOTICE = '유사 사례를 참고해 차별화 요소를 검토하세요.'
+const DEMO_NOTICE =
+  '데모 결과는 중복 가능성을 수치로 계산하지 않아요. 아래 유사 사례들과 겹치는 부분이 많은지 직접 확인해 보세요.\nAI 분석에 성공하면 입력한 아이디어에 맞춘 중복 가능성을 알려 드려요.'
 const DEMO_TIP =
-  "아래 유사 사례들의 '다른 점'을 참고해, 내 아이디어만의 차별화 포인트를 1~2개 문장으로 정리해 보세요. '왜 이 아이디어인지'가 명확할수록 공모전 심사에서 좋은 평가를 받습니다."
+  '아래 유사 사례 카드의 \'다른 점\'이 차별화 포인트의 재료예요.\n그중 하나를 골라 "비슷한 서비스가 있지만, 유일하게 ○○인 점은 우리만 있습니다" 형태의 한 문장으로 옮겨 보세요. 바로 아래 \'예시로 따라해 보기\'를 펼치면 실제 예시가 나옵니다.'
 
 // 유사 아이디어는 이 유사도 이상인 사례만 보여 줍니다.
 const SIMILAR_THRESHOLD = 90
+
+// 추천 공모전이 많을 때 한 페이지에 보여 줄 카드 수
+const CONTESTS_PER_PAGE = 6
 
 // 제출 전 자가 점검 항목 — 응모 버튼을 누르기 전 확인용 체크리스트
 const SUBMISSION_CHECKLIST = [
@@ -82,39 +34,12 @@ const SUBMISSION_CHECKLIST = [
 
 const CHECKLIST_KEY = 'idea-navigation:submission-checklist'
 
-const RESULT_FEEDBACK_KEY = 'idea-navigation:result-feedback'
-// 유형 검사 피드백과 같은 브라우저 세션 ID를 공유해 한 사람 한 표를 유지합니다.
-const FEEDBACK_SESSION_KEY = 'gongnabi:feedback-session'
-
-type FeedbackVoteMap = Record<string, 'up' | 'down'>
-
-function loadFeedbackVotes(): FeedbackVoteMap {
-  try {
-    const raw = localStorage.getItem(RESULT_FEEDBACK_KEY)
-    return raw ? (JSON.parse(raw) as FeedbackVoteMap) : {}
-  } catch {
-    return {}
-  }
-}
-
-function saveFeedbackVotes(votes: FeedbackVoteMap) {
-  try {
-    localStorage.setItem(RESULT_FEEDBACK_KEY, JSON.stringify(votes))
-  } catch {
-    // 저장 실패 시에도 화면 동작에는 지장 없습니다.
-  }
-}
-
-function loadFeedbackSessionId(): string {
-  try {
-    const stored = localStorage.getItem(FEEDBACK_SESSION_KEY)
-    if (stored) return stored
-    const fresh = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
-    localStorage.setItem(FEEDBACK_SESSION_KEY, fresh)
-    return fresh
-  } catch {
-    return 'anonymous'
-  }
+// services/proposalDraft.js가 만드는 제안서 초안의 표시용 형태
+type ProposalDraft = {
+  title: string
+  metaLines: string[]
+  sections: Array<{ heading: string; lines: string[] }>
+  note: string
 }
 
 function loadChecklist(): Record<string, boolean> {
@@ -156,6 +81,7 @@ function mergeAnalysis(
     const aiContest = aiData?.contests?.find((item) => item.id === mockContest.id)
     return {
       ...mockContest,
+      matchScore: aiContest ? aiContest.matchScore : mockContest.matchScore,
       matchReason: aiContest?.matchReason ?? mockContest.matchReason,
     }
   })
@@ -168,10 +94,29 @@ function mergeAnalysis(
     contestsMerged.sort((a, b) => (scoreById.get(b.id) ?? 0) - (scoreById.get(a.id) ?? 0))
   }
 
+  const mockDetail = mock.detail
+  const detail: AnalysisDetail = {
+    ideaSummary: aiData?.detail?.ideaSummary ?? mockDetail.ideaSummary,
+    targetUsers: aiData?.detail?.targetUsers?.length
+      ? aiData.detail.targetUsers
+      : mockDetail.targetUsers,
+    strengths: aiData?.detail?.strengths?.length ? aiData.detail.strengths : mockDetail.strengths,
+    improvements: aiData?.detail?.improvements?.length
+      ? aiData.detail.improvements
+      : mockDetail.improvements,
+    judgePoints: aiData?.detail?.judgePoints?.length
+      ? aiData.detail.judgePoints
+      : mockDetail.judgePoints,
+    extensionIdeas: aiData?.detail?.extensionIdeas?.length
+      ? aiData.detail.extensionIdeas
+      : mockDetail.extensionIdeas,
+  }
+
   return {
     source,
     overallNotice: aiData?.overallNotice ?? DEMO_NOTICE,
     differentiationTip: aiData?.differentiationTip ?? DEMO_TIP,
+    detail,
     similarCases,
     contests: contestsMerged,
   }
@@ -184,10 +129,16 @@ type Props = {
   appliedContestIds: number[]
   wishlistedContestIds: number[]
   ideaSaved: boolean
+  /** 보관함 '다시 보기'로 복원한 분석 결과 스냅숏. 있으면 AI 재요청 없이 바로 표시합니다. */
+  initialAnalysis?: Analysis | null
+  /** 분석이 끝날 때(성공·데모 폴백 모두) 현재 결과를 넘겨 줍니다. 보관함 스냅숏 갱신에 사용합니다. */
+  onAnalysisSettled?: (analysis: Analysis) => void
   onApplyContest: (target: Omit<AppliedContest, 'appliedAt'>) => void
   onToggleWish: (target: Omit<WishlistContest, 'addedAt'>) => void
-  onSaveIdea: () => void
+  onSaveIdea: (analysis: Analysis | null) => void
   onGoMyPage: () => void
+  onSignIn: (nickname: string, password: string) => Promise<AuthResult>
+  onSignUp: (nickname: string, password: string, email: string, phone: string) => Promise<AuthResult>
 }
 
 function ResultPage({
@@ -197,44 +148,119 @@ function ResultPage({
   appliedContestIds,
   wishlistedContestIds,
   ideaSaved,
+  initialAnalysis = null,
+  onAnalysisSettled,
   onApplyContest,
   onToggleWish,
   onSaveIdea,
   onGoMyPage,
+  onSignIn,
+  onSignUp,
 }: Props) {
   // 백엔드 AI 분석을 먼저 시도하고, 실패하면 목업 분석으로 대체합니다.
   // 분석이 끝나기 전(analysis === null)에는 '분석 중' 화면을 보여 줍니다.
   // 백엔드가 멈춰 있어도 요청이 실패한 뒤에는 항상 목업 결과로 표시됩니다.
-  const [analysis, setAnalysis] = useState<Analysis | null>(null)
+  const [analysis, setAnalysis] = useState<Analysis | null>(initialAnalysis)
+  // 보관함 스냅숏을 복원했을 때는 AI를 다시 요청하지 않습니다. '다시 분석하기'를 누르면 재요청합니다.
+  const [restored, setRestored] = useState(initialAnalysis !== null)
   // AI 요청 실패 후 사용자가 다시 시도하면 1씩 올라가며 분석을 다시 실행합니다.
   const [attempt, setAttempt] = useState(0)
   // 실제 응모 안내(2단계)를 보여 주는 추천 공모전 id. 확정·취소하면 null로 돌아갑니다.
   const [confirmingApplyId, setConfirmingApplyId] = useState<number | null>(null)
+  // 차별화 포인트 '예시로 따라해 보기' 패널 펼침 상태
+  const [showDiffExample, setShowDiffExample] = useState(false)
+  // 인라인 로그인 패널을 보여 주는 추천 공모전 id. 로그인 성공 후 응모 확인으로 이어갑니다.
+  const [inlineAuthFor, setInlineAuthFor] = useState<number | null>(null)
   const [checklist, setChecklist] = useState<Record<string, boolean>>(loadChecklist)
-  const [feedbackVotes, setFeedbackVotes] = useState<FeedbackVoteMap>(loadFeedbackVotes)
-  const [sessionId] = useState(loadFeedbackSessionId)
+  // 분석 완료 콜백은 ref로 읽어 의존성 배열에서 뺍니다. 콜백이 바뀔 때마다 분석을
+  // 다시 요청하는 무한 반복을 막기 위해서입니다.
+  const settledRef = useRef(onAnalysisSettled)
+  useEffect(() => {
+    settledRef.current = onAnalysisSettled
+  })
+  // 추천 공모전 페이지네이션 — 현재 보고 있는 페이지(1부터 시작)
+  const [contestPage, setContestPage] = useState(1)
   const checkedCount = SUBMISSION_CHECKLIST.filter((item) => checklist[item]).length
-  const feedbackVote = feedbackVotes[idea.title] ?? null
+  // 현재 페이지에 보여 줄 추천 공모전 목록
+  const pagedContests = analysis
+    ? analysis.contests.slice(
+        (contestPage - 1) * CONTESTS_PER_PAGE,
+        contestPage * CONTESTS_PER_PAGE,
+      )
+    : []
+  const contestTotalPages = analysis
+    ? Math.max(1, Math.ceil(analysis.contests.length / CONTESTS_PER_PAGE))
+    : 1
+
+  // 제안서 초안 — 분석이 끝나면 출품용 기획서 양식(문제 정의·기대 효과·실현 계획…)으로 변환
+  // proposalDraft.js는 JS 모듈이라 화면 쪽에서 표시용 형태를 타입으로 고정합니다.
+  const [proposalOpen, setProposalOpen] = useState(false)
+  const [proposalCopied, setProposalCopied] = useState(false)
+  const proposalDraft = useMemo<ProposalDraft | null>(
+    () => (analysis ? (buildProposalDraft({ idea, analysis }) as ProposalDraft) : null),
+    [idea, analysis],
+  )
+
+  const handleCopyProposal = async () => {
+    if (!proposalDraft) return
+    const text = proposalToText(proposalDraft)
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {
+      // 클립보드 API가 막힌 환경(파일로 열기 등)에서는 임시 영역으로 복사합니다.
+      const area = document.createElement('textarea')
+      area.value = text
+      area.style.position = 'fixed'
+      area.style.opacity = '0'
+      document.body.appendChild(area)
+      area.select()
+      document.execCommand('copy')
+      document.body.removeChild(area)
+    }
+    setProposalCopied(true)
+    window.setTimeout(() => setProposalCopied(false), 2500)
+  }
+
+  const handleDownloadProposal = () => {
+    if (!proposalDraft) return
+    const blob = new Blob([proposalToText(proposalDraft)], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${proposalDraft.title}-제안서-초안.txt`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
 
   useEffect(() => {
-    // 결과 화면은 아이디어가 바뀔 때마다 새로 마운트되므로 state는 항상 null에서 시작합니다.
+    // 보관함 스냅숏을 복원한 경우 AI를 다시 호출하지 않습니다.
+    if (restored) return
     let cancelled = false
+    setContestPage(1)
 
     const fallback = buildMockAnalysis(idea)
 
     requestAiAnalysis(idea, referenceCases, contests)
       .then((aiData) => {
-        if (!cancelled) setAnalysis(mergeAnalysis('ai', aiData, fallback))
+        if (!cancelled) {
+          const merged = mergeAnalysis('ai', aiData, fallback)
+          setAnalysis(merged)
+          settledRef.current?.(merged)
+        }
       })
       .catch(() => {
         // 서버 미실행·키 미설정·타임아웃 등 어떤 경우에도 목업 결과를 표시합니다.
-        if (!cancelled) setAnalysis(mergeAnalysis('demo', null, fallback))
+        if (!cancelled) {
+          const merged = mergeAnalysis('demo', null, fallback)
+          setAnalysis(merged)
+          settledRef.current?.(merged)
+        }
       })
 
     return () => {
       cancelled = true
     }
-  }, [idea, attempt])
+  }, [idea, attempt, restored])
 
   // 데모 결과로 떨어졌을 때 AI 분석을 다시 요청합니다.
   const retryAnalysis = () => {
@@ -243,18 +269,12 @@ function ResultPage({
     setAttempt((n) => n + 1)
   }
 
-  const handleFeedbackVote = (vote: 'up' | 'down') => {
-    const next = { ...feedbackVotes, [idea.title]: vote }
-    setFeedbackVotes(next)
-    saveFeedbackVotes(next)
-    recordAnalysisFeedback({
-      sessionId,
-      vote,
-      ideaTitle: idea.title,
-      category: idea.category,
-    }).catch(() => {
-      // 백엔드가 꺼져 있어도 화면의 평가 상태는 유지합니다.
-    })
+  // 보관함 스냅숏을 버리고 AI 분석을 새로 요청합니다.
+  const reanalyze = () => {
+    setRestored(false)
+    setAnalysis(null)
+    setConfirmingApplyId(null)
+    setAttempt((n) => n + 1)
   }
 
   return (
@@ -263,9 +283,9 @@ function ResultPage({
         {analysis === null ? (
           <p className="result-badge analyzing">분석 중…</p>
         ) : analysis.source === 'ai' ? (
-          <p className="result-badge">AI 분석 결과</p>
+          <p className="result-badge">{restored ? '저장된 AI 분석 결과' : 'AI 분석 결과'}</p>
         ) : (
-          <p className="result-badge demo">데모 결과</p>
+          <p className="result-badge demo">{restored ? '저장된 데모 결과' : '데모 결과'}</p>
         )}
         <h1>분석 결과</h1>
         <p className="result-caption">
@@ -273,12 +293,42 @@ function ResultPage({
             ? '입력하신 아이디어를 분석하고 있어요. 잠시만 기다려 주세요.'
             : analysis.source === 'ai'
               ? 'AI가 입력하신 아이디어를 분석했습니다. 유사 사례·추천 공모전·수상작의 제목·링크 등은 2026년 10월 1일 기준 실제 자료이며, 유사도·추천 점수와 모든 분석 문구는 AI의 참고 의견이므로 제출 전 직접 검토가 필요합니다.'
-              : '백엔드 서버에 연결하지 못해 예시 분석을 보여 드려요. 유사 사례·추천 공모전·수상작의 제목·링크 등은 2026년 10월 1일 기준 실제 자료이며, 유사도·추천 점수와 모든 분석 문구는 입력을 반영해 만든 참고 자료입니다.'}
+              : '유사 사례·추천 공모전·수상작의 제목·링크 등은 2026년 10월 1일 기준 실제 자료이며, 유사도·추천 점수와 모든 분석 문구는 입력을 반영해 만든 참고 자료입니다.'}
         </p>
+        {analysis === null && (
+          <p className="result-loading-hint">
+            AI 분석은 최대 45초가 걸릴 수 있어요. 기다려도 실패하면 데모 결과로 자동 표시됩니다.
+          </p>
+        )}
         {analysis?.source === 'demo' && (
-          <button type="button" className="retry-analysis-button" onClick={retryAnalysis}>
-            AI 분석 다시 시도
-          </button>
+          <div className="analysis-retry" role="alert">
+            <p className="analysis-retry-title">AI 분석 요청이 실패했어요.</p>
+            <p className="analysis-retry-desc">
+              백엔드 서버가 꺼져 있거나 일시적인 오류일 수 있어요. 지금은 데모 결과를 보여 드리고
+              있어요.
+            </p>
+            <div className="analysis-retry-actions">
+              <button type="button" className="retry-analysis-button" onClick={retryAnalysis}>
+                AI 분석 다시 시도
+              </button>
+              {attempt > 0 && (
+                <span className="analysis-retry-count">재시도 {attempt}회</span>
+              )}
+            </div>
+          </div>
+        )}
+        {analysis !== null && restored && (
+          <div className="analysis-retry">
+            <p className="analysis-retry-title">저장된 분석 결과를 보여 드리고 있어요.</p>
+            <p className="analysis-retry-desc">
+              보관함에 저장된 시점의 결과예요. 최신 상태로 다시 분석하려면 아래 버튼을 눌러 주세요.
+            </p>
+            <div className="analysis-retry-actions">
+              <button type="button" className="retry-analysis-button" onClick={reanalyze}>
+                AI로 다시 분석하기
+              </button>
+            </div>
+          </div>
         )}
       </header>
 
@@ -294,7 +344,11 @@ function ResultPage({
             {ideaSaved ? (
               <span className="save-done">보관함에 저장됨 ✓</span>
             ) : (
-              <button type="button" className="save-button" onClick={onSaveIdea}>
+              <button
+                type="button"
+                className="save-button"
+                onClick={() => onSaveIdea(analysis)}
+              >
                 ＋ 보관함에 저장
               </button>
             )}
@@ -313,6 +367,174 @@ function ResultPage({
           {analysis?.differentiationTip ??
             "유사 사례들의 '다른 점'을 참고해 차별화 포인트를 정리하는 방법을 안내해 드릴게요."}
         </p>
+        <button
+          type="button"
+          className={showDiffExample ? 'diff-example-toggle is-open' : 'diff-example-toggle'}
+          onClick={() => setShowDiffExample((open) => !open)}
+          aria-expanded={showDiffExample}
+        >
+          📖 예시로 따라해 보기 {showDiffExample ? '▲' : '▼'}
+        </button>
+        {showDiffExample && (
+          <div className="diff-example">
+            <ol className="diff-example-steps">
+              <li>
+                <strong>예시 아이디어를 정한다</strong>
+                <p>반려동물 동반 카페 지도</p>
+              </li>
+              <li>
+                <strong>유사 사례의 '겹치는 점'을 확인한다</strong>
+                <p>
+                  주변 카페를 검색하는 지도 앱 — 카페 위치·영업시간·리뷰 검색은 이미 있어요.
+                </p>
+              </li>
+              <li>
+                <strong>유사 사례의 '다른 점'을 찾는다</strong>
+                <p>
+                  동반 가능 여부는 리뷰를 하나씩 읽어야 알 수 있어요 → 지도에서 바로 필터로 보여
+                  주면 달라집니다.
+                </p>
+              </li>
+              <li>
+                <strong>문장 틀에 넣는다</strong>
+                <p>비슷한 (서비스)가 있지만, 유일하게 (다른 점)인 점은 우리만 있습니다.</p>
+              </li>
+              <li>
+                <strong>완성!</strong>
+                <p className="diff-example-final">
+                  "비슷한 카페 검색 앱이 있지만, 반려동물 동반 가능 여부를 리뷰가 아니라 지도에서
+                  바로 필터로 확인할 수 있는 점은 저희 서비스만 있습니다."
+                </p>
+              </li>
+            </ol>
+            <div className="diff-example-compare">
+              <p className="diff-bad">
+                ✕ 피해야 할 문장: "저희 앱은 더 편리하고 정확한 정보를 제공합니다." — 무엇이 어떻게
+                다른지 없어 심사위원에게 와닿지 않아요.
+              </p>
+              <p className="diff-good">
+                ✓ 위 문장은 '무엇과 비교해 + 무엇이 다른지'가 한눈에 보여 심사에서 힘이 셉니다.
+              </p>
+            </div>
+            <p className="diff-example-note">
+              이렇게 정리한 문장은 '연습 노트'의 차별점 칸에 그대로 써 두면 응모 전 심사 연습에도
+              쓸 수 있어요.
+            </p>
+          </div>
+        )}
+      </section>
+
+      <section className="result-section" aria-labelledby="detail-title">
+        <h2 id="detail-title">아이디어 상세 분석</h2>
+        {analysis === null ? (
+          <div className="analysis-loading" role="status">
+            <span className="loading-spinner" aria-hidden="true" />
+            <p>아이디어를 여러 각도에서 살펴보고 있어요…</p>
+          </div>
+        ) : (
+          <div className="detail-panel">
+            <p className="detail-summary">{analysis.detail.ideaSummary}</p>
+            <div className="detail-target">
+              <h4>예상 타깃 사용자</h4>
+              <ul className="target-chips">
+                {analysis.detail.targetUsers.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="detail-grid">
+              <div className="detail-block">
+                <h4>강점</h4>
+                <ul>
+                  {analysis.detail.strengths.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="detail-block">
+                <h4>보완하면 좋은 점</h4>
+                <ul>
+                  {analysis.detail.improvements.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="detail-block">
+                <h4>심사에서 어필할 포인트</h4>
+                <ul>
+                  {analysis.detail.judgePoints.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="detail-block">
+                <h4>확장 아이디어</h4>
+                <ul>
+                  {analysis.detail.extensionIdeas.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <p className="detail-note">
+              분석 문구는 입력 내용을 바탕으로 만든 참고 의견이에요. 제출 전에는 공고 원문을 꼭
+              직접 확인하세요.
+            </p>
+          </div>
+        )}
+      </section>
+
+      <section className="result-section proposal-section" aria-labelledby="proposal-title">
+        <h2 id="proposal-title">제안서 초안 만들기</h2>
+        {analysis === null || proposalDraft === null ? (
+          <p className="proposal-waiting">분석이 끝나면 이 결과를 출품용 기획서 양식으로 옮겨 드려요.</p>
+        ) : (
+          <>
+            <p className="proposal-intro">
+              문제 정의 → 차별점 → 기대 효과 → 실현 계획 순서로 출품용 기획서 초안을 만들었어요.
+              복사해 그대로 다듬어 쓰세요.
+            </p>
+            <div className="proposal-actions">
+              <button type="button" className="proposal-copy" onClick={handleCopyProposal}>
+                {proposalCopied ? '복사 완료!' : '초안 복사하기'}
+              </button>
+              <button type="button" className="proposal-download" onClick={handleDownloadProposal}>
+                TXT 내려받기
+              </button>
+              <button
+                type="button"
+                className={proposalOpen ? 'proposal-toggle is-open' : 'proposal-toggle'}
+                onClick={() => setProposalOpen((open) => !open)}
+                aria-expanded={proposalOpen}
+              >
+                미리보기 {proposalOpen ? '▲' : '▼'}
+              </button>
+            </div>
+            {proposalOpen && (
+              <div className="proposal-preview">
+                <p className="proposal-title-line">[제안서 초안] {proposalDraft.title}</p>
+                {proposalDraft.metaLines.map((line) => (
+                  <p key={line} className="proposal-meta-line">
+                    {line}
+                  </p>
+                ))}
+                {proposalDraft.sections.map((section, index) => (
+                  <div key={section.heading} className="proposal-block">
+                    <h4>
+                      {index + 1}. {section.heading}
+                    </h4>
+                    <ul>
+                      {section.lines.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+                <p className="proposal-note">{proposalDraft.note}</p>
+              </div>
+            )}
+          </>
+        )}
       </section>
 
       <div className="similar-layout">
@@ -405,8 +627,9 @@ function ResultPage({
             <p>아이디어와 잘 맞는 공모전을 고르고 있어요…</p>
           </div>
         ) : (
+          <>
           <div className="case-list">
-            {analysis.contests.map((contest) => (
+            {pagedContests.map((contest) => (
             <article key={contest.id} className="case-card">
               <div className="case-top">
                 <h3>{contest.title}</h3>
@@ -414,6 +637,12 @@ function ResultPage({
               </div>
               <div className="case-body">
                 <div className="case-detail">
+                  <div className="similarity">
+                    <span className="similarity-label">적합도 {contest.matchScore}%</span>
+                    <div className="similarity-bar">
+                      <span style={{ width: `${contest.matchScore}%` }} />
+                    </div>
+                  </div>
                   <dl className="contest-info">
                     <div>
                       <dt>주최</dt>
@@ -436,16 +665,33 @@ function ResultPage({
                     {appliedContestIds.includes(contest.id) ? (
                       <div className="apply-done">
                         <span>응모 완료 ✓</span>
+                        <a
+                          className="apply-done-site"
+                          href={contest.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          실제 제출 확인하기 ↗
+                        </a>
                         <button type="button" onClick={onGoMyPage}>
                           마이페이지에서 보기 →
                         </button>
+                        <p className="apply-done-note">
+                          위 기록은 앱 안의 응모 목록 표시예요. 실제 접수 여부는 공모전
+                          사이트에서 확인하세요.
+                        </p>
                       </div>
                     ) : user && confirmingApplyId === contest.id ? (
                       <div className="apply-confirm" role="group" aria-label="응모 확인">
-                        <p className="apply-confirm-text">
-                          실제 응모는 공모전 사이트에서 진행돼요. 사이트에서 제출을 마친 뒤 신청
-                          완료로 표시해 주세요.
+                        <p className="apply-confirm-title">
+                          실제 응모는 공모전 사이트에서 제출해요.
                         </p>
+                        <ol className="apply-confirm-steps">
+                          <li>먼저 공모전 사이트에 접속해 제출을 마쳐 주세요.</li>
+                          <li>
+                            제출이 끝나면 '제출했어요'를 눌러 내 응모 목록에 기록하세요.
+                          </li>
+                        </ol>
                         <div className="apply-confirm-actions">
                           <a
                             className="apply-confirm-site"
@@ -453,7 +699,7 @@ function ResultPage({
                             target="_blank"
                             rel="noreferrer"
                           >
-                            공모전 페이지 열기 ↗
+                            공모전 사이트 열기 ↗
                           </a>
                           <button
                             type="button"
@@ -469,7 +715,7 @@ function ResultPage({
                               setConfirmingApplyId(null)
                             }}
                           >
-                            신청 완료로 표시
+                            제출했어요 — 완료로 표시
                           </button>
                           <button
                             type="button"
@@ -488,8 +734,22 @@ function ResultPage({
                       >
                         이 공모전 응모하기
                       </button>
+                    ) : inlineAuthFor === contest.id ? (
+                      <InlineAuthPanel
+                        onSignIn={onSignIn}
+                        onSignUp={onSignUp}
+                        contextNote="응모하려면 로그인이 필요해요."
+                        onAuthed={() => {
+                          setInlineAuthFor(null)
+                          setConfirmingApplyId(contest.id)
+                        }}
+                      />
                     ) : (
-                      <button type="button" className="apply-button" onClick={onGoMyPage}>
+                      <button
+                        type="button"
+                        className="apply-button"
+                        onClick={() => setInlineAuthFor(contest.id)}
+                      >
                         로그인하고 응모하기
                       </button>
                     )}
@@ -526,6 +786,42 @@ function ResultPage({
             </article>
             ))}
           </div>
+          {analysis.contests.length > CONTESTS_PER_PAGE && (
+            <nav className="contest-pagination" aria-label="추천 공모전 페이지 넘김">
+              <p className="contest-pagination-info">
+                총 {analysis.contests.length}개 중 {(contestPage - 1) * CONTESTS_PER_PAGE + 1}–
+                {Math.min(contestPage * CONTESTS_PER_PAGE, analysis.contests.length)}번째 표시 중
+              </p>
+              <div className="contest-pagination-buttons">
+                <button
+                  type="button"
+                  disabled={contestPage === 1}
+                  onClick={() => setContestPage((page) => Math.max(1, page - 1))}
+                >
+                  ‹ 이전
+                </button>
+                {Array.from({ length: contestTotalPages }, (_, index) => index + 1).map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    className={page === contestPage ? 'active' : ''}
+                    aria-current={page === contestPage ? 'page' : undefined}
+                    onClick={() => setContestPage(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  disabled={contestPage === contestTotalPages}
+                  onClick={() => setContestPage((page) => Math.min(contestTotalPages, page + 1))}
+                >
+                  다음 ›
+                </button>
+              </div>
+            </nav>
+          )}
+          </>
         )}
       </section>
 
@@ -583,36 +879,6 @@ function ResultPage({
           >
             점검 처음부터 다시 하기
           </button>
-        )}
-      </section>
-
-      <section className="result-section feedback-section" aria-labelledby="feedback-title">
-        <h2 id="feedback-title">이 분석 결과가 도움이 되었나요?</h2>
-        <p className="feedback-caption">
-          평가는 익명으로 기록되며 서비스 개선에만 사용돼요. 마음이 바뀌면 다시 눌러도 돼요.
-        </p>
-        <div className="feedback-actions" role="group" aria-label="분석 결과 평가">
-          <button
-            type="button"
-            className={feedbackVote === 'up' ? 'feedback-button is-active' : 'feedback-button'}
-            aria-pressed={feedbackVote === 'up'}
-            onClick={() => handleFeedbackVote('up')}
-          >
-            👍 도움이 됐어요
-          </button>
-          <button
-            type="button"
-            className={feedbackVote === 'down' ? 'feedback-button is-active' : 'feedback-button'}
-            aria-pressed={feedbackVote === 'down'}
-            onClick={() => handleFeedbackVote('down')}
-          >
-            👎 아쉬워요
-          </button>
-        </div>
-        {feedbackVote !== null && (
-          <p className="feedback-thanks" role="status">
-            소중한 의견이 기록됐어요.
-          </p>
         )}
       </section>
 
