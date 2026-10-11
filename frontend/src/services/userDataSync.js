@@ -8,6 +8,8 @@
 import { getAuthToken } from './auth.js'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
+// 서버가 멈춰 있을 때 동기화 대기가 길어지지 않게 한다. 실패해도 다음 변경 때 재시도된다.
+const REQUEST_TIMEOUT_MS = 15_000
 
 function authHeaders() {
   const token = getAuthToken()
@@ -20,7 +22,10 @@ function authHeaders() {
  */
 export async function pullUserData() {
   if (!getAuthToken()) return { ok: false }
-  const response = await fetch(`${API_BASE}/api/userdata`, { headers: authHeaders() })
+  const response = await fetch(`${API_BASE}/api/userdata`, {
+    headers: authHeaders(),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  })
   if (!response.ok) return { ok: false }
   const payload = await response.json()
   if (!payload?.success) return { ok: false }
@@ -38,6 +43,7 @@ export async function pushUserData(data) {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
     body: JSON.stringify({ data }),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   })
   if (!response.ok) return { ok: false }
   const payload = await response.json()

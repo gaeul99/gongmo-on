@@ -3,22 +3,23 @@
 // 3건을 마감일순으로 보여준다. 목록은 조사 기준일의 실제 데이터
 // (data/mockData.js contests)이고, D-x 라벨은 utils/contestAlerts.js의
 // deadlineStatus가 오늘 날짜로 계산한다. 항목은 공모전 상세 화면,
-// 전체 보기는 대시보드로 이동.
+// 전체 보기는 공모전 탐색 화면으로 이동.
 // ==========================================================
 import { useMemo } from 'react'
+import AppLink from './AppLink'
 import { contests } from '../data/mockData.js'
 import { deadlineStatus, isApplicationOpen } from '../utils/contestAlerts.js'
 import { getNewContests } from '../utils/contestOpenAlerts.js'
 import './HeroDeadlines.css'
 
 type Props = {
-  onOpenDashboard: () => void
+  onOpenExplore: () => void
   onOpenContest: (id: number) => void
 }
 
 const SHOW_LIMIT = 3
 
-function HeroDeadlines({ onOpenDashboard, onOpenContest }: Props) {
+function HeroDeadlines({ onOpenExplore, onOpenContest }: Props) {
   // 이번 데이터 갱신에서 새로 접수가 시작된 공모전 id (NEW 배지 표시용)
   const newIds = useMemo(() => new Set(getNewContests(contests).map((contest) => contest.id)), [])
 
@@ -41,19 +42,19 @@ function HeroDeadlines({ onOpenDashboard, onOpenContest }: Props) {
         <span className="deadline-emoji" aria-hidden="true">
           ⏰
         </span>
-        <button type="button" className="deadline-more" onClick={onOpenDashboard}>
+        <AppLink className="deadline-more" href="/contest" onNavigate={onOpenExplore}>
           전체 보기
-        </button>
+        </AppLink>
       </div>
 
       <ul className="deadline-list">
         {rows.map(({ contest, status }) => (
           <li key={contest.id}>
-            <button
-              type="button"
+            <AppLink
               className="deadline-item"
-              onClick={() => onOpenContest(contest.id)}
+              href={`/contest/${contest.id}`}
               title="공모전 상세 보기"
+              onNavigate={() => onOpenContest(contest.id)}
             >
               <span className={`deadline-badge tone-${status.tone}`}>{status.label}</span>
               <span className="deadline-info">
@@ -65,7 +66,7 @@ function HeroDeadlines({ onOpenDashboard, onOpenContest }: Props) {
                   {contest.organizer} · {contest.field}
                 </span>
               </span>
-            </button>
+            </AppLink>
           </li>
         ))}
       </ul>

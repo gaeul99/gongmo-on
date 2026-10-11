@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import AppLink from '../components/AppLink'
 import {
   CONTEST_TYPES,
   TYPE_TEST_QUESTIONS,
@@ -7,10 +8,13 @@ import {
 } from '../data/contestTypeTest.js'
 import { contests } from '../data/mockData.js'
 import { deadlineStatus } from '../utils/contestAlerts.js'
+import { STORAGE_KEYS } from '../utils/storageKeys.js'
 import type { TypeIdeaHints } from './IdeaInputPage'
 import './TypeTestPage.css'
 
-const LAST_RESULT_KEY = 'gongnabi:type-test'
+const LAST_RESULT_KEY = STORAGE_KEYS.typeTest
+// 진행 중 답변 저장 키 — 30문항 도중에 새로고침해도 이어서 진행할 수 있게 한다.
+const PROGRESS_KEY = 'idea-navigation:type-test-progress'
 
 type LastResult = {
   typeId: string
@@ -44,6 +48,41 @@ function saveLastResult(result: LastResult) {
   }
 }
 
+// 진행 중 답변 — 일부만 답했을 때만 유효하다. 전부 답했으면 결과가 이미 저장됐고,
+// 하나도 없으면 저장할 의미가 없어 둘 다 버린다.
+type SavedProgress = { answers: (number | null)[] }
+
+function loadProgress(): SavedProgress | null {
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as SavedProgress
+    if (!Array.isArray(parsed?.answers)) return null
+    if (parsed.answers.length !== TYPE_TEST_QUESTIONS.length) return null
+    const answered = parsed.answers.filter((answer) => answer !== null).length
+    if (answered === 0 || answered === parsed.answers.length) return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function saveProgress(answers: (number | null)[]) {
+  try {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify({ answers } satisfies SavedProgress))
+  } catch {
+    // 저장 실패 시에도 검사 자체는 계속 진행할 수 있습니다.
+  }
+}
+
+function clearProgress() {
+  try {
+    localStorage.removeItem(PROGRESS_KEY)
+  } catch {
+    // 무시 — 남아 있어도 완료 시점에는 유효하지 않은 진행으로 버려진다.
+  }
+}
+
 type Props = {
   onBack: () => void
   // 결과 유형의 관심 분야와 맞춤 힌트를 입력 화면에 미리 채우면서 분석을 시작합니다.
@@ -63,10 +102,12 @@ function getTypeById(typeId: string | null): ContestType | null {
 }
 
 function TypeTestPage({ onBack, onGoInput }: Props) {
-  const [stage, setStage] = useState<Stage>('intro')
-  const [answers, setAnswers] = useState<(number | null)[]>(() =>
-    TYPE_TEST_QUESTIONS.map(() => null),
-  )
+  // 저장된 진행이 있으면 인트로를 건너뛰고 바로 이어서 진행합니다.
+  const [stage, setStage] = useState<Stage>(() => (loadProgress() ? 'quiz' : 'intro'))
+  const [answers, setAnswers] = useState<(number | null)[]>(() => {
+    const progress = loadProgress()
+    return progress ? progress.answers : TYPE_TEST_QUESTIONS.map(() => null)
+  })
   const [result, setResult] = useState<TestResult | null>(null)
   const [lastResult, setLastResult] = useState<LastResult | null>(loadLastResult)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
@@ -86,6 +127,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
   )
 
   const startQuiz = () => {
+    clearProgress()
     setAnswers(TYPE_TEST_QUESTIONS.map(() => null))
     setResult(null)
     setCopyMessage(null)
@@ -96,6 +138,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
     const next = [...answers]
     next[current] = optionIndex
     setAnswers(next)
+    saveProgress(next)
     if (next.every((answer) => answer !== null)) {
       const { type, percentage, distribution } = calculateContestType(next as number[])
       const record: LastResult = {
@@ -105,6 +148,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
         distribution: distribution.map(({ id, percent }) => ({ id, percent })),
       }
       saveLastResult(record)
+      clearProgress()
       setLastResult(record)
       setResult({ type, percentage, distribution })
       setStage('result')
@@ -116,6 +160,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
     const next = [...answers]
     next[current - 1] = null
     setAnswers(next)
+    saveProgress(next)
   }
 
   const viewLastResult = () => {
@@ -160,21 +205,21 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
               지금 접수 중인 공모전 중 어울리는 곳을 추천받아 보세요.
             </p>
           </header>
+          {lastType && lastResult && (
+            <button
+              type="button"
+              className="type-test-last-result"
+              onClick={viewLastResult}
+            >
+              지난 결과 보기 · {lastType.emoji} {lastType.name} ({lastResult.savedAt})
+            </button>
+          )}
           <section className="type-test-panel type-test-intro">
             <ul className="type-test-points">
               <li>총 {TYPE_TEST_QUESTIONS.length}문항 · 약 3분</li>
               <li>결과는 7가지 공내비 유형 중 하나 + 성향 일치율</li>
               <li>결과 화면에서 접수 중인 공모전 3곳을 추천</li>
             </ul>
-            {lastType && lastResult && (
-              <button
-                type="button"
-                className="type-test-last-result"
-                onClick={viewLastResult}
-              >
-                지난 결과 보기 · {lastType.emoji} {lastType.name} ({lastResult.savedAt})
-              </button>
-            )}
             <button type="button" className="type-test-start" onClick={startQuiz}>
               검사 시작하기
             </button>
@@ -351,10 +396,10 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
             </ul>
           </section>
             <div className="type-test-actions">
-              <button
-                type="button"
+              <AppLink
                 className="type-test-analyze"
-                onClick={() =>
+                href="/input"
+                onNavigate={() =>
                   onGoInput(result.type.primaryCategory, {
                     typeName: result.type.name,
                     emoji: result.type.emoji,
@@ -363,7 +408,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
                 }
               >
               이 유형으로 아이디어 분석 시작
-            </button>
+            </AppLink>
             <div className="type-test-actions-row">
               <button type="button" className="type-test-retry" onClick={startQuiz}>
                 다시 검사하기

@@ -7,6 +7,40 @@
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 
+// AI 프롬프트에 넣을 공모전 후보 수. 후보 전부(350여 건)를 보내면 프롬프트·응답이
+// 토큰 한도를 넘어 분석이 실패하므로, 관련도가 높은 상위 몇 건만 추려 보낸다.
+// AI 점수가 없는 나머지 공모전은 목업 점수를 그대로 쓴다(ResultPage의 mergeAnalysis).
+const AI_CONTEST_LIMIT = 36
+
+const fieldFamilyOf = (field) => String(field ?? '').split(' ')[0]
+
+// 아이디어 제목·설명에서 키워드 토큰을 뽑는다(2자 이상, 최대 12개).
+const tokensOf = (text) =>
+  String(text ?? '')
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((token) => token.length >= 2)
+    .slice(0, 12)
+
+// AI에게 보낼 후보 공모전을 고른다. 접수 중·접수 예정만 남기고
+// 관심 분야 일치 > 아이디어 키워드 겹침 > 마감 임박 순으로 상위 AI_CONTEST_LIMIT건을 택한다.
+export function pickAiCandidates(idea, contests) {
+  const today = new Date().toISOString().slice(0, 10)
+  const ideaTokens = [...new Set([...tokensOf(idea.title), ...tokensOf(idea.description)])]
+  return contests
+    .filter((contest) => (contest.startDate && contest.startDate > today) || contest.deadline >= today)
+    .map((contest) => {
+      const haystack = `${contest.title} ${contest.field} ${contest.description ?? ''}`.toLowerCase()
+      const keywordHits = ideaTokens.filter((token) => haystack.includes(token)).length
+      const fieldBonus = idea.category && fieldFamilyOf(contest.field) === idea.category ? 100 : 0
+      const daysLeft = Math.max(0, Math.round((new Date(contest.deadline) - new Date(today)) / 86400000))
+      return { contest, score: fieldBonus + keywordHits * 50 - daysLeft }
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, AI_CONTEST_LIMIT)
+    .map((row) => row.contest)
+}
+
 // 같은 아이디어를 다시 열 때(보관함 '다시 보기' 등) AI 호출을 아끼기 위한 세션 캐시입니다.
 const cache = new Map()
 
@@ -21,7 +55,8 @@ function cacheKeyFor(idea, referenceCases, contests) {
 }
 
 export async function requestAiAnalysis(idea, referenceCases, contests) {
-  const cacheKey = cacheKeyFor(idea, referenceCases, contests)
+  const aiContests = pickAiCandidates(idea, contests)
+  const cacheKey = cacheKeyFor(idea, referenceCases, aiContests)
   if (cache.has(cacheKey)) {
     return cache.get(cacheKey)
   }
@@ -29,7 +64,7 @@ export async function requestAiAnalysis(idea, referenceCases, contests) {
   const response = await fetch(`${API_BASE}/api/ideas/analyze`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ idea, referenceCases, contests }),
+    body: JSON.stringify({ idea, referenceCases, contests: aiContests }),
     signal: AbortSignal.timeout(45000),
   })
 

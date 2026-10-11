@@ -26,6 +26,7 @@ export type UserData = {
   savedIdeas: unknown[]
   typeTest: unknown
   checklist: Record<string, boolean>
+  roadmaps: Record<string, unknown>
   practiceNotes: unknown[]
 }
 
@@ -47,17 +48,40 @@ function ensureDataDir() {
 }
 
 function readJson<T>(file: string, fallback: T): T {
+  let raw: string
   try {
-    const raw = fs.readFileSync(file, 'utf-8')
-    return JSON.parse(raw) as T
+    raw = fs.readFileSync(file, 'utf-8')
   } catch {
+    // 파일이 아직 없는 초기 상태뿐이다 — fallback이 정답.
     return fallback
+  }
+  try {
+    return JSON.parse(raw) as T
+  } catch (error) {
+    if (raw.trim() === '') return fallback
+    // 내용이 있는데 JSON이 아니면 파일 손상. 조용히 fallback을 반환하면 이후
+    // 저장이 빈 값 기반으로 파일 전체를 다시 써 계정·데이터가 소실된다.
+    // 원본을 보관해 두고 실패로 멈춘다(해당 API는 500).
+    const quarantine = `${file}.corrupt-${Date.now()}`
+    try {
+      fs.copyFileSync(file, quarantine)
+      console.error(
+        `[userStore] 데이터 파일 손상: ${file} — 원본을 ${quarantine}에 보관했습니다. 복구 전까지 관련 기능은 실패합니다.`,
+        error,
+      )
+    } catch {
+      console.error(`[userStore] 데이터 파일 손상: ${file} — 보관 실패, 원본은 그대로 있습니다.`, error)
+    }
+    throw new Error(`Corrupted data file: ${file}`)
   }
 }
 
 function writeJson(file: string, value: unknown) {
   ensureDataDir()
-  fs.writeFileSync(file, JSON.stringify(value, null, 2), 'utf-8')
+  // temp에 쓰고 rename으로 갈아끼운다 — 쓰다가 죽어도 기존 파일은 온전하다.
+  const tmp = `${file}.tmp`
+  fs.writeFileSync(tmp, JSON.stringify(value, null, 2), 'utf-8')
+  fs.renameSync(tmp, file)
 }
 
 // ---------- 비밀번호 해시 (salt + scrypt, 평문 저장 없음) ----------
@@ -167,6 +191,7 @@ function emptyUserData(): UserData {
     savedIdeas: [],
     typeTest: null,
     checklist: {},
+    roadmaps: {},
     practiceNotes: [],
   }
 }

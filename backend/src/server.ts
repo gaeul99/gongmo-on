@@ -10,14 +10,43 @@ import { startNotificationScheduler } from "./services/notificationScheduler";
 import { emailConfigured } from "./services/notificationSenders";
 import { getAiTokenNotice } from "./services/ai.service";
 import { pruneExpiredSessions } from "./services/userStore";
+import { rateLimit, securityHeaders } from "./middleware/security";
 
 dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// 개발 기본값은 Vite 개발 서버(5173). 배포하면 CLIENT_ORIGIN 환경변수에
+// 실제 웹사이트 주소를 쉼표로 나열해 확장한다. Origin이 없는 서버 간 호출은
+// 브라우저가 아니라 CSRF 위험이 없어 그대로 허용한다.
+const allowedOrigins = (
+  process.env.CLIENT_ORIGIN ?? "http://localhost:5173,http://127.0.0.1:5173"
+)
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
+  }),
+);
+app.use(securityHeaders);
 // 사용자 데이터(아이디어 분석 스냅숏 포함)가 커질 수 있어 기본 100kb를 넉넉히 올립니다.
 app.use(express.json({ limit: "2mb" }));
+
+// 남용이 비용·스팸으로 이어지는 엔드포인트부터 IP별 요청 수를 제한한다.
+// AI 호출(토큰 비용), 로그인(무차별 대입), 알림 이메일(발송 남용).
+app.use("/api/ideas", rateLimit({ windowMs: 10 * 60 * 1000, max: 15, name: "ideas" }));
+app.use("/api/chat", rateLimit({ windowMs: 10 * 60 * 1000, max: 40, name: "chat" }));
+app.use("/api/auth", rateLimit({ windowMs: 10 * 60 * 1000, max: 30, name: "auth" }));
+app.use("/api/notifications", rateLimit({ windowMs: 10 * 60 * 1000, max: 20, name: "notifications" }));
 
 // 3000 포트는 데이터 전용 API 서버라서 화면은 따로 없다. 브라우저로 직접 열었을 때
 // "Cannot GET /" 대신 웹사이트 주소를 안내해 주는 용도의 페이지.
@@ -134,12 +163,28 @@ app.use("/api/notifications", notificationRouter);
 app.use("/api/auth", accountRouter);
 app.use("/api/userdata", userDataRouter);
 
+// 정의되지 않은 경로 — Express 기본 HTML 대신 표준 JSON으로 답한다.
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    error: { code: "NOT_FOUND", message: "찾을 수 없는 요청이에요." },
+  });
+});
+
 // JSON 파싱 실패 등 라우트에서 잡지 못한 오류도 표준 응답 형식({ success, error })으로 돌려줍니다.
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof SyntaxError && "body" in err) {
     res.status(400).json({
       success: false,
       error: { code: "INVALID_REQUEST", message: "요청 본문이 올바른 JSON이 아니에요." },
+    });
+    return;
+  }
+  // 요청 본문이 2mb 한도를 넘으면 Express가 413으로 던진다 — 500으로 뭉개지 않게 분기한다.
+  if (typeof err === "object" && err !== null && "type" in err && (err as { type?: string }).type === "entity.too.large") {
+    res.status(413).json({
+      success: false,
+      error: { code: "PAYLOAD_TOO_LARGE", message: "요청 본문이 너무 커요. 내용을 줄여 주세요." },
     });
     return;
   }
@@ -150,8 +195,11 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   });
 });
 
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+// 배포 환경(VPS·PaaS)에서는 PORT 환경변수로 포트를 지정한다. 미지정 시 개발 기본값 3000.
+const PORT = Number(process.env.PORT) || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
   console.log(
     `[알림] 이메일: ${emailConfigured() ? "SMTP 발송" : "로그 모드(SMTP 미설정)"}`,
   );

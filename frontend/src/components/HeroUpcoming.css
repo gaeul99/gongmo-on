@@ -18,28 +18,22 @@
 
 .upcoming-head {
   display: flex;
-  justify-content: space-between;
   align-items: baseline;
   gap: 10px;
 }
 
 .upcoming-head h2 {
-  font-size: 19px;
+  font-size: 16px;
   margin: 0;
 }
 
-/* '곧 마감되는 공모전' 박스의 전체 보기 버튼(deadline-more)과 같은 스타일을 쓴다 */
-.upcoming-head .deadline-more {
-  padding: 4px 6px;
-  margin: 0;
-  margin-left: auto;
-}
+/* 더보기 버튼은 양쪽 패널이 같은 .deadline-more 스타일(패딩 포함)을 쓴다 */
 
 /* 제목 옆 시작 이모지 — 장식(aria-hidden)이라 낭독기에는 제목만 읽힌다.
    h2 바로 옆에 붙여 두고 버튼만 오른쪽 끝으로 민다. */
 .upcoming-emoji {
   align-self: center;
-  font-size: 19px;
+  font-size: 18px;
   line-height: 1;
 }
 
@@ -74,28 +68,28 @@
 }
 
 .upcoming-item:hover .upcoming-title {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .upcoming-badge {
   flex-shrink: 0;
   margin-top: 1px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   border-radius: 999px;
   padding: 3px 9px;
 }
 
-/* 오늘 시작 / 시작 전 — 마감 패널의 빨강·초록과 구별되는 보라 톤 */
+/* 오늘 시작 / 시작 전 — 마감 패널의 빨강과 구별되는 청록 톤(보라 메인컬러 대신) */
 .upcoming-badge.tone-today {
-  color: #fff;
-  background: var(--accent);
+  color: var(--accent-ink);
+  background: var(--hue-teal);
 }
 
 .upcoming-badge.tone-soon {
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
+  color: var(--hue-teal);
+  background: var(--hue-teal-bg);
+  border: 1px solid var(--hue-teal-border);
 }
 
 .upcoming-info {
@@ -106,23 +100,28 @@
 }
 
 .upcoming-title {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 800;
   color: var(--text-h);
   line-height: 1.45;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  /* '곧 마감되는 공모전' 패널과 같은 한 줄 높이 — 카드 높이가 내용에 따라 달라지지 않게 */
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .upcoming-meta {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text);
+  /* 카드 높이 고정 — 주최·분야가 길어도 두 줄로 늘어나지 않게 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .upcoming-note {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text);
   border-top: 1px solid var(--border);
   padding-top: 10px;

@@ -2,11 +2,13 @@
 // 신규 공모전 오픈 알림
 // mockData.js의 접수 중 공모전 목록이 갱신(새 공모전 추가)됐을 때
 // 이전 방문 때 본 적 없는 공모전을 감지합니다.
-// 본 적 있는 공모전 id는 localStorage('gongnabi:seen-contests')에 기록하고,
+// 본 적 있는 공모전 id는 localStorage('idea-navigation:seen-contests')에 기록하고,
 // 첫 방문에는 전체를 '본 것'으로 기록해 빈 화면에 알림이 뜨지 않게 합니다.
 // ==========================================================
 
-const SEEN_KEY = 'gongnabi:seen-contests'
+import { STORAGE_KEYS } from './storageKeys.js'
+
+const SEEN_KEY = STORAGE_KEYS.seenContests
 const OPT_IN_KEY = 'idea-navigation:new-contest-alert'
 
 // mockData.js contests 항목의 최소 구조

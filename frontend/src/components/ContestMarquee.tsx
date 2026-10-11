@@ -7,6 +7,7 @@
 // deadlineStatus 기준을 그대로 쓴다.
 // ==========================================================
 import { useEffect, useRef, useState } from 'react'
+import AppLink from './AppLink'
 import { contests } from '../data/mockData.js'
 import { deadlineStatus, isApplicationOpen } from '../utils/contestAlerts.js'
 import './ContestMarquee.css'
@@ -42,7 +43,8 @@ function ContestMarquee({ onOpenContest }: Props) {
   // 화살표를 누르기 전엔 끊김 없는 무한 흐름(같은 목록을 두 번 이어 붙임),
   // 누른 뒤엔 한 장씩 옮기는 수동 모드로 바뀐다.
   const [manual, setManual] = useState(false)
-  const [index, setIndex] = useState(0)
+  // 원본 이동 위치. 창이 좁아져 이동 여유(maxIndex)가 줄면 남는 값은 아래 index에서 그냥 버린다.
+  const [rawIndex, setIndex] = useState(0)
   const windowRef = useRef<HTMLDivElement | null>(null)
   const [visible, setVisible] = useState(1)
 
@@ -59,27 +61,23 @@ function ContestMarquee({ onOpenContest }: Props) {
   }, [])
 
   const maxIndex = Math.max(0, rows.length - visible)
-
-  // 창이 넓어져 이동 여유가 사라지면 index를 범위 안으로 되돌린다.
-  useEffect(() => {
-    setIndex((current) => Math.min(current, maxIndex))
-  }, [maxIndex])
+  // 창이 넓어져 이동 여유가 사라져도 원본 값은 그대로 두고 표시값만 범위 안으로 되돌린다.
+  const index = Math.min(rawIndex, maxIndex)
 
   const goPrev = () => {
     setManual(true)
-    setIndex((current) => Math.max(0, current - 1))
+    setIndex(Math.max(0, index - 1))
   }
 
   const goNext = () => {
     setManual(true)
-    setIndex((current) => Math.min(maxIndex, current + 1))
+    setIndex(Math.min(maxIndex, index + 1))
   }
 
   const cards = manual ? rows : [...rows, ...rows]
 
   return (
     <section className="contest-marquee" aria-label="접수 중인 공모전 배너">
-      <p className="marquee-heading">📢 접수 중인 공모전</p>
       <p className="marquee-sub">포스터를 누르면 상세 정보로 이동해요</p>
       <div className="marquee-slider">
         <button
@@ -121,11 +119,11 @@ function ContestMarquee({ onOpenContest }: Props) {
                   className="marquee-card"
                   aria-hidden={hidden || undefined}
                 >
-                  <button
-                    type="button"
+                  <AppLink
+                    href={`/contest/${contest.id}`}
                     tabIndex={hidden ? -1 : undefined}
                     title={`${contest.title} 상세 보기`}
-                    onClick={() => onOpenContest(contest.id)}
+                    onNavigate={() => onOpenContest(contest.id)}
                   >
                     <span className="marquee-thumb">
                       <img src={contest.image} alt="" loading="lazy" />
@@ -137,7 +135,7 @@ function ContestMarquee({ onOpenContest }: Props) {
                       <span className="marquee-name">{contest.title}</span>
                       <span className="marquee-org">{contest.organizer}</span>
                     </span>
-                  </button>
+                  </AppLink>
                 </li>
               )
             })}

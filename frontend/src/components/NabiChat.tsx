@@ -9,10 +9,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { buildChatSnapshot } from '../data/chatContext.js'
 import { DATA_AS_OF } from '../data/dashboard.js'
+import { getAuthToken } from '../services/auth.js'
+import { STORAGE_KEYS } from '../utils/storageKeys.js'
 import './NabiChat.css'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
-const KEY_STORAGE = 'gongnabi:chat-key'
+const KEY_STORAGE = STORAGE_KEYS.chatKey
 const CHAT_MODEL_LABEL = 'openai/gpt-5.6-luna'
 const REQUEST_TIMEOUT_MS = 45_000
 const MAX_MESSAGE_LENGTH = 1000
@@ -126,7 +128,8 @@ async function requestChat(
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
   } catch (error) {
-    if (error instanceof DOMException && error.name === 'TimeoutError') {
+    // 브라우저에 따라 타임아웃이 TimeoutError 또는 AbortError로 던져진다.
+    if (error instanceof DOMException && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
       throw new ChatRequestError('TIMEOUT', '응답이 45초를 넘었어요. 잠시 후 다시 시도해 주세요.')
     }
     throw new ChatRequestError('NETWORK', '백엔드 서버에 연결할 수 없어요. 서버가 켜져 있는지 확인해 주세요.')
@@ -192,11 +195,18 @@ function NabiChat({ onOpenContest, onGoInput }: {
   }, [])
 
   // 패널을 열 때마다 알림 통계를 새로 가져온다. 스냅숏 기준일을 최신으로 유지하기 위해서다.
+  // 통계는 로그인한 사용자 전용 정보가 됐다(수신자 이메일·본문 포함) — 토큰을 함께 보낸다.
   useEffect(() => {
     if (!open) return
     let cancelled = false
-    fetch(`${API_BASE}/api/notifications/stats`, { signal: AbortSignal.timeout(5000) })
+    const token = getAuthToken()
+    fetch(`${API_BASE}/api/notifications/stats`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      signal: AbortSignal.timeout(5000),
+    })
       .then(async (response) => {
+        // 미로그인·세션 만료면 통계 없이 대화만 계속한다.
+        if (response.status === 401) throw new Error('unauthorized')
         const payload = (await response.json()) as { success?: boolean; data?: unknown }
         if (!payload.success || payload.data === undefined || payload.data === null) {
           throw new Error('bad payload')
@@ -207,7 +217,7 @@ function NabiChat({ onOpenContest, onGoInput }: {
         if (!cancelled) setNotif(data)
       })
       .catch(() => {
-        // 백엔드가 꺼져 있으면 이전 값을 유지하거나 없는 채로 둔다.
+        // 백엔드가 꺼져 있거나 미로그인이면 이전 값을 유지하거나 없는 채로 둔다.
       })
     return () => {
       cancelled = true
@@ -332,15 +342,7 @@ function NabiChat({ onOpenContest, onGoInput }: {
         aria-expanded="false"
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M11.1 10.8 C9.7 7.9 6.2 5.9 4.4 7.3 C2.7 8.6 3.5 11.7 6.4 12.9 C8.3 13.7 10.1 13.3 11.1 12.3 Z" />
-          <path d="M11.1 13.5 C9.5 13.1 7.1 13.7 6.1 15.4 C5.2 17.1 6.4 18.9 8.3 18.6 C10.1 18.3 11.2 16.5 11.2 14.5 Z" />
-          <g transform="translate(24 0) scale(-1 1)">
-            <path d="M11.1 10.8 C9.7 7.9 6.2 5.9 4.4 7.3 C2.7 8.6 3.5 11.7 6.4 12.9 C8.3 13.7 10.1 13.3 11.1 12.3 Z" />
-            <path d="M11.1 13.5 C9.5 13.1 7.1 13.7 6.1 15.4 C5.2 17.1 6.4 18.9 8.3 18.6 C10.1 18.3 11.2 16.5 11.2 14.5 Z" />
-          </g>
-          <ellipse cx="12" cy="13.8" rx="1.25" ry="4.4" />
-          <circle cx="12" cy="8.3" r="1.5" />
-          <path d="M11.2 7.2 C10.4 5.8 9.4 4.9 8.2 4.4 M12.8 7.2 C13.6 5.8 14.6 4.9 15.8 4.4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
         </svg>
       </button>
     )

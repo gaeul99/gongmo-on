@@ -30,12 +30,31 @@ function InlineAuthPanel({ onSignIn, onSignUp, onAuthed, contextNote }: Props) {
     event.preventDefault()
     if (pending) return
     setError(null)
+    // 마이페이지 폼과 같은 기준의 1차 검증 — 빈 값·짧은 비밀번호를 서버까지 보내지 않는다.
+    const trimmedNickname = nickname.trim()
+    if (!trimmedNickname) {
+      setError('아이디를 입력해 주세요.')
+      return
+    }
+    if (!password) {
+      setError('비밀번호를 입력해 주세요.')
+      return
+    }
+    if (mode === 'signup' && password.length < 8) {
+      setError('비밀번호는 8자 이상이어야 해요.')
+      return
+    }
+    const trimmedEmail = email.trim()
+    if (mode === 'signup' && !/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+      setError('알림을 받을 이메일 주소를 입력해 주세요.')
+      return
+    }
     setPending(true)
     try {
       const result =
         mode === 'login'
-          ? await onSignIn(nickname, password)
-          : await onSignUp(nickname, password, email, phone)
+          ? await onSignIn(trimmedNickname, password)
+          : await onSignUp(trimmedNickname, password, trimmedEmail, phone)
       if (result.ok) {
         onAuthed()
       } else {
@@ -90,7 +109,7 @@ function InlineAuthPanel({ onSignIn, onSignUp, onAuthed, contextNote }: Props) {
         type="password"
         value={password}
         onChange={(event) => setPassword(event.target.value)}
-        placeholder={mode === 'signup' ? '비밀번호 (4자 이상)' : '비밀번호'}
+        placeholder={mode === 'signup' ? '비밀번호 (8자 이상)' : '비밀번호'}
         aria-label="비밀번호"
         maxLength={40}
       />

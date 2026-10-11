@@ -37,7 +37,7 @@
 .detail-field {
   font-size: 12px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
@@ -67,8 +67,8 @@
 
 .detail-dday.tone-upcoming {
   color: #fff;
-  background: #17995f;
-  border-color: #17995f;
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 .detail-hero-text h1 {
@@ -165,7 +165,7 @@
   height: 26px;
   border-radius: 50%;
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
   font-size: 13px;
   font-weight: 700;
   display: flex;
@@ -186,7 +186,7 @@
   font: inherit;
   font-size: 13px;
   font-weight: 700;
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent);
   border: none;
   border-radius: 10px;
@@ -262,7 +262,7 @@
 .detail-site-button {
   font-size: 13px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
   border: 1.5px solid var(--accent-border);
   border-radius: 10px;
@@ -292,7 +292,7 @@
 }
 
 .detail-wish-button.active {
-  color: var(--accent);
+  color: var(--accent-text);
   border-color: var(--accent-border);
   background: var(--accent-bg);
 }
@@ -303,25 +303,31 @@
   gap: 10px;
   font-size: 14px;
   font-weight: 700;
-  color: #17995f;
+  color: var(--accent-text);
 }
 
-.detail-applied button {
+/* 응모 완료 줄의 보조 링크 — 버튼·앱 내 링크(AppLink) 공통 스타일 */
+.detail-applied button,
+.detail-applied a.app-link {
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
 }
 
-.detail-applied button:hover {
+.detail-applied button:hover,
+.detail-applied a.app-link:hover {
   text-decoration: underline;
 }
 
+/* 마감 안내 — 액션 행에서 한 줄을 통째로 차지해 버튼들 위에 놓인다 */
 .detail-closed-note {
+  flex-basis: 100%;
+  margin: 0;
   font-size: 14px;
   font-weight: 600;
   color: var(--text);

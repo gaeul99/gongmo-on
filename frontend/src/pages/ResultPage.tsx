@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { buildMockAnalysis } from '../services/mockAnalysis.js'
 import { requestAiAnalysis } from '../services/aiAnalysis.js'
 import { buildProposalDraft, proposalToText } from '../services/proposalDraft.js'
+import AppLink from '../components/AppLink'
 import InlineAuthPanel from '../components/InlineAuthPanel'
 import { contests, referenceCases, winnerArchives } from '../data/mockData.js'
 import type { IdeaInput } from './IdeaInputPage'
@@ -137,6 +138,10 @@ type Props = {
   onToggleWish: (target: Omit<WishlistContest, 'addedAt'>) => void
   onSaveIdea: (analysis: Analysis | null) => void
   onGoMyPage: () => void
+  // 앱 안의 공모전 상세 화면으로 이동 — 추천 공모전 카드에서 씁니다.
+  onOpenContest: (id: number) => void
+  // 이 아이디어로 연습 노트를 만들 때 초안을 넘겨 연습 노트 화면으로 이동합니다.
+  onGoNotes: (draft: { title: string; intent: string; diff: string }) => void
   onSignIn: (nickname: string, password: string) => Promise<AuthResult>
   onSignUp: (nickname: string, password: string, email: string, phone: string) => Promise<AuthResult>
 }
@@ -154,6 +159,8 @@ function ResultPage({
   onToggleWish,
   onSaveIdea,
   onGoMyPage,
+  onOpenContest,
+  onGoNotes,
   onSignIn,
   onSignUp,
 }: Props) {
@@ -232,28 +239,40 @@ function ResultPage({
     URL.revokeObjectURL(url)
   }
 
+  // 이 아이디어로 연습 노트 만들기 — 기획 의도(입력 설명)를 채워 초안으로 넘깁니다.
+  // 차별점은 사용자가 직접 다듬어 적도록 비워 둡니다.
+  const handleCreateNote = () => {
+    onGoNotes({
+      title: idea.title,
+      intent: idea.description,
+      diff: '',
+    })
+  }
+
   useEffect(() => {
     // 보관함 스냅숏을 복원한 경우 AI를 다시 호출하지 않습니다.
     if (restored) return
     let cancelled = false
-    setContestPage(1)
 
     const fallback = buildMockAnalysis(idea)
+
+    // 새 분석 결과로 갈아끼울 때 추천 공모전 목록도 바뀌므로 페이지를 1로 되돌립니다.
+    const apply = (merged: Analysis) => {
+      setContestPage(1)
+      setAnalysis(merged)
+      settledRef.current?.(merged)
+    }
 
     requestAiAnalysis(idea, referenceCases, contests)
       .then((aiData) => {
         if (!cancelled) {
-          const merged = mergeAnalysis('ai', aiData, fallback)
-          setAnalysis(merged)
-          settledRef.current?.(merged)
+          apply(mergeAnalysis('ai', aiData, fallback))
         }
       })
       .catch(() => {
         // 서버 미실행·키 미설정·타임아웃 등 어떤 경우에도 목업 결과를 표시합니다.
         if (!cancelled) {
-          const merged = mergeAnalysis('demo', null, fallback)
-          setAnalysis(merged)
-          settledRef.current?.(merged)
+          apply(mergeAnalysis('demo', null, fallback))
         }
       })
 
@@ -321,7 +340,7 @@ function ResultPage({
           <div className="analysis-retry">
             <p className="analysis-retry-title">저장된 분석 결과를 보여 드리고 있어요.</p>
             <p className="analysis-retry-desc">
-              보관함에 저장된 시점의 결과예요. 최신 상태로 다시 분석하려면 아래 버튼을 눌러 주세요.
+              저장해 둔 시점의 결과예요. 최신 상태로 다시 분석하려면 아래 버튼을 눌러 주세요.
             </p>
             <div className="analysis-retry-actions">
               <button type="button" className="retry-analysis-button" onClick={reanalyze}>
@@ -375,6 +394,15 @@ function ResultPage({
         >
           📖 예시로 따라해 보기 {showDiffExample ? '▲' : '▼'}
         </button>
+        <div className="note-cta">
+          <button type="button" className="note-cta-button" onClick={handleCreateNote}>
+            🗒️ 이 아이디어로 연습 노트 만들기 →
+          </button>
+          <p className="note-cta-hint">
+            기획 의도가 채워진 채로 시작돼요. 차별점과 예상 질문은 노트에서 직접
+            다듬어 보세요.
+          </p>
+        </div>
         {showDiffExample && (
           <div className="diff-example">
             <ol className="diff-example-steps">
@@ -658,9 +686,18 @@ function ResultPage({
                     </div>
                   </dl>
                   <p className="case-summary">{contest.matchReason}</p>
-                  <a className="detail-link" href={contest.url} target="_blank" rel="noreferrer">
-                    공모전 페이지 열기 ↗
-                  </a>
+                  <div className="case-links">
+                    <AppLink
+                      className="detail-link detail-link-button"
+                      href={`/contest/${contest.id}`}
+                      onNavigate={() => onOpenContest(contest.id)}
+                    >
+                      상세 정보 보기 →
+                    </AppLink>
+                    <a className="detail-link" href={contest.url} target="_blank" rel="noreferrer">
+                      공모전 사이트 ↗
+                    </a>
+                  </div>
                   <div className="contest-actions">
                     {appliedContestIds.includes(contest.id) ? (
                       <div className="apply-done">
@@ -673,9 +710,9 @@ function ResultPage({
                         >
                           실제 제출 확인하기 ↗
                         </a>
-                        <button type="button" onClick={onGoMyPage}>
+                        <AppLink href="/mypage" onNavigate={onGoMyPage}>
                           마이페이지에서 보기 →
-                        </button>
+                        </AppLink>
                         <p className="apply-done-note">
                           위 기록은 앱 안의 응모 목록 표시예요. 실제 접수 여부는 공모전
                           사이트에서 확인하세요.

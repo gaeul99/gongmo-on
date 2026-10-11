@@ -23,29 +23,30 @@
   gap: 10px;
 }
 
+/* '곧 시작되는 공모전' 패널(upcoming-head h2)과 같은 크기 — 나란히 놓인 두 제목이 통일되게 */
 .deadline-head h2 {
-  font-size: 19px;
+  font-size: 16px;
   margin: 0;
 }
 
 .deadline-more {
   font: inherit;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: none;
   border: none;
-  padding: 8px 6px;
-  margin: -4px 0;
-  /* 스티커가 제목 옆에 붙어도 버튼은 오른쪽 끝에 유지 */
-  margin-left: auto;
+  /* '곧 시작되는 공모전' 패널의 더보기 버튼과 같은 패딩 — 나란히 놓인 두 제목 행의
+     높이가 같아야 아래 목록이 가로로 나란히 맞는다 */
+  padding: 4px 6px;
+  margin: 0 0 0 auto;
   cursor: pointer;
 }
 
 /* 제목 옆 마감 이모지 — 장식(aria-hidden)이라 낭독기에는 제목만 읽힌다 */
 .deadline-emoji {
   align-self: center;
-  font-size: 19px;
+  font-size: 18px;
   line-height: 1;
 }
 
@@ -84,20 +85,20 @@
 }
 
 .deadline-item:hover .deadline-title {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .deadline-badge {
   flex-shrink: 0;
   margin-top: 1px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   border-radius: 999px;
   padding: 3px 9px;
 }
 
 /* 오늘 마감 / 7일 이내 / 그 이후 — dashboard 알림과 같은 3단 톤.
-   임박도 마감 계열이므로 빨간색(오늘 마감은 채운 빨강, 임박은 연한 빨강) */
+   흑백 테마: 오늘 마감은 채운 검정, 임박·이후는 흰 배경에 검정 테두리로 구분 */
 .tone-today {
   color: #fff;
   background: var(--error);
@@ -105,13 +106,13 @@
 
 .tone-urgent {
   color: var(--error);
-  background: rgba(229, 72, 77, 0.1);
-  border: 1px solid rgba(229, 72, 77, 0.4);
+  background: #ffffff;
+  border: 1px solid #000000;
 }
 
 .tone-upcoming {
-  color: #17995f;
-  background: rgba(23, 153, 95, 0.12);
+  color: var(--accent-text);
+  background: var(--accent-bg);
 }
 
 .deadline-info {
@@ -122,23 +123,42 @@
 }
 
 .deadline-title {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 800;
   color: var(--text-h);
   line-height: 1.45;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  /* '곧 시작되는 공모전' 패널의 항목과 같은 한 줄 높이 — 제목이 길면 말줄임(...) */
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
 .deadline-meta {
-  font-size: 12.5px;
+  font-size: 12px;
+  /* '곧 시작되는 공모전' 패널과 같게 — 카드 높이가 내용에 따라 달라지지 않게 */
   color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 제목 뒤 NEW 표시 — 데이터 갱신으로 새로 생긴 공모전. 인라인이라 세로 패딩·테두리가
+   줄 상자에 영향을 주지 않아 제목 줄 높이(카드 높이)가 늘어나지 않는다(패널 간 카드 높이 일치 유지). */
+.deadline-new {
+  margin: 0 2px 0 4px;
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .deadline-note {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text);
   border-top: 1px solid var(--border);
   padding-top: 10px;

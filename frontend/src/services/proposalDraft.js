@@ -7,16 +7,10 @@
 // 심사 대응: 심사 포인트 — 분석 필드가 겹치지 않게 한 번씩만 씁니다.
 // ==========================================================
 
+import { josa } from '../utils/korean.js'
+
 function pickLines(list, limit) {
   return Array.isArray(list) ? list.filter((item) => typeof item === 'string' && item.trim()).slice(0, limit) : []
-}
-
-// 한글 받침 여부로 '과/와'를 고릅니다.
-function josa(word, pair) {
-  const last = word ? word[word.length - 1] : ''
-  const code = last.charCodeAt(0)
-  const hasFinal = code >= 0xac00 && code <= 0xd7a3 && (code - 0xac00) % 28 > 0
-  return hasFinal ? pair[0] : pair[1]
 }
 
 export function buildProposalDraft({ idea, analysis }) {

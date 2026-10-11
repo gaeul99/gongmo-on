@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { contests, referenceCases, winnerArchives } from "../data/mockData.js";
 import type { ContestAlert, WishlistContest } from "../pages/MyPage";
+import { alertDismissKey } from "../utils/contestAlerts.js";
+import AppLink from "./AppLink";
 import "./TopNav.css";
 
 type Props = {
@@ -9,24 +11,21 @@ type Props = {
   notificationCount?: number;
   // 종 아이콘 패널에 보여 줄 전체 마감 알림 목록
   alerts: ContestAlert[];
+  // 읽음(확인) 처리한 알림 키 집합 — 읽은 항목은 목록에서 연회색으로 표시합니다.
+  readAlertKeys: Set<string>;
   // 알림 항목을 하나 확인(읽음) 처리 — 확인한 것은 배지 개수에서 빠집니다.
   onDismissAlert: (alert: ContestAlert) => void;
+  // 알림을 모두 읽음 처리 — 종 아이콘을 열거나 '모두 읽음'을 누르면 배지가 사라집니다.
+  onMarkAllRead: () => void;
+  // 알림을 모두 읽지 않음 처리 — '모두 읽음'의 반대로 배지와 읽음 표시를 되살립니다.
+  onMarkAllUnread: () => void;
   onGoHome: () => void;
-  // 목록 아이콘 패널에 모아 보여 줄 전체 서비스 목록
-  menuItems: MenuItem[];
   onGoMyPage: () => void;
   onOpenContest: (id: number) => void;
+  // 검색 팝업 하단의 '공모전 전체 탐색' 입구
+  onOpenExplore: () => void;
   onToggleWish: (target: Omit<WishlistContest, "addedAt">) => void;
   wishlistedContestIds: number[];
-};
-
-// 전체 서비스 패널의 한 줄 — 이모지·이름·한 줄 설명·이동 동작
-export type MenuItem = {
-  key: string;
-  emoji: string;
-  label: string;
-  description: string;
-  onSelect: () => void;
 };
 
 const NOTIF_BADGE_TEXT: Record<ContestAlert["tone"], string> = {
@@ -99,38 +98,47 @@ function TopNav({
   loggedIn,
   notificationCount = 0,
   alerts,
+  readAlertKeys,
   onDismissAlert,
+  onMarkAllRead,
+  onMarkAllUnread,
   onGoHome,
-  menuItems,
   onGoMyPage,
   onOpenContest,
+  onOpenExplore,
   onToggleWish,
   wishlistedContestIds,
 }: Props) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const searchBoxRef = useRef<HTMLDivElement | null>(null);
 
+  // 검색 드롭다운은 입력 박스 바깥을 누르면 닫습니다.
   useEffect(() => {
     if (!searchOpen) return;
-    searchInputRef.current?.focus();
+    const handlePointer = (event: MouseEvent) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handlePointer);
+    return () => document.removeEventListener("mousedown", handlePointer);
   }, [searchOpen]);
 
-  // 검색·알림·서비스 패널은 Escape로도 닫습니다.
+  // 검색·알림 패널은 Escape로도 닫습니다.
   useEffect(() => {
-    if (!searchOpen && !notifOpen && !menuOpen) return;
+    if (!searchOpen && !notifOpen) return;
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setSearchOpen(false);
         setNotifOpen(false);
-        setMenuOpen(false);
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [searchOpen, notifOpen, menuOpen]);
+  }, [searchOpen, notifOpen]);
 
   const trimmed = query.trim();
   const results = trimmed
@@ -139,22 +147,19 @@ function TopNav({
       ).slice(0, 8)
     : [];
 
-  const openSearch = () => {
-    setQuery("");
-    setSearchOpen(true);
+  // 종 아이콘 — 패널을 여는 순간 알림을 모두 읽음 처리해 빨간 배지를 바로 지웁니다.
+  const toggleNotif = () => {
+    if (!notifOpen) onMarkAllRead();
+    setNotifOpen((open) => !open);
   };
 
   return (
     <nav className="top-nav-bar" aria-label="공통 메뉴">
       <div className="nav-menu-row">
-        <button
-          type="button"
-          className="nav-icon-button"
-          onClick={openSearch}
-          aria-label="검색"
-          title="검색"
-        >
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        {/* 메뉴바 인라인 검색 — 돋보기 버튼 대신 입력 박스가 놓이고,
+            입력하면 박스 아래로 검색 결과 드롭다운이 펼쳐진다. */}
+        <div className="nav-search" ref={searchBoxRef}>
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
             <circle
               cx="10.5"
               cy="10.5"
@@ -173,54 +178,187 @@ function TopNav({
               strokeLinecap="round"
             />
           </svg>
-        </button>
-        <button
-          type="button"
-          className={menuOpen ? "nav-icon-button menu-open" : "nav-icon-button"}
-          onClick={() => setMenuOpen((open) => !open)}
-          aria-label="전체 서비스"
-          title="전체 서비스"
-          aria-expanded={menuOpen}
-        >
-          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-            <line
-              x1="9.5"
-              y1="6.2"
-              x2="19.5"
-              y2="6.2"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-            <line
-              x1="9.5"
-              y1="12"
-              x2="19.5"
-              y2="12"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-            <line
-              x1="9.5"
-              y1="17.8"
-              x2="19.5"
-              y2="17.8"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-            <circle cx="4.9" cy="6.2" r="1.3" fill="currentColor" />
-            <circle cx="4.9" cy="12" r="1.3" fill="currentColor" />
-            <circle cx="4.9" cy="17.8" r="1.3" fill="currentColor" />
-          </svg>
-        </button>
-        <button
-          type="button"
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onFocus={() => setSearchOpen(true)}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" || !trimmed) return;
+              // 앱 내 공모전 결과가 있으면 Enter로 그 공모전 상세 화면을 바로 엽니다.
+              const contestHit = results.find(
+                (item) => item.kind === "contest" && item.contestId !== undefined,
+              );
+              if (contestHit && contestHit.contestId !== undefined) {
+                setSearchOpen(false);
+                onOpenContest(contestHit.contestId);
+                return;
+              }
+              setSearchOpen(false);
+              window.open(
+                EXTERNAL_SEARCHES[0].build(trimmed),
+                "_blank",
+                "noopener",
+              );
+            }}
+            placeholder="공모전·수상작 검색"
+            aria-label="검색어"
+            maxLength={40}
+          />
+          {query && (
+            <button
+              type="button"
+              className="nav-search-clear"
+              onClick={() => {
+                setQuery("");
+                searchInputRef.current?.focus();
+              }}
+              aria-label="검색어 지우기"
+            >
+              ×
+            </button>
+          )}
+          {searchOpen && (
+            <div
+              className="search-dropdown"
+              role="dialog"
+              aria-label="공모전 자료 검색"
+            >
+              {trimmed === "" ? (
+                <p className="search-hint">
+                  앱 속 자료부터 국내 공모전 전체(20년 아카이브 포함)까지 검색해
+                  보세요.
+                </p>
+              ) : (
+                <>
+                  {results.length > 0 ? (
+                    <>
+                      <p className="search-section-label">앱 내 자료</p>
+                      <ul className="search-results">
+                        {results.map((item) => {
+                          const isContest = item.kind === "contest";
+                          const wished =
+                            isContest &&
+                            item.contestId !== undefined &&
+                            wishlistedContestIds.includes(item.contestId);
+                          return (
+                            <li
+                              key={item.url}
+                              className={isContest ? "search-result-row" : undefined}
+                            >
+                              {isContest ? (
+                                <AppLink
+                                  className="search-result-main"
+                                  href={`/contest/${item.contestId}`}
+                                  onNavigate={() => {
+                                    if (item.contestId === undefined) return;
+                                    setSearchOpen(false);
+                                    onOpenContest(item.contestId);
+                                  }}
+                                >
+                                  <span className="search-result-title">
+                                    {item.title}
+                                  </span>
+                                  <span className="search-result-sub">
+                                    {item.sub} · 눌러서 상세 보기
+                                  </span>
+                                </AppLink>
+                              ) : (
+                                <a
+                                  className="search-result-main"
+                                  href={item.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  <span className="search-result-title">
+                                    {item.title}
+                                  </span>
+                                  <span className="search-result-sub">{item.sub}</span>
+                                </a>
+                              )}
+                              {isContest && item.contestId !== undefined && (
+                                <button
+                                  type="button"
+                                  className={
+                                    wished
+                                      ? "search-wish-button active"
+                                      : "search-wish-button"
+                                  }
+                                  aria-label={`${item.title} 관심 목록 ${
+                                    wished ? "해제" : "추가"
+                                  }`}
+                                  title={
+                                    wished
+                                      ? "관심 목록에서 해제"
+                                      : "관심 목록에 추가 (마이페이지에서 볼 수 있어요)"
+                                  }
+                                  onClick={() => {
+                                    const contest = contests.find(
+                                      (entry) => entry.id === item.contestId,
+                                    );
+                                    if (!contest) return;
+                                    onToggleWish({
+                                      id: contest.id,
+                                      title: contest.title,
+                                      organizer: contest.organizer,
+                                      deadline: contest.deadline,
+                                      url: contest.url,
+                                    });
+                                  }}
+                                >
+                                  {wished ? "★" : "☆"}
+                                </button>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </>
+                  ) : (
+                    <p className="search-hint">
+                      앱 내 자료에는 '{trimmed}' 결과가 없어요. 아래 전체 검색을
+                      이용해 보세요.
+                    </p>
+                  )}
+                  <p className="search-section-label">국내 공모전 전체 검색</p>
+                  <ul className="search-results">
+                    {EXTERNAL_SEARCHES.map((engine) => (
+                      <li key={engine.label}>
+                        <a
+                          href={engine.build(trimmed)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <span className="search-result-title">
+                            {engine.label} '{trimmed}' ↗
+                          </span>
+                          <span className="search-result-sub">{engine.sub}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              <AppLink
+                className="search-explore-link"
+                href="/contest"
+                onNavigate={() => {
+                  setSearchOpen(false);
+                  onOpenExplore();
+                }}
+              >
+                앱에 등록된 공모전을 검색·필터로 찾고 싶다면 → 공모전 탐색
+              </AppLink>
+            </div>
+          )}
+        </div>
+        <AppLink
           className="nav-icon-button"
-          onClick={onGoHome}
-          aria-label="홈으로"
+          href="/"
+          ariaLabel="홈으로"
           title="홈으로"
+          onNavigate={onGoHome}
         >
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
             <path
@@ -240,13 +378,13 @@ function TopNav({
               strokeLinejoin="round"
             />
           </svg>
-        </button>
+        </AppLink>
         <button
           type="button"
           className={
             notifOpen ? "nav-icon-button notif-open" : "nav-icon-button"
           }
-          onClick={() => setNotifOpen((open) => !open)}
+          onClick={toggleNotif}
           aria-label={alerts.length > 0 ? `알림 ${alerts.length}개` : "알림"}
           title="알림"
           aria-expanded={notifOpen}
@@ -273,11 +411,12 @@ function TopNav({
             </span>
           )}
         </button>
-        <button
-          type="button"
-          className={loggedIn ? "nav-icon-button logged-in" : "nav-icon-button"}
-          onClick={onGoMyPage}
-          aria-label={
+        <AppLink
+          className={
+            loggedIn ? "nav-icon-button logged-in" : "nav-icon-button"
+          }
+          href="/mypage"
+          ariaLabel={
             notificationCount > 0
               ? `마이페이지, 확인할 알림 ${notificationCount}개`
               : "마이페이지"
@@ -287,6 +426,7 @@ function TopNav({
               ? `확인할 알림 ${notificationCount}개`
               : "마이페이지"
           }
+          onNavigate={onGoMyPage}
         >
           <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
             <circle
@@ -310,54 +450,8 @@ function TopNav({
               {notificationCount > 9 ? "9+" : notificationCount}
             </span>
           )}
-        </button>
+        </AppLink>
       </div>
-
-      {menuOpen && (
-        <div className="menu-overlay" onClick={() => setMenuOpen(false)}>
-          <div
-            className="menu-panel"
-            role="dialog"
-            aria-modal="false"
-            aria-label="전체 서비스 메뉴"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="notif-head">
-              <p className="notif-head-title">전체 서비스</p>
-              <button
-                type="button"
-                className="notif-close"
-                onClick={() => setMenuOpen(false)}
-                aria-label="메뉴 닫기"
-              >
-                ×
-              </button>
-            </div>
-            <ul className="menu-list">
-              {menuItems.map((item) => (
-                <li key={item.key}>
-                  <button
-                    type="button"
-                    className="menu-item"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      item.onSelect();
-                    }}
-                  >
-                    <span className="menu-item-emoji" aria-hidden="true">
-                      {item.emoji}
-                    </span>
-                    <span className="menu-item-text">
-                      <span className="menu-item-label">{item.label}</span>
-                      <span className="menu-item-desc">{item.description}</span>
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
 
       {notifOpen && (
         <div className="notif-overlay" onClick={() => setNotifOpen(false)}>
@@ -370,14 +464,34 @@ function TopNav({
           >
             <div className="notif-head">
               <p className="notif-head-title">알림</p>
-              <button
-                type="button"
-                className="notif-close"
-                onClick={() => setNotifOpen(false)}
-                aria-label="알림 닫기"
-              >
-                ×
-              </button>
+              <div className="notif-head-actions">
+                {alerts.length > 0 && (
+                  <>
+                    <button
+                      type="button"
+                      className="notif-mark-all"
+                      onClick={onMarkAllRead}
+                    >
+                      모두 읽음
+                    </button>
+                    <button
+                      type="button"
+                      className="notif-mark-all"
+                      onClick={onMarkAllUnread}
+                    >
+                      모두 읽지 않음
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  className="notif-close"
+                  onClick={() => setNotifOpen(false)}
+                  aria-label="알림 닫기"
+                >
+                  ×
+                </button>
+              </div>
             </div>
             {alerts.length === 0 ? (
               <p className="notif-empty">
@@ -385,238 +499,49 @@ function TopNav({
               </p>
             ) : (
               <ul className="notif-list">
-                {alerts.map((alert) => (
-                  <li
-                    key={alert.id}
-                    className="notif-item notif-item-clickable"
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`${alert.title} 상세 보기`}
-                    onClick={() => {
-                      onDismissAlert(alert);
-                      setNotifOpen(false);
-                      onOpenContest(alert.contestId);
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        onDismissAlert(alert);
-                        setNotifOpen(false);
-                        onOpenContest(alert.contestId);
-                      }
-                    }}
-                  >
-                    <span className={`notif-tone tone-${alert.tone}`}>
-                      {NOTIF_BADGE_TEXT[alert.tone]}
-                    </span>
-                    <div className="notif-text">
-                      <p className="notif-item-title">{alert.title}</p>
-                      <p className="notif-item-meta">
-                        {alert.kindLabel} · 마감 {alert.deadline} · {alert.message}
-                      </p>
-                    </div>
-                  </li>
-                ))}
+                {alerts.map((alert) => {
+                  const isRead = readAlertKeys.has(alertDismissKey(alert));
+                  return (
+                    <li key={alert.id}>
+                      <AppLink
+                        className={
+                          isRead
+                            ? "notif-item notif-item-clickable notif-item-read"
+                            : "notif-item notif-item-clickable"
+                        }
+                        href={`/contest/${alert.contestId}`}
+                        ariaLabel={`${alert.title} 상세 보기`}
+                        onNavigate={() => {
+                          onDismissAlert(alert);
+                          setNotifOpen(false);
+                          onOpenContest(alert.contestId);
+                        }}
+                      >
+                        <span className={`notif-tone tone-${alert.tone}`}>
+                          {NOTIF_BADGE_TEXT[alert.tone]}
+                        </span>
+                        <div className="notif-text">
+                          <p className="notif-item-title">{alert.title}</p>
+                          <p className="notif-item-meta">
+                            {alert.kindLabel} · 마감 {alert.deadline} · {alert.message}
+                          </p>
+                        </div>
+                      </AppLink>
+                    </li>
+                  );
+                })}
               </ul>
             )}
-            <button
-              type="button"
+            <AppLink
               className="notif-goto-mypage"
-              onClick={() => {
+              href="/mypage"
+              onNavigate={() => {
                 setNotifOpen(false);
                 onGoMyPage();
               }}
             >
               마이페이지에서 전체 보기 →
-            </button>
-          </div>
-        </div>
-      )}
-
-      {searchOpen && (
-        <div className="search-overlay" onClick={() => setSearchOpen(false)}>
-          <div
-            className="search-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-label="공모전 자료 검색"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="search-input-row">
-              <svg
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-                aria-hidden="true"
-              >
-                <circle
-                  cx="10.5"
-                  cy="10.5"
-                  r="6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                />
-                <line
-                  x1="15"
-                  y1="15"
-                  x2="20"
-                  y2="20"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key !== "Enter" || !trimmed) return;
-                  // 앱 내 공모전 결과가 있으면 Enter로 그 공모전 상세 화면을 바로 엽니다.
-                  const contestHit = results.find(
-                    (item) => item.kind === "contest" && item.contestId !== undefined,
-                  );
-                  if (contestHit && contestHit.contestId !== undefined) {
-                    setSearchOpen(false);
-                    onOpenContest(contestHit.contestId);
-                    return;
-                  }
-                  window.open(
-                    EXTERNAL_SEARCHES[0].build(trimmed),
-                    "_blank",
-                    "noopener",
-                  );
-                }}
-                placeholder="공모전·수상작 자료 검색"
-                aria-label="검색어"
-                maxLength={40}
-              />
-              <button
-                type="button"
-                className="search-close"
-                onClick={() => setSearchOpen(false)}
-                aria-label="검색 닫기"
-              >
-                ×
-              </button>
-            </div>
-            {trimmed === "" ? (
-              <p className="search-hint">
-                앱 속 자료부터 국내 공모전 전체(20년 아카이브 포함)까지 검색해
-                보세요.
-              </p>
-            ) : (
-              <>
-                {results.length > 0 ? (
-                  <>
-                    <p className="search-section-label">앱 내 자료</p>
-                    <ul className="search-results">
-                      {results.map((item) => {
-                        const isContest = item.kind === "contest";
-                        const wished =
-                          isContest &&
-                          item.contestId !== undefined &&
-                          wishlistedContestIds.includes(item.contestId);
-                        return (
-                          <li
-                            key={item.url}
-                            className={isContest ? "search-result-row" : undefined}
-                          >
-                            {isContest ? (
-                              <button
-                                type="button"
-                                className="search-result-main"
-                                onClick={() => {
-                                  if (item.contestId === undefined) return;
-                                  setSearchOpen(false);
-                                  onOpenContest(item.contestId);
-                                }}
-                              >
-                                <span className="search-result-title">
-                                  {item.title}
-                                </span>
-                                <span className="search-result-sub">
-                                  {item.sub} · 눌러서 상세 보기
-                                </span>
-                              </button>
-                            ) : (
-                              <a
-                                className="search-result-main"
-                                href={item.url}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                <span className="search-result-title">
-                                  {item.title}
-                                </span>
-                                <span className="search-result-sub">{item.sub}</span>
-                              </a>
-                            )}
-                            {isContest && item.contestId !== undefined && (
-                              <button
-                                type="button"
-                                className={
-                                  wished
-                                    ? "search-wish-button active"
-                                    : "search-wish-button"
-                                }
-                                aria-label={`${item.title} 관심 목록 ${
-                                  wished ? "해제" : "추가"
-                                }`}
-                                title={
-                                  wished
-                                    ? "관심 목록에서 해제"
-                                    : "관심 목록에 추가 (마이페이지에서 볼 수 있어요)"
-                                }
-                                onClick={() => {
-                                  const contest = contests.find(
-                                    (entry) => entry.id === item.contestId,
-                                  );
-                                  if (!contest) return;
-                                  onToggleWish({
-                                    id: contest.id,
-                                    title: contest.title,
-                                    organizer: contest.organizer,
-                                    deadline: contest.deadline,
-                                    url: contest.url,
-                                  });
-                                }}
-                              >
-                                {wished ? "★" : "☆"}
-                              </button>
-                            )}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </>
-                ) : (
-                  <p className="search-hint">
-                    앱 내 자료에는 '{trimmed}' 결과가 없어요. 아래 전체 검색을
-                    이용해 보세요.
-                  </p>
-                )}
-                <p className="search-section-label">국내 공모전 전체 검색</p>
-                <ul className="search-results">
-                  {EXTERNAL_SEARCHES.map((engine) => (
-                    <li key={engine.label}>
-                      <a
-                        href={engine.build(trimmed)}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <span className="search-result-title">
-                          {engine.label} '{trimmed}' ↗
-                        </span>
-                        <span className="search-result-sub">{engine.sub}</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
+            </AppLink>
           </div>
         </div>
       )}

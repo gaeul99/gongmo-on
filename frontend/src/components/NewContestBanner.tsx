@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import AppLink from './AppLink'
 import { contests } from '../data/mockData.js'
 import {
   getNewContests,
@@ -19,11 +20,6 @@ export default function NewContestBanner({ onOpenContest }: Props) {
   // '외 N건'을 누르면 나머지 공모전 칩을 배너 안에서 펼쳐 보여 줍니다.
   const [expanded, setExpanded] = useState(false)
 
-  // 화면 전환 없이 홈이 재활용되는 경우에도 최신 상태를 다시 확인합니다.
-  useEffect(() => {
-    setNewContests(isNewContestOptIn() ? getNewContests(contests) : [])
-  }, [])
-
   if (newContests.length === 0) {
     return null
   }
@@ -34,18 +30,21 @@ export default function NewContestBanner({ onOpenContest }: Props) {
   return (
     <div className="new-contest-banner" role="status">
       <div className="new-contest-info">
-        <strong className="new-contest-title">🆕 새로 접수가 시작된 공모전 {newContests.length}건</strong>
+        <strong className="new-contest-title">
+          <span className="new-contest-emoji" aria-hidden="true">🆕</span>{' '}
+          새로 접수가 시작된 공모전 {newContests.length}건
+        </strong>
         <span className="new-contest-list">
           {previews.map((contest) => (
-            <button
+            <AppLink
               key={contest.id}
-              type="button"
               className="new-contest-chip"
+              href={`/contest/${contest.id}`}
               title={`${contest.title} 상세 보기`}
-              onClick={() => onOpenContest(contest.id)}
+              onNavigate={() => onOpenContest(contest.id)}
             >
               {contest.title}
-            </button>
+            </AppLink>
           ))}
           {extraCount > 0 && (
             <button

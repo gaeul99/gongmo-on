@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { AppliedContest, AuthResult, User, WishlistContest } from './MyPage'
+import AppLink from '../components/AppLink'
 import InlineAuthPanel from '../components/InlineAuthPanel'
 import { contests } from '../data/mockData.js'
 import './ContestDetailPage.css'
@@ -136,23 +137,39 @@ function ContestDetailPage({
         </section>
 
         <div className="detail-actions">
-          {left < 0 ? (
-            <span className="detail-closed-note">접수가 마감된 공모전이에요.</span>
-          ) : applied ? (
+          {/* 마감된 공모전도 응모 기록은 남길 수 있다 — 기록 기능이므로.
+              마감 여부는 흐름을 막지 않고 안내 문구로만 알려준다. */}
+          {left < 0 && !applied && (
+            <p className="detail-closed-note">
+              접수가 마감된 공모전이에요 — 실제로 제출을 마친 응모라면 기록으로 남길 수 있어요.
+            </p>
+          )}
+          {applied ? (
             <div className="detail-applied">
               <span>응모 완료 ✓</span>
-              <button type="button" onClick={onGoMyPage}>
+              <AppLink href="/mypage" onNavigate={onGoMyPage}>
                 마이페이지에서 보기 →
-              </button>
+              </AppLink>
             </div>
           ) : user && confirming ? (
             <div className="detail-apply-confirm" role="group" aria-label="응모 확인">
               <p className="detail-apply-confirm-title">
-                실제 응모는 공모전 사이트에서 제출해요.
+                {left < 0
+                  ? '이미 마감된 공모전이에요. 실제로 제출을 마친 경우에만 기록해 주세요.'
+                  : '실제 응모는 공모전 사이트에서 제출해요.'}
               </p>
               <ol className="detail-apply-confirm-steps">
-                <li>먼저 공모전 사이트에 접속해 제출을 마쳐 주세요.</li>
-                <li>제출이 끝나면 '제출했어요'를 눌러 내 응모 목록에 기록하세요.</li>
+                {left < 0 ? (
+                  <li>
+                    제출을 마친 응모라면 '제출했어요'를 눌러 내 응모 목록과 마감
+                    달력에 기록하세요.
+                  </li>
+                ) : (
+                  <>
+                    <li>먼저 공모전 사이트에 접속해 제출을 마쳐 주세요.</li>
+                    <li>제출이 끝나면 '제출했어요'를 눌러 내 응모 목록에 기록하세요.</li>
+                  </>
+                )}
               </ol>
               <div className="detail-apply-confirm-actions">
                 <button

@@ -1,6 +1,13 @@
-/* 마이페이지 마감 달력 — 응모·관심 공모전 마감일을 점으로 표시 */
+/* 마이페이지 달력 — 응모·관심 공모전 마감일을 점으로 표시.
+   앱 전체는 흑백 테마(2026-10-10 지시)지만, 달력의 마감 상태 표시만
+   사용자 요청으로 컬러를 쓴다 — .calendar-card 지역 변수로 스코프를 한정한다. */
 
 .calendar-card {
+  /* 응모 초록 · 마감일 주황 · 마감 7일 전 빨강 · 마감 지남 회색 */
+  --cal-applied: #16a34a;
+  --cal-deadline: #f97316;
+  --cal-remind: #dc2626;
+  --cal-closed: #9ca3af;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -15,7 +22,7 @@
   margin-bottom: 10px;
 }
 
-/* 마감 달력 헤더 — 제목 + .ics 내보내기 버튼 3종(전체·응모만·관심만) */
+/* 달력 헤더 — 제목 + 내보내기 버튼 3종 */
 .calendar-toolbar {
   display: flex;
   align-items: center;
@@ -36,7 +43,7 @@
   font: inherit;
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
@@ -64,7 +71,7 @@
 .calendar-month-count {
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   margin-left: 6px;
 }
 
@@ -82,7 +89,7 @@
 }
 
 .calendar-nav:hover {
-  color: var(--accent);
+  color: var(--accent-text);
   border-color: var(--accent-border);
 }
 
@@ -142,7 +149,7 @@ button.calendar-day:not(.blank):hover {
 }
 
 .calendar-day.today .calendar-day-num {
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent);
 }
 
@@ -158,12 +165,14 @@ button.calendar-day:not(.blank):hover {
   display: inline-block;
 }
 
+/* 응모 공모전 점 — 초록. 오늘 표시(검정 원)·마감일(주황)·마감 7일 전(빨강)·마감(회색)과 색이 겹치지 않게 */
 .dot-applied {
-  background: var(--accent);
+  background: var(--cal-applied);
 }
 
-.dot-wished {
-  background: #17995f;
+.dot-deadline {
+  /* 공모전 마감일 점 — 주황. 마감이 지난 날은 회색 점이 대신 알린다 */
+  background: var(--cal-deadline);
 }
 
 .calendar-legend {
@@ -196,7 +205,7 @@ button.calendar-day:not(.blank):hover {
 .calendar-detail-count {
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   margin-left: 6px;
 }
 
@@ -230,7 +239,7 @@ button.calendar-day:not(.blank):hover {
 }
 
 .calendar-detail-list a:hover {
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: underline;
 }
 
@@ -242,16 +251,66 @@ button.calendar-day:not(.blank):hover {
   flex-shrink: 0;
 }
 
+/* 응모 칩 — 달력의 응모 점(초록)과 같은 색 */
 .calendar-detail-badge.applied {
-  color: var(--accent);
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+/* 관심 칩 — 상세 목록에서 관심 공모전임을 알리는 배지 */
+.calendar-detail-badge.wished {
+  color: #c2410c;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+/* 마감 7일 전의 빨간 점 — 마감일 7일 전 날짜에 임박 일정을 미리 알린다.
+   범례의 '마감 7일 전' 표본이기도 하다 */
+.dot-remind {
+  background: var(--cal-remind);
+}
+
+/* 마감이 지난 날의 회색 점 — 응모(초록) 점 옆에 나란히 붙어 지난 일정임을 알린다.
+   범례의 '마감 지난 공모전' 표본이기도 하다 */
+.dot-closed {
+  background: var(--cal-closed);
+}
+
+/* 마감 7일 전 칩 — 달력의 마감 7일 전 점(빨강)과 같은 색 */
+.calendar-detail-badge.remind {
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.calendar-detail-badge.closed {
+  color: #4b5563;
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+}
+
+.calendar-detail-list a.is-closed {
+  color: var(--text);
+}
+
+/* 응모 결과 칩 — 진행 중(파랑)·수상(호박)·탈락(회색) */
+.calendar-detail-badge.result-progress {
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
 }
 
-.calendar-detail-badge.wished {
-  color: #17995f;
-  background: rgba(23, 153, 95, 0.08);
-  border: 1px solid rgba(23, 153, 95, 0.45);
+.calendar-detail-badge.result-won {
+  color: var(--hue-amber);
+  background: var(--hue-amber-bg);
+  border: 1px solid var(--hue-amber-border);
+}
+
+.calendar-detail-badge.result-lost {
+  color: var(--text);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
 }
 
 .calendar-empty {

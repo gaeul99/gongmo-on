@@ -47,17 +47,39 @@ function ensureDataDir() {
 }
 
 function readJson<T>(file: string, fallback: T): T {
+  let raw: string
   try {
-    const raw = fs.readFileSync(file, 'utf-8')
-    return JSON.parse(raw) as T
+    raw = fs.readFileSync(file, 'utf-8')
   } catch {
+    // 파일이 아직 없는 초기 상태뿐이다 — fallback이 정답.
     return fallback
+  }
+  try {
+    return JSON.parse(raw) as T
+  } catch (error) {
+    if (raw.trim() === '') return fallback
+    // 손상 파일을 빈 값으로 대신 읽으면 이후 저장이 전체를 덮어쓴다.
+    // 원본을 보관하고 실패로 멈춘다(userStore.ts와 같은 정책).
+    const quarantine = `${file}.corrupt-${Date.now()}`
+    try {
+      fs.copyFileSync(file, quarantine)
+      console.error(
+        `[notificationStore] 데이터 파일 손상: ${file} — 원본을 ${quarantine}에 보관했습니다.`,
+        error,
+      )
+    } catch {
+      console.error(`[notificationStore] 데이터 파일 손상: ${file} — 보관 실패, 원본은 그대로 있습니다.`, error)
+    }
+    throw new Error(`Corrupted data file: ${file}`)
   }
 }
 
 function writeJson(file: string, value: unknown) {
   ensureDataDir()
-  fs.writeFileSync(file, JSON.stringify(value, null, 2), 'utf-8')
+  // temp에 쓰고 rename으로 갈아끼운다 — 쓰다가 죽어도 기존 파일은 온전하다.
+  const tmp = `${file}.tmp`
+  fs.writeFileSync(tmp, JSON.stringify(value, null, 2), 'utf-8')
+  fs.renameSync(tmp, file)
 }
 
 export function listSubscribers(): Subscriber[] {

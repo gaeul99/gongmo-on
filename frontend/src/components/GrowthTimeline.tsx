@@ -3,10 +3,12 @@
 // (아이디어 분석 → 유형 검사 → 공모전 응모 → 결과 기록 → 수상)
 // 도전 히스토리가 '결과의 요약'이라면 이 컴포넌트는 '과정의 체크'다.
 // 지금 서 있는 걸음을 표시해 다음에 뭘 하면 되는지 한눈에 알려 준다.
-// 유형 검사 결과는 localStorage('gongnabi:type-test')를 렌더 때마다 다시 읽어
+// 유형 검사 결과는 localStorage('idea-navigation:type-test')를 렌더 때마다 다시 읽어
 // 로그인 직후 서버 복원으로 갱신된 값도 곧바로 반영한다.
 // ==========================================================
 import type { AppliedContest, SavedIdea } from '../pages/MyPage'
+import { CONTEST_TYPES } from '../data/contestTypeTest.js'
+import { STORAGE_KEYS } from '../utils/storageKeys.js'
 import './GrowthTimeline.css'
 
 type Props = {
@@ -14,18 +16,24 @@ type Props = {
   savedIdeas: SavedIdea[]
 }
 
+// TypeTestPage가 저장하는 실제 스키마(typeId + 백분율)와 맞춘다.
+// 유형 이름·이모지는 CONTEST_TYPES에서 typeId로 되찾는다.
 type TypeTestSaved = {
-  type: { emoji: string; name: string }
+  typeId: string
+  percentage?: number
   savedAt: string
 }
 
-function readTypeTest(): TypeTestSaved | null {
+function readTypeTest(): (TypeTestSaved & { emoji: string; name: string }) | null {
   try {
-    const raw = localStorage.getItem('gongnabi:type-test')
+    const raw = localStorage.getItem(STORAGE_KEYS.typeTest)
     if (!raw) return null
     const parsed = JSON.parse(raw) as TypeTestSaved
-    if (parsed?.type?.name) return parsed
-    return null
+    if (!parsed?.typeId) return null
+    if (!Object.prototype.hasOwnProperty.call(CONTEST_TYPES, parsed.typeId)) return null
+    const meta = CONTEST_TYPES[parsed.typeId as keyof typeof CONTEST_TYPES]
+    if (!meta?.name) return null
+    return { ...parsed, emoji: meta.emoji, name: meta.name }
   } catch {
     return null
   }
@@ -54,7 +62,7 @@ function GrowthTimeline({ myContests, savedIdeas }: Props) {
       done: typeTest !== null,
       status:
         typeTest !== null
-          ? `${typeTest.type.emoji} ${typeTest.type.name} · ${typeTest.savedAt}`
+          ? `${typeTest.emoji} ${typeTest.name} · ${typeTest.savedAt}`
           : '30초 만에 나의 공모전 유형을 찾아 보세요',
     },
     {

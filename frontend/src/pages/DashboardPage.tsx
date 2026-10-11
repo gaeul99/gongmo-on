@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
+import type { KeyboardEvent } from 'react'
+import AppLink from '../components/AppLink'
 import { contests } from '../data/mockData.js'
 import {
   DATA_AS_OF,
@@ -23,6 +25,10 @@ type Props = {
   user: User | null
   // 로그아웃 상태에서 로그인 화면(마이페이지)으로 보내는 콜백
   onGoLogin: () => void
+  // 공모전 탐색 화면으로 보내는 콜백 — 마감 임박 패널·빈 상태에서 씁니다.
+  onOpenExplore: () => void
+  // 아이디어 분석 입력 화면으로 보내는 콜백 — 도전 히스토리 빈 상태에서 씁니다.
+  onGoInput: () => void
 }
 
 const DEADLINE_PAGE_SIZE = 8
@@ -76,35 +82,47 @@ function Pager({
 // 출품 로드맵 — 찜·응모한 공모전 하나를 골라 5단계 경로를 체크하며 나아갑니다.
 function RoadmapPanel({ candidates }: { candidates: RoadmapCandidate[] }) {
   const [selectedId, setSelectedId] = useState<string>(String(candidates[0].id))
-  const [checks, setChecks] = useState<Record<string, boolean>>({})
+  // 공모전별 체크를 메모리에 쌓아 둔다. 탭을 옮겨 다녀도 방금 고른 체크가 유지되고,
+  // 처음 고른 공모전은 localStorage에 저장된 값을 그대로 쓴다.
+  const [checksCache, setChecksCache] = useState<Record<string, Record<string, boolean>>>({})
   const selected = candidates.find((row) => String(row.id) === selectedId) ?? candidates[0]
-
-  // 공모전을 바꾸면 그 공모전의 저장된 체크를 불러옵니다.
-  useEffect(() => {
-    setChecks(loadRoadmapChecks(selectedId))
-  }, [selectedId])
+  const checks = useMemo(
+    () => checksCache[selectedId] ?? loadRoadmapChecks(selectedId),
+    [checksCache, selectedId],
+  )
 
   const roadmap = useMemo(() => buildRoadmap(selected, checks), [selected, checks])
 
   const toggleTask = (key: string) => {
-    setChecks((prev) => {
-      const next = { ...prev, [key]: !prev[key] }
-      saveRoadmapChecks(selectedId, next)
-      return next
-    })
+    const next = { ...checks, [key]: !checks[key] }
+    saveRoadmapChecks(selectedId, next)
+    setChecksCache((cache) => ({ ...cache, [selectedId]: next }))
+  }
+
+  // 로드맵 탭은 role=tablist — 좌우 화살표로 후보 간 이동이 가능해야 한다(키보드 접근성).
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    event.preventDefault()
+    const nextIndex =
+      event.key === 'ArrowRight'
+        ? (index + 1) % candidates.length
+        : (index - 1 + candidates.length) % candidates.length
+    setSelectedId(String(candidates[nextIndex].id))
   }
 
   return (
     <>
       <div className="archive-tabs" role="tablist" aria-label="로드맵 공모전 선택">
-        {candidates.map((row) => (
+        {candidates.map((row, index) => (
           <button
             key={`${row.id}-${row.deadline}`}
             type="button"
             role="tab"
             aria-selected={String(row.id) === selectedId}
+            tabIndex={String(row.id) === selectedId ? 0 : -1}
             className={`archive-tab${String(row.id) === selectedId ? ' is-on' : ''}`}
             onClick={() => setSelectedId(String(row.id))}
+            onKeyDown={(event) => handleTabKeyDown(event, index)}
           >
             {row.title} · {row.status.label}
           </button>
@@ -158,7 +176,7 @@ function RoadmapPanel({ candidates }: { candidates: RoadmapCandidate[] }) {
   )
 }
 
-function DashboardPage({ onOpenContest, user, onGoLogin }: Props) {
+function DashboardPage({ onOpenContest, user, onGoLogin, onOpenExplore, onGoInput }: Props) {
   // 로그인하면 계정에 저장된 기록(응모·관심·보관함·로드맵)이 복원되므로
   // 같은 대시보드라도 계정마다 다른 화면이 됩니다.
   const basis = user ? `${user.nickname}님 계정 기준` : '이 브라우저 기준'
@@ -205,9 +223,9 @@ function DashboardPage({ onOpenContest, user, onGoLogin }: Props) {
               공모전 데이터는 {DATA_AS_OF} 기준이에요. 지금 수치는 이 브라우저에 저장된 기록이며,
               로그인하면 계정에 저장돼 사람마다 각자의 대시보드가 보여요.
             </p>
-            <button type="button" className="dash-login-cta" onClick={onGoLogin}>
+            <AppLink className="dash-login-cta" href="/mypage" onNavigate={onGoLogin}>
               로그인하고 내 기록 불러오기
-            </button>
+            </AppLink>
           </>
         )}
       </header>
@@ -238,7 +256,12 @@ function DashboardPage({ onOpenContest, user, onGoLogin }: Props) {
       <section className="dash-panel" aria-label="마감 임박 공모전">
         <div className="panel-head">
           <h2>마감 임박 공모전</h2>
-          <span className="panel-hint">마감일 순 · 항목을 누르면 상세 정보</span>
+          <div className="panel-head-side">
+            <span className="panel-hint">마감일 순 · 항목을 누르면 상세 정보</span>
+            <AppLink className="panel-link" href="/contest" onNavigate={onOpenExplore}>
+              공모전 탐색 →
+            </AppLink>
+          </div>
         </div>
           {deadlineRows.length === 0 ? (
             <p className="panel-empty">
@@ -246,37 +269,31 @@ function DashboardPage({ onOpenContest, user, onGoLogin }: Props) {
               주세요.
             </p>
           ) : (
-            <ul className="deadline-list">
+            <ul className="dash-deadline-list">
               {deadlineSlice.map((row: DeadlineRow) => (
-                <li
-                  key={`${row.id}-${row.deadline}`}
-                  className={`deadline-row${row.status.tone === 'closed' ? ' deadline-closed' : ''}`}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => onOpenContest(Number(row.id))}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault()
-                      onOpenContest(Number(row.id))
-                    }
-                  }}
-                  title="공모전 상세 보기"
-                >
-                  <span className={`deadline-d tone-${row.status.tone}`}>{row.status.label}</span>
-                  <span className="deadline-info">
-                    <span className="deadline-title">{row.title}</span>
-                    <span className="deadline-sub">
-                      {row.organizer}
-                      <span className="deadline-kinds">
-                        {row.kinds.map((kind) => (
-                          <span key={kind} className="deadline-kind">
-                            {kind}
-                          </span>
-                        ))}
+                <li key={`${row.id}-${row.deadline}`}>
+                  <AppLink
+                    className={`deadline-row${row.status.tone === 'closed' ? ' deadline-closed' : ''}`}
+                    href={`/contest/${row.id}`}
+                    title="공모전 상세 보기"
+                    onNavigate={() => onOpenContest(Number(row.id))}
+                  >
+                    <span className={`deadline-d tone-${row.status.tone}`}>{row.status.label}</span>
+                    <span className="dash-deadline-info">
+                      <span className="dash-deadline-title">{row.title}</span>
+                      <span className="deadline-sub">
+                        {row.organizer}
+                        <span className="deadline-kinds">
+                          {row.kinds.map((kind) => (
+                            <span key={kind} className="deadline-kind">
+                              {kind}
+                            </span>
+                          ))}
+                        </span>
                       </span>
                     </span>
-                  </span>
-                  <span className="deadline-date">{row.deadline.slice(5).replace('-', '.')}</span>
+                    <span className="deadline-date">{row.deadline.slice(5).replace('-', '.')}</span>
+                  </AppLink>
                 </li>
               ))}
             </ul>
@@ -295,9 +312,14 @@ function DashboardPage({ onOpenContest, user, onGoLogin }: Props) {
           <span className="panel-hint">수상·탈락·진행 중은 마이페이지 응모 기록에서 바꿔요</span>
         </div>
         {challenge.total === 0 ? (
-          <p className="panel-empty">
-            아직 응모 기록이 없어요. 분석 결과에서 공모전에 응모하면 도전 기록이 이곳에 쌓여요.
-          </p>
+          <div className="panel-empty-group">
+            <p className="panel-empty">
+              아직 응모 기록이 없어요. 분석 결과에서 공모전에 응모하면 도전 기록이 이곳에 쌓여요.
+            </p>
+            <AppLink className="panel-link" href="/input" onNavigate={onGoInput}>
+              아이디어 분석으로 첫 도전 시작하기 →
+            </AppLink>
+          </div>
         ) : (
           <div className="challenge-layout">
             <div className="challenge-counts">
@@ -350,9 +372,14 @@ function DashboardPage({ onOpenContest, user, onGoLogin }: Props) {
           </span>
         </div>
         {roadmapCandidates.length === 0 ? (
-          <p className="panel-empty">
-            아직 마감 전인 찜·응모 공모전이 없어요. 공모전을 찜하면 이곳에 출품 경로가 만들어져요.
-          </p>
+          <div className="panel-empty-group">
+            <p className="panel-empty">
+              아직 마감 전인 찜·응모 공모전이 없어요. 공모전을 찜하면 이곳에 출품 경로가 만들어져요.
+            </p>
+            <AppLink className="panel-link" href="/contest" onNavigate={onOpenExplore}>
+              공모전 둘러보고 찜하기 →
+            </AppLink>
+          </div>
         ) : (
           <RoadmapPanel candidates={roadmapCandidates} />
         )}

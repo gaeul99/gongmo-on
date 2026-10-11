@@ -45,6 +45,11 @@ function readString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
 }
 
+// 닉네임은 이메일 본문·화면에 그대로 쓰이므로 개행·제어문자를 받지 않는다.
+function hasControlChars(value: string): boolean {
+  return /[\u0000-\u001f\u007f]/.test(value)
+}
+
 export function postSignUp(req: Request, res: Response) {
   const body = (req.body ?? {}) as SignupBody
   const nickname = readString(body.nickname)
@@ -52,17 +57,17 @@ export function postSignUp(req: Request, res: Response) {
   const email = readString(body.email)
   const phoneDigits = readString(body.phone).replace(/\D/g, '')
 
-  if (!nickname || nickname.length > NICKNAME_MAX) {
+  if (!nickname || nickname.length > NICKNAME_MAX || hasControlChars(nickname)) {
     res.status(400).json({
       success: false,
       error: { code: 'INVALID_NICKNAME', message: '아이디는 1~20자로 입력해 주세요.' },
     })
     return
   }
-  if (password.length < 4 || password.length > PASSWORD_MAX) {
+  if (password.length < 8 || password.length > PASSWORD_MAX) {
     res.status(400).json({
       success: false,
-      error: { code: 'INVALID_PASSWORD', message: '비밀번호는 4자 이상이어야 해요.' },
+      error: { code: 'INVALID_PASSWORD', message: '비밀번호는 8자 이상이어야 해요.' },
     })
     return
   }
@@ -110,18 +115,13 @@ export function postSignIn(req: Request, res: Response) {
   const nickname = readString(body.nickname)
   const password = typeof body.password === 'string' ? body.password : ''
 
+  // 미가입 아이디와 비밀번호 불일치를 같은 응답으로 묶는다 — 응답 차이로
+  // 아이디 존재 여부를 탐지(계정 열거)할 수 없게 하기 위해서입니다.
   const account = findAccount(nickname)
-  if (!account) {
-    res.status(404).json({
-      success: false,
-      error: { code: 'ACCOUNT_NOT_FOUND', message: '가입되지 않은 아이디예요. 회원가입부터 진행해 주세요.' },
-    })
-    return
-  }
-  if (!verifyPassword(account, password)) {
+  if (!account || !verifyPassword(account, password)) {
     res.status(401).json({
       success: false,
-      error: { code: 'WRONG_PASSWORD', message: '비밀번호가 일치하지 않아요.' },
+      error: { code: 'AUTH_FAILED', message: '아이디 또는 비밀번호가 올바르지 않아요.' },
     })
     return
   }
@@ -187,7 +187,7 @@ export function putProfile(req: Request, res: Response) {
   const nextEmail = readString(body.email) || account.email
   const phoneDigits = readString(body.phone).replace(/\D/g, '')
 
-  if (!nextNickname || nextNickname.length > NICKNAME_MAX) {
+  if (!nextNickname || nextNickname.length > NICKNAME_MAX || hasControlChars(nextNickname)) {
     res.status(400).json({
       success: false,
       error: { code: 'INVALID_NICKNAME', message: '아이디는 1~20자로 입력해 주세요.' },
@@ -226,10 +226,13 @@ export function putProfile(req: Request, res: Response) {
     phone: phoneDigits || undefined,
   }
   if (nextNickname !== account.nickname) {
-    deleteAccount(account.nickname)
+    // 아이디 변경은 3개 파일에 걸친 다단계 쓰기다. 중간에 죽어도 계정·세션이
+    // 남아 있도록 기존 계정 삭제를 마지막으로 미룬다 — 최악의 경우 두 아이디가
+    // 잠시 공존하지만(재시도로 정리 가능), 계정이 통째로 사라지는 일은 없다.
     saveAccount(updated)
-    renameSessions(account.nickname, nextNickname)
     renameUserdata(account.nickname, nextNickname)
+    renameSessions(account.nickname, nextNickname)
+    deleteAccount(account.nickname)
   } else {
     saveAccount(updated)
   }

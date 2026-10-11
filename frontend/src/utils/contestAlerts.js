@@ -112,3 +112,37 @@ export function markAlertDismissed(ids, alert) {
   const key = alertDismissKey(alert)
   return ids.includes(key) ? ids : [...ids, key]
 }
+
+// 마이페이지에서 마지막으로 확인한 마감 알림 조합(알림 id 나열). 이후 새 알림이 생기면 다시 배지가 붙습니다.
+// localStorage를 외부 스토어로 다룹니다 — React 컴포넌트는 useSyncExternalStore로 구독하고,
+// 갱신은 markAlertsSeen 하나로만 하면 구독 중인 화면이 알아서 다시 그려집니다.
+const ALERTS_SEEN_STORAGE_KEY = 'idea-navigation:alerts-seen'
+
+let seenAlertsCache = null
+const seenAlertsListeners = new Set()
+
+export function getSeenAlertsKey() {
+  if (seenAlertsCache === null) {
+    try {
+      seenAlertsCache = localStorage.getItem(ALERTS_SEEN_STORAGE_KEY) ?? ''
+    } catch {
+      seenAlertsCache = ''
+    }
+  }
+  return seenAlertsCache
+}
+
+export function markAlertsSeen(key) {
+  seenAlertsCache = key
+  try {
+    localStorage.setItem(ALERTS_SEEN_STORAGE_KEY, key)
+  } catch {
+    // 저장에 실패해도 이 세션 안에서는 확인 상태를 유지합니다.
+  }
+  seenAlertsListeners.forEach((listener) => listener())
+}
+
+export function subscribeSeenAlerts(listener) {
+  seenAlertsListeners.add(listener)
+  return () => seenAlertsListeners.delete(listener)
+}

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent } from 'react'
+import AppLink from '../components/AppLink'
 import CategorySelect from '../components/CategorySelect'
 import GrowthTimeline from '../components/GrowthTimeline'
 import MyContestCalendar from '../components/MyContestCalendar'
@@ -9,12 +10,14 @@ import {
   resetSeenForPreview,
   setNewContestOptIn,
 } from '../utils/contestOpenAlerts.js'
+import { alertDismissKey } from '../utils/contestAlerts.js'
 import { sendWeeklyDigest } from '../services/notificationService.js'
 import { downloadUserData, mergeImportedData } from '../utils/dataPortability.js'
+import { STORAGE_KEYS } from '../utils/storageKeys.js'
 import type { Analysis } from '../types/analysis'
 import './MyPage.css'
 
-// 로그인 사용자와 응모 기록은 이 브라우저(localStorage)에만 저장되는 데모 계정입니다.
+// 로그인 계정은 서버(backend)에 저장되고, localStorage는 1차 캐시다.
 // email은 공모전 마감 알림(이메일) 발송에 사용됩니다.
 export type User = {
   nickname: string
@@ -78,8 +81,14 @@ type Props = {
   wishlist: WishlistContest[]
   savedIdeas: SavedIdea[]
   alerts: ContestAlert[]
+  // 읽음(확인) 처리한 알림 키 집합 — 읽은 항목은 목록에서 연회색으로 표시합니다.
+  readAlertKeys: Set<string>
   /** 알림 하나를 확인(읽음) 처리 — 확인한 것은 상단 배지 개수에서 빠집니다. */
   onDismissAlert: (alert: ContestAlert) => void
+  /** 알림을 모두 읽음 처리 — 하나씩 확인하지 않고도 배지를 지울 수 있습니다. */
+  onMarkAllAlertsRead: () => void
+  /** 알림을 모두 읽지 않음 처리 — '모두 읽음'의 반대로 배지와 읽음 표시를 되살립니다. */
+  onMarkAllAlertsUnread: () => void
   onLogin: (nickname: string, password: string) => Promise<AuthResult>
   onSignup: (nickname: string, password: string, email: string, phone: string) => Promise<AuthResult>
   /** 회원정보(아이디·이메일·휴대폰) 수정 — 성공 시 바뀐 user를 돌려줍니다. */
@@ -108,6 +117,8 @@ type Props = {
   ) => void
   onBack: () => void
   onGoInput: () => void
+  // 공모전 탐색 화면으로 보내는 콜백 — 관심 목록·알림 빈 상태에서 씁니다.
+  onGoExplore: () => void
 }
 
 const ALERT_BADGE_TEXT: Record<ContestAlert['tone'], string> = {
@@ -133,7 +144,10 @@ function MyPage({
   wishlist,
   savedIdeas,
   alerts,
+  readAlertKeys,
   onDismissAlert,
+  onMarkAllAlertsRead,
+  onMarkAllAlertsUnread,
   onLogin,
   onSignup,
   onUpdateProfile,
@@ -150,6 +164,7 @@ function MyPage({
   onImportLists,
   onBack,
   onGoInput,
+  onGoExplore,
 }: Props) {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [nickname, setNickname] = useState('')
@@ -170,13 +185,18 @@ function MyPage({
   // 회원정보 수정 폼은 클릭해 열었을 때만 보입니다.
   const [profileEditOpen, setProfileEditOpen] = useState(false)
 
-  useEffect(() => {
-    setProfileNickname(user?.nickname ?? '')
-    setProfileEmail(user?.email ?? '')
-    setProfilePhone(user?.phone ?? '')
-    setProfilePassword('')
-    setProfileStatus(null)
-  }, [user?.nickname, user?.email, user?.phone])
+  // 폼을 열 때 로그인 사용자 정보로 채운다. 저장에 성공하면 아래에서 돌아온
+  // 최신 user로 다시 채워 폼과 계정 정보를 맞춥니다.
+  const toggleProfileEdit = () => {
+    if (!profileEditOpen) {
+      setProfileNickname(user?.nickname ?? '')
+      setProfileEmail(user?.email ?? '')
+      setProfilePhone(user?.phone ?? '')
+      setProfilePassword('')
+      setProfileStatus(null)
+    }
+    setProfileEditOpen((open) => !open)
+  }
 
   // 회원정보 저장 — 성공하면 App이 user를 갱신해 대시보드 이름이 바로 바뀝니다.
   const handleProfileSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -192,6 +212,11 @@ function MyPage({
     })
     setProfilePending(false)
     if (result.ok) {
+      if (result.user) {
+        setProfileNickname(result.user.nickname)
+        setProfileEmail(result.user.email ?? '')
+        setProfilePhone(result.user.phone ?? '')
+      }
       setProfilePassword('')
       setProfileStatus({ tone: 'ok', text: '회원정보를 저장했어요. 대시보드에도 새 이름이 바로 반영돼요.' })
     } else {
@@ -292,7 +317,7 @@ function MyPage({
       }
       try {
         if (merged.typeTest !== null) {
-          localStorage.setItem('gongnabi:type-test', JSON.stringify(merged.typeTest))
+          localStorage.setItem(STORAGE_KEYS.typeTest, JSON.stringify(merged.typeTest))
         }
         localStorage.setItem(
           'idea-navigation:submission-checklist',
@@ -326,12 +351,20 @@ function MyPage({
       setError('비밀번호를 입력해 주세요.')
       return
     }
+    if (mode === 'signup' && password.length < 8) {
+      setError('비밀번호는 8자 이상이어야 해요.')
+      return
+    }
     if (mode === 'signup' && password !== passwordConfirm) {
       setError('비밀번호가 서로 일치하지 않아요.')
       return
     }
     if (mode === 'signup' && !email.trim()) {
       setError('알림을 받을 이메일 주소를 입력해 주세요.')
+      return
+    }
+    if (mode === 'signup' && !/^\S+@\S+\.\S+$/.test(email.trim())) {
+      setError('이메일 형식을 확인해 주세요. (예: name@example.com)')
       return
     }
 
@@ -380,7 +413,7 @@ function MyPage({
                   type="button"
                   className="profile-edit-button"
                   aria-expanded={profileEditOpen}
-                  onClick={() => setProfileEditOpen((open) => !open)}
+                  onClick={toggleProfileEdit}
                 >
                   {profileEditOpen ? '수정 닫기' : '회원정보 수정'}
                 </button>
@@ -462,9 +495,9 @@ function MyPage({
                     <br />
                     분석 결과에서 마음에 드는 공모전을 응모하면 이곳에 모입니다.
                   </p>
-                  <button type="button" className="empty-button" onClick={onGoInput}>
+                  <AppLink className="empty-button" href="/input" onNavigate={onGoInput}>
                     아이디어 분석 시작하기
-                  </button>
+                  </AppLink>
                 </div>
               ) : (
                 <ul className="my-contest-list">
@@ -507,7 +540,17 @@ function MyPage({
                           <button
                             type="button"
                             className="cancel-apply-button"
-                            onClick={() => onCancelApply(contest.id)}
+                            onClick={() => {
+                              const title = contest.title ?? '이 공모전'
+                              if (
+                                !window.confirm(
+                                  `'${title}' 응모 기록을 취소할까요? 달력·도전 히스토리에서도 사라져요.`,
+                                )
+                              ) {
+                                return
+                              }
+                              onCancelApply(contest.id)
+                            }}
                           >
                             응모 취소
                           </button>
@@ -548,7 +591,7 @@ function MyPage({
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder={mode === 'signup' ? '비밀번호 (4자 이상)' : '비밀번호'}
+              placeholder={mode === 'signup' ? '비밀번호 (8자 이상)' : '비밀번호'}
               aria-label="비밀번호"
               maxLength={40}
             />
@@ -674,33 +717,58 @@ function MyPage({
             </div>
           )}
           {alerts.length === 0 ? (
-            <p className="alert-empty">
+            <div className="wishlist-empty">
               응모·관심 공모전의 마감일이 가까워지면 이곳에 알려 드려요.
-            </p>
+              <AppLink className="empty-cta-button" href="/contest" onNavigate={onGoExplore}>
+                공모전 둘러보고 찜하기 →
+              </AppLink>
+            </div>
           ) : (
             <ul className="alert-list">
-              {alerts.map((alert) => (
-                <li key={alert.id} className="alert-item">
-                  <span className={`alert-badge tone-${alert.tone}`}>
-                    {ALERT_BADGE_TEXT[alert.tone]}
-                  </span>
-                  <div className="alert-text">
-                    <p className="alert-title">{alert.title}</p>
-                    <p className="alert-meta">
-                      {alert.kindLabel} · 마감 {alert.deadline} · {alert.message}
-                    </p>
-                  </div>
-                  {(alert.tone === 'today' || alert.tone === 'urgent') && (
-                    <button
-                      type="button"
-                      className="alert-dismiss"
-                      onClick={() => onDismissAlert(alert)}
-                    >
-                      확인 ✓
-                    </button>
-                  )}
-                </li>
-              ))}
+              <li className="alert-item alert-all-row" aria-hidden="true">
+                <button
+                  type="button"
+                  className="alert-dismiss alert-dismiss-all"
+                  onClick={onMarkAllAlertsRead}
+                >
+                  모두 읽음 ✓
+                </button>
+                <button
+                  type="button"
+                  className="alert-dismiss alert-dismiss-all"
+                  onClick={onMarkAllAlertsUnread}
+                >
+                  모두 읽지 않음
+                </button>
+              </li>
+              {alerts.map((alert) => {
+                const isRead = readAlertKeys.has(alertDismissKey(alert))
+                return (
+                  <li
+                    key={alert.id}
+                    className={isRead ? 'alert-item is-read' : 'alert-item'}
+                  >
+                    <span className={`alert-badge tone-${alert.tone}`}>
+                      {ALERT_BADGE_TEXT[alert.tone]}
+                    </span>
+                    <div className="alert-text">
+                      <p className="alert-title">{alert.title}</p>
+                      <p className="alert-meta">
+                        {alert.kindLabel} · 마감 {alert.deadline} · {alert.message}
+                      </p>
+                    </div>
+                    {!isRead && (alert.tone === 'today' || alert.tone === 'urgent') && (
+                      <button
+                        type="button"
+                        className="alert-dismiss"
+                        onClick={() => onDismissAlert(alert)}
+                      >
+                        확인 ✓
+                      </button>
+                    )}
+                  </li>
+                )
+              })}
             </ul>
           )}
         </section>
@@ -712,9 +780,12 @@ function MyPage({
             관심 공모전 <span className="contest-count">{wishlist.length}개</span>
           </h2>
           {wishlist.length === 0 ? (
-            <p className="wishlist-empty">
+            <div className="wishlist-empty">
               아직 관심 공모전이 없어요. 분석 결과에서 '☆ 관심 목록에 추가'를 눌러 저장해 보세요.
-            </p>
+              <AppLink className="empty-cta-button" href="/contest" onNavigate={onGoExplore}>
+                공모전 둘러보기 →
+              </AppLink>
+            </div>
           ) : (
             <ul className="my-contest-list">
               {wishlist.map((contest) => (
@@ -854,7 +925,16 @@ function MyPage({
                     <button
                       type="button"
                       className="cancel-apply-button"
-                      onClick={() => onDeleteIdea(idea.id)}
+                      onClick={() => {
+                        if (
+                          !window.confirm(
+                            `'${idea.title}' 아이디어를 삭제할까요? 저장된 분석 결과도 함께 사라져요.`,
+                          )
+                        ) {
+                          return
+                        }
+                        onDeleteIdea(idea.id)
+                      }}
                     >
                       삭제
                     </button>

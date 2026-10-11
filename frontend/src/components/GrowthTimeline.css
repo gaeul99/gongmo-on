@@ -54,12 +54,12 @@
 .growth-step.is-done .growth-marker {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
 }
 
 .growth-step.is-active .growth-marker {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .growth-body {
@@ -84,7 +84,7 @@
 .growth-now {
   font-size: 10.5px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
   border: 1px solid var(--accent-border);
   background: var(--accent-bg);
   border-radius: 999px;

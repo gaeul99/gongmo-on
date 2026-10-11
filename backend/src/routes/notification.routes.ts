@@ -5,10 +5,18 @@ import {
   postSubscribe,
   postWeeklyDigest,
 } from '../controllers/notification.controller'
+import { rateLimit, requireAdminToken, requireSession } from '../middleware/security'
 
 export const notificationRouter = Router()
 
 notificationRouter.post('/subscribe', postSubscribe)
-notificationRouter.post('/weekly', postWeeklyDigest)
-notificationRouter.get('/stats', getStats)
-notificationRouter.post('/run', postRunCheck)
+// 주간 다이제스트는 실제 이메일을 발송하므로 따로 더 타이트하게 제한한다.
+notificationRouter.post(
+  '/weekly',
+  rateLimit({ windowMs: 10 * 60 * 1000, max: 5, name: 'weekly' }),
+  postWeeklyDigest,
+)
+// 발송 통계는 수신자 이메일·본문을 포함하므로 로그인한 사용자만 본다.
+notificationRouter.get('/stats', requireSession, getStats)
+// 전체 구독자 대량 발송을 트리거하는 수동 점검은 관리자 토큰이 있어야 한다.
+notificationRouter.post('/run', requireAdminToken, postRunCheck)

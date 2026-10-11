@@ -17,3 +17,7 @@ backend/src/data/*.json
 
 # 설계 문서 (로컬에만 보관 — GitLab에는 올리지 않음)
 artifacts/
+
+# 문서·실행 스크립트 (로컬에만 보관 — GitLab에는 올리지 않음)
+*.md
+*.cmd

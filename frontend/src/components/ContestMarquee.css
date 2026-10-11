@@ -2,41 +2,22 @@
 
 .contest-marquee {
   max-width: var(--content-width);
-  /* 위 여백 — 서비스 바로가기 탭과의 간격 */
-  margin: 40px auto 0;
+  /* 위 여백 — 히어로와의 간격. 히어로 하단 여백은 0이고, .page의 --home-section-gap을
+     마키↔곧 마감/곧 시작 패널 간격(.home-deadlines)과 공유해 두 간격이 항상 같다 */
+  margin: var(--home-section-gap) auto 0;
   padding-inline: 24px;
 }
 
-/* 섹션 제목 — '곧 마감되는 공모전' 제목(deadline-head h2)과 글꼴 통일 */
-.marquee-heading {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: fit-content;
-  margin: 0 auto 4px;
-  font-family: var(--heading);
-  font-size: 19px;
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-.marquee-heading::before,
-.marquee-heading::after {
-  content: '';
-  width: 36px;
-  border-top: 2px dashed var(--accent-border);
-}
-
-/* 제목 아래 짧은 안내 문구 — 링크임을 알 수 있게 이 글줄만 밑줄 */
+/* 안내 문구 — 제목 글씨는 빠지고 이 문구만 남았다(가운데 정렬 유지) */
 .marquee-sub {
   margin: 0 auto 10px;
   text-align: center;
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--text);
   opacity: 0.8;
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: rgba(124, 58, 237, 0.55);
+  text-decoration-color: var(--accent-border);
 }
 
 /* 흐르는 카드 행. 좌우 끝은 그라데이션 마스크로 스며들듯 잘라낸다. */
@@ -64,7 +45,7 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--panel);
   border: 1px solid var(--accent-border);
   box-shadow: var(--shadow);
@@ -110,11 +91,11 @@
 
 /* 각 카드가 자기 오른쪽에만 간격을 두면 트랙 절반이 정확히 한 세트라
    translateX(-50%)로 이음새 없이 무한 반복된다.
-   120s — 카드 한 장이 화면을 가로지르는 데 12초 남짽 걸리는 속도 */
+   1500s — 카드 한 장이 화면을 가로지르는 데 150초 정도 걸리는 매우 느린 속도 */
 .marquee-track {
   display: flex;
   width: max-content;
-  animation: marquee-slide 120s linear infinite;
+  animation: marquee-slide 1500s linear infinite;
 }
 
 .marquee-window:hover .marquee-track {
@@ -147,7 +128,9 @@
   transform: translateY(-3px);
 }
 
-.marquee-card button {
+/* 카드 안쪽은 버튼·앱 내 링크(AppLink) 모두 같은 모양 — 셀렉터에 a를 함께 둔다 */
+.marquee-card button,
+.marquee-card a {
   display: block;
   width: 100%;
   padding: 0;
@@ -159,8 +142,9 @@
   cursor: pointer;
 }
 
-.marquee-card button:hover .marquee-name {
-  color: var(--accent);
+.marquee-card button:hover .marquee-name,
+.marquee-card a:hover .marquee-name {
+  color: var(--accent-text);
 }
 
 .marquee-thumb {
@@ -182,11 +166,10 @@
   position: absolute;
   top: 8px;
   left: 8px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   border-radius: 999px;
   padding: 3px 9px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
 .marquee-badge.tone-today {
@@ -202,7 +185,7 @@
 
 .marquee-badge.tone-upcoming {
   color: #fff;
-  background: #17995f;
+  background: var(--accent);
 }
 
 .marquee-info {
@@ -215,19 +198,18 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   line-height: 1.45;
   color: var(--text-h);
-  min-height: 38px;
+  min-height: 36.5px;
   word-break: keep-all;
 }
 
 .marquee-org {
   display: block;
   margin-top: 2px;
-  font-size: 12.5px;
-  color: var(--text);
+  font-size: 12px;
 }
 
 /* 움직임을 줄이기를 원하는 환경에서는 멈춘 상태의 가로 스크롤 목록으로 대체 */

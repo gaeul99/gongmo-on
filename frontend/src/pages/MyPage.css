@@ -22,7 +22,7 @@
 }
 
 .back-button:hover {
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: underline;
 }
 
@@ -34,7 +34,7 @@
   display: inline-block;
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
@@ -95,7 +95,7 @@
   font: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent);
   border: none;
   border-radius: 12px;
@@ -136,7 +136,7 @@
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: none;
   border: none;
   padding: 8px 0;
@@ -168,7 +168,7 @@
   border-radius: 50%;
   font-size: 18px;
   font-weight: 700;
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent);
   flex-shrink: 0;
 }
@@ -223,7 +223,7 @@
   font: inherit;
   font-size: 12px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
@@ -237,7 +237,7 @@
 
 .profile-edit-button:hover,
 .profile-edit-button[aria-expanded='true'] {
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent);
   border-color: var(--accent);
 }
@@ -259,7 +259,7 @@ section h2 {
 .contest-count {
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   margin-left: 6px;
 }
 
@@ -291,7 +291,7 @@ section h2 {
   font-size: 17px;
   font-weight: 700;
   line-height: 1;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   border-radius: 50%;
@@ -353,7 +353,7 @@ section h2 {
   margin: 4px 0 0;
   font-size: 11px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* 응모 결과 기록 칩(진행 중·수상·탈락) — 대시보드 도전 히스토리의 재료 */
@@ -395,7 +395,8 @@ section h2 {
 }
 
 .result-chip.tone-won.is-active {
-  background: #1fb46f;
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 .result-chip.tone-lost.is-active {
@@ -413,7 +414,7 @@ section h2 {
 .my-contest-actions a {
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
 }
 
@@ -453,10 +454,12 @@ section h2 {
 }
 
 .empty-button {
+  /* 링크(a)로도 쓰이는 버튼 — inline이면 세로 패딩·변형이 무시되므로 명시 */
+  display: inline-block;
   font: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--bg);
   border: 2px solid var(--accent);
   border-radius: 12px;
@@ -508,7 +511,7 @@ section h2 {
 .notif-toggle input {
   width: 16px;
   height: 16px;
-  accent-color: var(--accent);
+  accent-color: var(--accent-text);
 }
 
 .notif-hint {
@@ -536,7 +539,7 @@ section h2 {
   border: 1px solid var(--accent-border);
   border-radius: 10px;
   background: var(--panel);
-  color: var(--accent);
+  color: var(--accent-text);
   cursor: pointer;
   transition:
     background 0.15s,
@@ -545,7 +548,7 @@ section h2 {
 
 .weekly-send-button:hover:not(:disabled) {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
 }
 
 .weekly-send-button:disabled {
@@ -557,14 +560,14 @@ section h2 {
   margin: 8px 0 0;
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   word-break: keep-all;
 }
 
 .notif-preview {
   font: inherit;
   font-size: 12px;
-  color: var(--accent);
+  color: var(--accent-text);
   background: none;
   border: none;
   padding: 6px 0;
@@ -580,7 +583,7 @@ section h2 {
   margin: 8px 0 0;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   word-break: keep-all;
 }
 
@@ -614,7 +617,7 @@ section h2 {
   font: inherit;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: none;
   border: 1px solid var(--accent-border);
   border-radius: 999px;
@@ -625,6 +628,21 @@ section h2 {
 
 .alert-dismiss:hover {
   background: var(--accent-bg);
+}
+
+/* '모두 읽음' 줄 — 카드 틀 없이 알림 목록 위 오른쪽에 버튼만 둔다.
+   버튼이 둘(모두 읽음·모두 읽지 않음)이라 margin-left:auto를 풀어
+   자유 공간이 둘로 나뉘어 첫 버튼이 가운데로 밀리지 않게 한다. */
+.alert-all-row {
+  justify-content: flex-end;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 0 2px;
+}
+
+.alert-all-row .alert-dismiss {
+  margin-left: 0;
 }
 
 .alert-badge {
@@ -646,7 +664,7 @@ section h2 {
 }
 
 .alert-badge.tone-upcoming {
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
 }
@@ -677,6 +695,24 @@ section h2 {
   word-break: keep-all;
 }
 
+/* 읽음(확인) 처리한 알림 — 연회색으로 눌러 안 읽은 알림과 대비를 준다 */
+.alert-item.is-read {
+  background: var(--code-bg);
+  border-style: dashed;
+  opacity: 0.6;
+}
+
+.alert-item.is-read .alert-badge {
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.alert-item.is-read .alert-title {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .alert-empty,
 .wishlist-empty {
   margin: 0;
@@ -690,12 +726,33 @@ section h2 {
   padding: 18px 20px;
 }
 
+/* 빈 상태 안내문 안의 다음 행동 버튼 — display가 p가 아니라 div라 버튼을 담는다 */
+.empty-cta-button {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.empty-cta-button:hover {
+  background: var(--accent-bg);
+}
+
 /* 관심 목록: 응모 전환 버튼 */
 .apply-from-wish-button {
   font: inherit;
   font-size: 12px;
   font-weight: 600;
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent);
   border: none;
   border-radius: 999px;
@@ -772,7 +829,7 @@ section h2 {
   font: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent);
   border: none;
   border-radius: 12px;
@@ -793,7 +850,7 @@ section h2 {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* --- 데이터 관리 (내보내기·가져오기) --- */
@@ -819,7 +876,7 @@ section h2 {
 .data-export-button {
   border: 1px solid var(--accent-border);
   background: var(--bg);
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 12.5px;
   font-weight: 700;
   border-radius: 8px;
@@ -844,7 +901,7 @@ section h2 {
 
 .data-import-label:hover {
   border-color: var(--accent-border);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .data-import-input {
@@ -923,7 +980,7 @@ section h2 {
   font: inherit;
   font-size: 13px;
   font-weight: 700;
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent);
   border: 1px solid var(--accent);
   border-radius: 999px;
@@ -948,7 +1005,7 @@ section h2 {
 }
 
 .profile-edit-status.tone-ok {
-  color: var(--ok, #17995f);
+  color: var(--ok, #000000);
 }
 
 .profile-edit-status.tone-error {

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import CategorySelect from '../components/CategorySelect'
+import type { SavedIdea } from './MyPage'
 import './IdeaInputPage.css'
 
 export type IdeaInput = {
@@ -26,6 +27,11 @@ type Props = {
   initialIdea?: IdeaInput | null
   // 유형 검사에서 넘어온 맞춤 힌트 (없으면 힌트 패널을 보여 주지 않음)
   typeHints?: TypeIdeaHints | null
+  // 마이페이지와 공유하는 내 아이디어 보관함 — 입력 화면 아래에서 함께 보여 줍니다.
+  savedIdeas?: SavedIdea[]
+  // 보관함의 아이디어를 다시 열어 분석 결과 화면으로 이동합니다.
+  onOpenIdea?: (idea: SavedIdea) => void
+  onDeleteIdea?: (id: string) => void
 }
 
 type FieldErrors = {
@@ -33,7 +39,19 @@ type FieldErrors = {
   description?: string
 }
 
-function IdeaInputPage({ onBack, onAnalyze, initialIdea, typeHints }: Props) {
+function IdeaInputPage({
+  onBack,
+  onAnalyze,
+  initialIdea,
+  typeHints,
+  savedIdeas = [],
+  onOpenIdea,
+  onDeleteIdea,
+}: Props) {
+  // 백엔드 검증 한도(account/idea.controller)와 맞춘 길이 제한.
+  // 대용량 텍스트가 그대로 AI 프롬프트로 전송되는 것을 막는다.
+  const TITLE_MAX = 100
+  const DESCRIPTION_MAX = 2000
   const hints = typeHints?.examples ?? []
   const [title, setTitle] = useState(initialIdea?.title ?? '')
   const [description, setDescription] = useState(
@@ -80,11 +98,15 @@ function IdeaInputPage({ onBack, onAnalyze, initialIdea, typeHints }: Props) {
         <div className="field">
           <label htmlFor="idea-title">
             아이디어 제목 <span className="required" aria-hidden="true">*</span>
+            <span className="char-count" aria-hidden="true">
+              {title.length}/{TITLE_MAX}
+            </span>
           </label>
           <input
             id="idea-title"
             type="text"
             value={title}
+            maxLength={TITLE_MAX}
             onChange={(event) => {
               setTitle(event.target.value)
               clearError('title')
@@ -102,6 +124,9 @@ function IdeaInputPage({ onBack, onAnalyze, initialIdea, typeHints }: Props) {
         <div className="field">
           <label htmlFor="idea-description">
             아이디어 설명 <span className="required" aria-hidden="true">*</span>
+            <span className="char-count" aria-hidden="true">
+              {description.length}/{DESCRIPTION_MAX}
+            </span>
           </label>
           {typeHints && hints.length > 0 && (
             <div className="hint-panel">
@@ -132,6 +157,7 @@ function IdeaInputPage({ onBack, onAnalyze, initialIdea, typeHints }: Props) {
           <textarea
             id="idea-description"
             value={description}
+            maxLength={DESCRIPTION_MAX}
             onChange={(event) => {
               setDescription(event.target.value)
               clearError('description')
@@ -158,6 +184,50 @@ function IdeaInputPage({ onBack, onAnalyze, initialIdea, typeHints }: Props) {
           분석하기
         </button>
       </form>
+
+      <section className="input-archive" aria-labelledby="input-archive-title">
+        <h2 id="input-archive-title">
+          내 아이디어 보관함 <span className="input-archive-count">{savedIdeas.length}개</span>
+        </h2>
+        <p className="input-archive-caption">
+          '다시 보기'를 누르면 저장된 분석 결과를 그대로 보여 드려요.
+        </p>
+        {savedIdeas.length === 0 ? (
+          <p className="input-archive-empty">
+            저장된 아이디어가 없어요. 분석 결과 화면에서 '보관함에 저장'을 눌러 보세요.
+          </p>
+        ) : (
+          <ul className="input-archive-list">
+            {savedIdeas.map((idea) => (
+              <li key={idea.id} className="input-archive-item">
+                <div className="input-archive-info">
+                  <h3>{idea.title}</h3>
+                  <p className="input-archive-meta">
+                    {idea.category ? `${idea.category} · ` : ''}
+                    {idea.savedAt} 저장
+                  </p>
+                </div>
+                <div className="input-archive-actions">
+                  <button
+                    type="button"
+                    className="input-archive-open"
+                    onClick={() => onOpenIdea?.(idea)}
+                  >
+                    다시 보기
+                  </button>
+                  <button
+                    type="button"
+                    className="input-archive-delete"
+                    onClick={() => onDeleteIdea?.(idea.id)}
+                  >
+                    삭제
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   )
 }

@@ -1,29 +1,59 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --panel: #fff;
-  --accent: #6d28d9;
-  --accent-bg: rgba(109, 40, 217, 0.1);
-  --accent-border: rgba(109, 40, 217, 0.5);
-  /* 첫화면 배경 광원(HomePage .home-glow)과 그라데이션 색 */
-  --glow-a: rgba(124, 58, 237, 0.1);
-  --glow-b: rgba(23, 153, 95, 0.1);
-  --grad-a: rgba(124, 58, 237, 0.08);
-  --grad-b: rgba(23, 153, 95, 0.07);
-  --error: #e5484d;
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+/* 전체 폰트 — 시스템 맑은 고딕 단일 사용. '공내비' 워드마크만 고딕 계열 굵은 폰트(Noto Sans KR Black) */
+@font-face {
+  font-family: 'Noto Sans KR';
+  src: url('/fonts/NotoSansKR-Black.woff2') format('woff2');
+  /* Black(900) 단일 파일 — 900 요청에 그대로 매핑해 브라우저 가짜 볼드 합성을 막는다 */
+  font-weight: 900;
+  font-display: swap;
+}
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  /* 제목용 폰트 — 묵직한 Black Han Sans(브랜드 임팩트용). 로드 실패 시 시스템 글꼴로 대체 */
-  --heading: 'Black Han Sans', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, 'Segoe UI', Roboto, sans-serif;
+:root {
+  --text: #000000;
+  --text-h: #000000;
+  --bg: #fff;
+  --border: #000000;
+  --code-bg: #ffffff;
+  --panel: #fff;
+  --accent: #000000;
+  --accent-bg: #ffffff;
+  --accent-border: #000000;
+  /* 밝은 배경 위의 강조 글자·아이콘용 — 액센트 채우기 위 글자는 흰색(--accent-ink) */
+  --accent-text: #000000;
+  --accent-ink: #ffffff;
+  /* 흑백 테마 — 화이트(#fff/#ffffff)와 블랙(#000000)만 사용(2026-10-10 사용자 지시).
+     배경·틴트는 전부 흰색, 테두리·표시는 전부 검정. 상태·카테고리 구분은
+     채우기(블랙 배지)와 테두리로 한다. --hue-*는 역할 이름만 남긴 별칭. */
+  --hue-teal: #000000;
+  --hue-teal-bg: #ffffff;
+  --hue-teal-border: #000000;
+  --hue-blue: #000000;
+  --hue-blue-bg: #ffffff;
+  --hue-blue-border: #000000;
+  --hue-purple: #000000;
+  --hue-purple-bg: #ffffff;
+  --hue-purple-border: #000000;
+  --hue-amber: #000000;
+  --hue-amber-bg: #ffffff;
+  --hue-amber-border: #000000;
+  --hue-green: #000000;
+  --hue-green-bg: #ffffff;
+  --hue-green-border: #000000;
+  --hue-rose: #000000;
+  --hue-rose-bg: #ffffff;
+  --hue-rose-border: #000000;
+  /* 첫화면 배경 광원(HomePage .home-glow)과 그라데이션 색 — 흑백 테마에서 광원은 끈다(투명) */
+  --glow-a: transparent;
+  --glow-b: transparent;
+  --grad-a: transparent;
+  --grad-b: transparent;
+  --error: #000000;
+  --social-bg: #ffffff;
+  --shadow: none;
+
+  --sans: 'Malgun Gothic', '맑은 고딕', system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  font: 18px/145% var(--sans);
+  font: 16px/145% var(--sans);
   letter-spacing: 0.18px;
   color-scheme: light;
   color: var(--text);
@@ -34,40 +64,8 @@
   -moz-osx-font-smoothing: grayscale;
 
   @media (max-width: 1024px) {
-    font-size: 16px;
+    font-size: 15px;
   }
-}
-
-/* 다크 모드 — main.tsx가 <html>에 data-theme을 항상 'light'/'dark'로 세팅한다.
-   저장된 선택이 없을 때는 시스템 설정을 따른다. 보라 계열 다크 팔레트는
-   계획서(artifacts/gongnabi-dashboard-plan.html)의 다크 톤과 맞췄다. */
-:root[data-theme='dark'] {
-  --text: #a89fb5;
-  --text-h: #f4f0fa;
-  --bg: #14101a;
-  --border: #2e2540;
-  --code-bg: #221b2d;
-  --panel: #1d1726;
-  --accent: #7c3aed;
-  --accent-bg: rgba(139, 92, 246, 0.16);
-  --accent-border: rgba(167, 139, 250, 0.5);
-  --glow-a: rgba(139, 92, 246, 0.17);
-  --glow-b: rgba(31, 180, 111, 0.14);
-  --grad-a: rgba(139, 92, 246, 0.12);
-  --grad-b: rgba(31, 180, 111, 0.09);
-  --error: #ef7288;
-  --social-bg: rgba(34, 27, 45, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.5) 0 10px 15px -3px, rgba(0, 0, 0, 0.3) 0 4px 6px -2px;
-
-  color-scheme: dark;
-}
-
-:root[data-theme='dark'] .chat-dock {
-  --chat-ok: #4fc48f;
-  --chat-ok-bg: rgba(79, 196, 143, 0.16);
-  --chat-warn: #e8a13d;
-  --chat-warn-bg: rgba(232, 161, 61, 0.16);
 }
 
 #root {
@@ -83,7 +81,11 @@
 body {
   margin: 0;
 
-  /* 모바일: 아이콘·글씨·여백 전체를 웹보다 작게(70% 축척).
+  /* 전체 축척 — 폰트·여백·레이아웃이 함께 80%로 렌더링돼 화면 전반이 촘촘해 보인다.
+     더 작게/크게 조절할 때는 이 값 하나만 바꾼다(0.9=10% 축소, 0.7=30% 축소). */
+  zoom: 0.8;
+
+  /* 모바일: 아이콘·글씨·여백 전체를 웹보다 더 작게(70% 축척).
      zoom은 자식 전체에 상속되므로 px 고정값도 함께 줄어든다. */
   @media (max-width: 768px) {
     zoom: 0.7;
@@ -92,7 +94,7 @@ body {
 
 h1,
 h2 {
-  font-family: var(--heading);
+  font-family: var(--sans);
   font-weight: 500;
   /* 조상의 고정 줄높이를 상속해 큰 제목이 줄 상자에 잘리지 않게 함 */
   line-height: 1.2;
@@ -101,18 +103,107 @@ h2 {
 
 h1 {
   @media (max-width: 1024px) {
-    font-size: 36px;
+    font-size: 32px;
   }
 }
 h2 {
-  font-size: 24px;
+  font-size: 22px;
   line-height: 118%;
   letter-spacing: -0.24px;
   margin: 0 0 8px;
   @media (max-width: 1024px) {
-    font-size: 20px;
+    font-size: 18px;
   }
 }
 p {
   margin: 0;
+}
+
+/* 앱 안 이동 링크(AppLink) — 버튼 스타일을 그대로 쓰는 <a>의 기본 꾸밈을 지운다.
+   :where()로 명시도를 0으로 유지해 각 자리 클래스(.service-tab 등)의 스타일이 그대로 이긴다. */
+:where(a.app-link) {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 클릭 버튼 공통 동작 — 포인터를 올리면 살짝 위로 떠오른다.
+   :where()로 명시도를 0으로 유지해 자체 hover 이동(.service-tab, .notes-new-button 등)과
+   눌림(:active) 규칙이 그대로 이기게 하고, 버튼처럼 생긴 앵커·라벨 몇 개만 이름으로 더한다.
+   transition은 개별 버튼의 전환(opacity·background 등)을 대체하되 같은 속성들을
+   한데 모아 이동까지 함께 부드럽게 한다. 비활성 버튼은 움직이지 않는다. */
+:where(
+    button:not(:disabled),
+    .type-test-analyze,
+    .empty-button,
+    .empty-cta-button,
+    .dash-login-cta,
+    .data-import-label,
+    .deadline-more,
+    .deadline-item,
+    .upcoming-item
+  ) {
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease !important;
+}
+
+:where(
+    button:not(:disabled):hover,
+    .type-test-analyze:hover,
+    .empty-button:hover,
+    .empty-cta-button:hover,
+    .dash-login-cta:hover,
+    .data-import-label:hover,
+    .deadline-more:hover,
+    .deadline-item:hover,
+    .upcoming-item:hover
+  ) {
+  transform: translateY(-2px);
+}
+
+/* 서버 백업 지연 알림 — 우하단 왼쪽에 한 줄로 띄워 데이터가 이 브라우저에만
+   저장돼 있음을 알린다. 백업이 성공하면 App이 스스로 내린다. 챗봇 FAB(우하단
+   오른쪽)와 겹치지 않게 왼쪽에 둔다. */
+.sync-notice {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 10px 12px 10px 14px;
+  font-size: 12.5px;
+  color: var(--text);
+  background: var(--hue-amber-bg);
+  border: 1px solid var(--hue-amber-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  box-sizing: border-box;
+}
+
+.sync-notice button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.sync-notice button:hover {
+  background: var(--hue-amber-border);
 }

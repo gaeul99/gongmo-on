@@ -9,14 +9,41 @@ import {
   AiUpstreamError,
   analyzeIdea,
   isAiConfigured,
+  type AnalyzeContest,
+  type AnalyzeReferenceCase,
   type AnalyzeRequestBody,
 } from '../services/ai.service'
 
 const MAX_TITLE_LENGTH = 100
 const MAX_DESCRIPTION_LENGTH = 2000
+const MAX_CATEGORY_LENGTH = 100
+// 후보 목록 상한 — 개수와 항목 문자열 길이를 묶어 토큰 비용 폭탄을 막는다.
+const MAX_CANDIDATE_ITEMS = 60
+const MAX_CANDIDATE_TEXT = 200
 
 function errorResponse(res: Response, status: number, code: string, message: string) {
   res.status(status).json({ success: false, error: { code, message } })
+}
+
+// 후보 목록은 클라이언트가 보내는 값이라 곧이곧대로 AI 프롬프트에 들어간다.
+// 형식이 맞는 항목만 남기고(id는 정수), 문자 필드는 상한 안으로 잘라 보낸다.
+function sanitizeCandidates<T extends { id: number }>(input: unknown): T[] {
+  if (!Array.isArray(input)) return []
+  return input
+    .filter(
+      (item): item is T =>
+        typeof item === 'object' && item !== null && Number.isInteger((item as { id?: unknown }).id),
+    )
+    .slice(0, MAX_CANDIDATE_ITEMS)
+    .map((item) => {
+      const entry: Record<string, unknown> = { ...(item as Record<string, unknown>) }
+      for (const key of Object.keys(entry)) {
+        if (typeof entry[key] === 'string') {
+          entry[key] = (entry[key] as string).trim().slice(0, MAX_CANDIDATE_TEXT)
+        }
+      }
+      return entry as T
+    })
 }
 
 export async function postIdeaAnalysis(req: Request, res: Response): Promise<void> {
@@ -46,6 +73,10 @@ export async function postIdeaAnalysis(req: Request, res: Response): Promise<voi
     errorResponse(res, 400, 'INVALID_REQUEST', '분석 대상 사례·공모전 목록이 필요합니다.')
     return
   }
+  if (typeof idea.category === 'string' && idea.category.length > MAX_CATEGORY_LENGTH) {
+    errorResponse(res, 400, 'INVALID_REQUEST', '관심 분야는 100자 이내로 입력해 주세요.')
+    return
+  }
   if (!isAiConfigured()) {
     errorResponse(
       res,
@@ -57,7 +88,15 @@ export async function postIdeaAnalysis(req: Request, res: Response): Promise<voi
   }
 
   try {
-    const data = await analyzeIdea(body as AnalyzeRequestBody)
+    const data = await analyzeIdea({
+      idea: {
+        title: idea.title.trim(),
+        description: idea.description.trim(),
+        category: typeof idea.category === 'string' ? idea.category.trim() : '',
+      },
+      referenceCases: sanitizeCandidates<AnalyzeReferenceCase>(body.referenceCases),
+      contests: sanitizeCandidates<AnalyzeContest>(body.contests),
+    })
     res.json({ success: true, data })
   } catch (error) {
     if (error instanceof AiNotConfiguredError) {

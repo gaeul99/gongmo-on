@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="800" viewBox="0 0 640 800">
+  <rect width="640" height="800" fill="#eef1f6"/>
+  <rect x="1" y="1" width="638" height="798" fill="none" stroke="#d4dae4" stroke-width="2"/>
+  <g fill="none" stroke="#b3bdcf" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="220" y="270" width="200" height="260" rx="16"/>
+    <path d="M220 330 h200"/>
+    <path d="M270 270 v-40 h100 v40"/>
+    <circle cx="320" cy="440" r="44"/>
+    <path d="M294 440 l18 18 36 -36"/>
+  </g>
+  <text x="320" y="610" text-anchor="middle" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif" font-size="30" fill="#8a94a8">공모전 포스터 준비 중</text>
+</svg>

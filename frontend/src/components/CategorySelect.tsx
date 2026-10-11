@@ -43,10 +43,40 @@ function CategorySelect({ id, options, value, onChange }: Props) {
     if (event.key === 'Escape') {
       close()
     }
+    if (event.key === 'ArrowDown') {
+      // 검색 입력에서 아래쪽 화살표로 첫 옵션(또는 현재 선택의 다음 항목)으로 이동
+      event.preventDefault()
+      const options = containerRef.current?.querySelectorAll<HTMLButtonElement>('.category-option')
+      if (options && options.length > 0) {
+        const selectedIndex = Array.from(options).findIndex((option) => option.classList.contains('selected'))
+        ;(options[selectedIndex >= 0 && selectedIndex + 1 < options.length ? selectedIndex + 1 : 0])?.focus()
+      }
+      return
+    }
     if (event.key === 'Enter' && filtered.length > 0) {
       event.preventDefault()
       select(filtered[0])
     }
+  }
+
+  // 옵션 목록 안에서 위·아래 화살표로 이동하고 Escape로 닫는다.
+  const handleOptionKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      close()
+      containerRef.current?.querySelector<HTMLInputElement>('.category-search')?.focus()
+      return
+    }
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+    event.preventDefault()
+    const options = containerRef.current?.querySelectorAll<HTMLButtonElement>('.category-option')
+    if (!options || options.length === 0) return
+    const index = Array.from(options).indexOf(event.currentTarget)
+    const next =
+      event.key === 'ArrowDown'
+        ? options[(index + 1) % options.length]
+        : options[(index - 1 + options.length) % options.length]
+    next?.focus()
   }
 
   return (
@@ -97,6 +127,7 @@ function CategorySelect({ id, options, value, onChange }: Props) {
                     aria-selected={option === value}
                     className={`category-option${option === value ? ' selected' : ''}`}
                     onClick={() => select(option)}
+                    onKeyDown={handleOptionKeyDown}
                   >
                     {option}
                     {option === value && (

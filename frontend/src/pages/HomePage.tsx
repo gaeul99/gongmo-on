@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import AppLink from '../components/AppLink'
 import ContestMarquee from '../components/ContestMarquee'
 import HeroDeadlines from '../components/HeroDeadlines'
 import HeroUpcoming from '../components/HeroUpcoming'
@@ -11,6 +12,10 @@ type Props = {
   onDashboard: () => void
   onTypeTest: () => void
   onNotes: () => void
+  // '곧 마감되는 공모전'의 전체 보기 — 공모전 탐색 화면으로 보냅니다.
+  onExplore: () => void
+  // '곧 시작되는 공모전'의 전체 보기 — 탐색 화면을 '곧 시작' 필터로 엽니다.
+  onExploreUpcoming: () => void
   onOpenContest: (id: number) => void
 }
 
@@ -54,7 +59,15 @@ function RotatingExample() {
   )
 }
 
-function HomePage({ onStart, onDashboard, onTypeTest, onNotes, onOpenContest }: Props) {
+function HomePage({
+  onStart,
+  onDashboard,
+  onTypeTest,
+  onNotes,
+  onExplore,
+  onExploreUpcoming,
+  onOpenContest,
+}: Props) {
   const { typed, done } = useTypewriter(TYPING_TEXT, 75)
 
   return (
@@ -67,25 +80,26 @@ function HomePage({ onStart, onDashboard, onTypeTest, onNotes, onOpenContest }: 
 
       <NewContestBanner onOpenContest={onOpenContest} />
 
-      <header className="hero">
-        <div className="hero-copy">
-          <div className="hero-brand">
-            <p className="badge">AI 아이디어 분석 서비스</p>
-            <h1>공내비</h1>
-          </div>
-          <p className="tagline" aria-label={TYPING_TEXT}>
-            막막한 아이디어에도 방향이 있습니다.
-            <br />
-            {typed}
-            {!done && <span className="caret" aria-hidden="true" />}
-          </p>
-        </div>
-      </header>
-
+      {/* 서비스 바로가기 탭 — 히어로 위 첫 섹션. 아이디어 분석이 첫 탭이다. */}
       <section className="service-tabs" aria-label="서비스 바로가기">
-        <p className="service-tabs-label">🧭 서비스 바로가기</p>
         <div className="service-tab-row">
-          <button type="button" className="service-tab" onClick={onTypeTest}>
+          <AppLink className="service-tab service-tab--input" href="/input" onNavigate={onStart}>
+            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+              <path
+                d="M8.8 13.8 a5 5 0 1 1 6.4 0 c-.8 .6 -1.2 1.4 -1.3 2.3 h-3.8 c-.1 -.9 -.5 -1.7 -1.3 -2.3 Z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinejoin="round"
+              />
+              <path d="M10.2 19.5 h3.6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+            <span className="service-tab-text">
+              <span className="service-tab-title">아이디어 분석</span>
+              <span className="service-tab-sub">AI 분석으로 공모전 추천까지</span>
+            </span>
+          </AppLink>
+          <AppLink className="service-tab service-tab--test" href="/test" onNavigate={onTypeTest}>
             <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
               <rect x="4.5" y="3.5" width="15" height="17" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
               <path d="M8.5 9 h7 M8.5 13 h7 M8.5 17 h4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -94,8 +108,8 @@ function HomePage({ onStart, onDashboard, onTypeTest, onNotes, onOpenContest }: 
               <span className="service-tab-title">유형 검사</span>
               <span className="service-tab-sub">30문항 성향 검사로 시작</span>
             </span>
-          </button>
-          <button type="button" className="service-tab" onClick={onDashboard}>
+          </AppLink>
+          <AppLink className="service-tab service-tab--dashboard" href="/dashboard" onNavigate={onDashboard}>
             <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
               <path d="M6.5 19 V12.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
               <path d="M12 19 V5.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -106,8 +120,8 @@ function HomePage({ onStart, onDashboard, onTypeTest, onNotes, onOpenContest }: 
               <span className="service-tab-title">대시보드</span>
               <span className="service-tab-sub">마감·통계 한눈에</span>
             </span>
-          </button>
-          <button type="button" className="service-tab" onClick={onNotes}>
+          </AppLink>
+          <AppLink className="service-tab service-tab--notes" href="/notes" onNavigate={onNotes}>
             <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
               <path
                 d="M5 4.5 h11 l3 3 v12 a1 1 0 0 1 -1 1 H6 a1 1 0 0 1 -1 -1 Z"
@@ -124,18 +138,67 @@ function HomePage({ onStart, onDashboard, onTypeTest, onNotes, onOpenContest }: 
               </span>
               <span className="service-tab-sub">응모 전 심사 연습 노트</span>
             </span>
-          </button>
+          </AppLink>
+          <AppLink className="service-tab service-tab--explore" href="/contest" onNavigate={onExplore}>
+            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+              <circle cx="10.5" cy="10.5" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M14.7 14.7 L19.5 19.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              <path d="M8 10.5 h5 M10.5 8 v5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+            <span className="service-tab-text">
+              <span className="service-tab-title">공모전 탐색</span>
+              <span className="service-tab-sub">전체 공모전 검색·필터</span>
+            </span>
+          </AppLink>
         </div>
       </section>
 
-      <div className="home-start">
-        <button type="button" className="start-button" onClick={onStart}>
-          아이디어 분석 시작
-        </button>
-        <RotatingExample />
-      </div>
+      <header className="hero">
+        <div className="hero-copy">
+          <div className="hero-brand">
+            <p className="badge">AI 아이디어 분석 서비스</p>
+          </div>
+          <div className="hero-title-row">
+            <svg
+              className="hero-title-mark"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="9.2"
+                fill="none"
+                stroke="#000"
+                strokeWidth="1.8"
+              />
+              {/* 바늘 — 내비 로고와 같은 나침반. 북동쪽 절반은 진하게, 남서쪽 절반은 옅게 */}
+              <path d="M16.2 7.8 L14.1 14.1 L9.9 9.9 Z" fill="#000" />
+              <path
+                d="M7.8 16.2 L9.9 9.9 L14.1 14.1 Z"
+                fill="#000"
+                opacity="0.45"
+              />
+            </svg>
+            <h1 className="hero-title">공내비</h1>
+          </div>
+          <p className="tagline" aria-label={TYPING_TEXT}>
+            막막한 아이디어에도 방향이 있습니다.
+            <br />
+            {typed}
+            {!done && <span className="caret" aria-hidden="true" />}
+          </p>
+          <RotatingExample />
+        </div>
+      </header>
 
       <ContestMarquee onOpenContest={onOpenContest} />
+
+      <div className="home-deadlines">
+        <HeroDeadlines onOpenExplore={onExplore} onOpenContest={onOpenContest} />
+        <HeroUpcoming onOpenExplore={onExploreUpcoming} onOpenContest={onOpenContest} />
+      </div>
 
       <section className="features" aria-labelledby="features-title">
         <h2 id="features-title">이렇게 도와드립니다</h2>
@@ -162,11 +225,6 @@ function HomePage({ onStart, onDashboard, onTypeTest, onNotes, onOpenContest }: 
           </article>
         </div>
       </section>
-
-      <div className="home-deadlines">
-        <HeroDeadlines onOpenDashboard={onDashboard} onOpenContest={onOpenContest} />
-        <HeroUpcoming onOpenContest={onOpenContest} />
-      </div>
     </div>
   )
 }

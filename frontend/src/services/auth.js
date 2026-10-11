@@ -9,6 +9,8 @@
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 const TOKEN_KEY = 'idea-navigation:auth-token'
+// 백엔드가 멈춰 있을 때 로그인 폼이 영원히 '처리 중'에 걸리지 않게 한다.
+const REQUEST_TIMEOUT_MS = 15_000
 
 export function getAuthToken() {
   try {
@@ -39,6 +41,7 @@ async function postAuth(path, body) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   })
   let payload = null
   try {
@@ -86,6 +89,7 @@ export async function requestLogout() {
     await fetch(`${API_BASE}/api/auth/logout`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token ?? ''}` },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
   } catch {
     // 세션은 30일 뒤 자동 만료되므로 실패해도 그대로 둡니다.
@@ -105,6 +109,7 @@ export async function updateProfile({ currentPassword, nickname, email, phone })
         Authorization: `Bearer ${token ?? ''}`,
       },
       body: JSON.stringify({ currentPassword, nickname, email, phone }),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
     let payload = null
     try {

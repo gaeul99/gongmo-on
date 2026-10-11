@@ -16,7 +16,7 @@
   margin: 0;
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .inline-auth-tabs {
@@ -40,7 +40,7 @@
 }
 
 .inline-auth-tab.active {
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--bg);
   border-color: var(--accent-border);
 }
@@ -64,7 +64,7 @@
 .inline-auth-error {
   margin: 0;
   font-size: 12px;
-  color: var(--error, #c0392b);
+  color: var(--error, #000000);
   word-break: keep-all;
 }
 
@@ -72,7 +72,7 @@
   font: inherit;
   font-size: 13px;
   font-weight: 700;
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent);
   border: none;
   border-radius: 999px;

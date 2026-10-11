@@ -37,6 +37,11 @@ export async function postChat(req: Request, res: Response): Promise<void> {
   }
 
   const snapshot = body?.snapshot ?? {}
+  // 스냅숏도 클라이언트가 보낸 값이라 비대한 JSON이 그대로 프롬프트에 들어갈 수 없게 상한을 둔다.
+  if (JSON.stringify(snapshot ?? null).length > 100_000) {
+    errorResponse(res, 400, 'INVALID_REQUEST', '대화 맥락 데이터가 너무 커요.')
+    return
+  }
 
   try {
     const data = await sendChatMessage(headerKey, history, snapshot)

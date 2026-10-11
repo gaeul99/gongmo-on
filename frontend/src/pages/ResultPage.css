@@ -17,7 +17,7 @@
   display: inline-block;
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
@@ -64,7 +64,7 @@
   height: 28px;
   border-radius: 50%;
   border: 3px solid var(--accent-bg);
-  border-top-color: var(--accent);
+  border-top-color: var(--accent-text);
   animation: loading-spin 0.9s linear infinite;
 }
 
@@ -140,7 +140,7 @@
 .proposal-copy {
   background: var(--accent);
   border-color: transparent;
-  color: #fff;
+  color: var(--accent-ink);
 }
 
 .proposal-preview {
@@ -161,7 +161,7 @@
 .proposal-meta-line {
   margin: 0 0 12px;
   font-size: 12.5px;
-  color: var(--accent);
+  color: var(--accent-text);
   word-break: keep-all;
 }
 
@@ -221,7 +221,7 @@
   display: inline-block;
   margin-top: 14px;
   font-size: 12px;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
@@ -321,7 +321,7 @@
 .similarity-label {
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .similarity-bar {
@@ -388,7 +388,7 @@
   font: inherit;
   font-size: 13px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
@@ -400,8 +400,47 @@
 }
 
 .diff-example-toggle.is-open {
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent);
+}
+
+/* 연습 노트 연결 — 차별화 문장을 노트로 옮겨 심사 연습까지 잇는 입구 */
+.note-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  background: var(--code-bg);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.note-cta-button {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: none;
+  border-radius: 999px;
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.note-cta-button:hover {
+  opacity: 0.9;
+}
+
+.note-cta-hint {
+  font-size: 12px;
+  color: var(--text);
+  word-break: keep-all;
+  min-width: 200px;
+  flex: 1;
 }
 
 .diff-example {
@@ -440,7 +479,7 @@
   justify-content: center;
   border-radius: 999px;
   background: var(--accent-bg);
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: 12px;
   font-weight: 800;
 }
@@ -482,14 +521,14 @@
 }
 
 .diff-example-compare .diff-bad {
-  background: rgba(229, 72, 77, 0.08);
+  background: #ffffff;
   color: var(--error);
   font-weight: 600;
 }
 
 .diff-example-compare .diff-good {
-  background: rgba(31, 180, 111, 0.1);
-  color: #17995f;
+  background: #ffffff;
+  color: var(--accent-text);
   font-weight: 600;
 }
 
@@ -534,7 +573,7 @@
   margin-top: 16px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
 }
 
@@ -546,6 +585,33 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* 버튼 형태의 상세 링크 — 추천 공모전 카드의 앱 내 상세 이동 */
+.detail-link.detail-link-button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-text);
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* 앱 내 상세 + 외부 사이트 링크 나란히 */
+.case-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  margin-top: 16px;
+}
+
+.case-links .detail-link {
+  margin-top: 0;
 }
 
 /* 유사 사례(왼쪽) + 지난 수상작 링크(오른쪽 좁게) 나란히 배치 */
@@ -589,7 +655,7 @@
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
   word-break: keep-all;
 }
@@ -628,7 +694,7 @@
   font: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent);
   border: none;
   border-radius: 10px;
@@ -659,18 +725,22 @@
   color: var(--text-h);
 }
 
-.apply-done button {
+/* 응모 완료 줄의 보조 링크 — 버튼·앱 내 링크(AppLink) 공통 스타일.
+   외부 사이트 링크(.apply-done-site)는 기본 앵커 모양을 유지하게 둔다 */
+.apply-done button,
+.apply-done a.app-link {
   font: inherit;
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
 }
 
-.apply-done button:hover {
+.apply-done button:hover,
+.apply-done a.app-link:hover {
   text-decoration: underline;
 }
 
@@ -688,7 +758,7 @@
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--bg);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
@@ -707,7 +777,7 @@
 .save-done {
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* 응모 버튼 + 관심 목록 버튼 영역 */
@@ -721,7 +791,7 @@
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--bg);
   border: 1px solid var(--accent-border);
   border-radius: 10px;
@@ -823,7 +893,7 @@
   margin: 0 0 12px;
   font-size: 13.5px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   border-radius: 10px;
@@ -857,7 +927,7 @@
 
 .checklist label input {
   margin-top: 2px;
-  accent-color: var(--accent);
+  accent-color: var(--accent-text);
 }
 
 .checklist label.checked {
@@ -879,7 +949,7 @@
 }
 
 .checklist-reset:hover {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 @media (max-width: 640px) {
@@ -889,15 +959,19 @@
 }
 
 .restart-button {
-  width: 100%;
+  width: 32%;
+  /* 글자가 두 줄로 바뀌지 않는 최소 폭 — 모바일에서 이 값으로 고정된다 */
+  min-width: 220px;
+  /* width + padding/border 조합 — 전역 border-box 규칙이 없어 명시 필요 */
+  box-sizing: border-box;
   font: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--bg);
   border: 2px solid var(--accent);
   border-radius: 12px;
-  padding: 15px 32px;
+  padding: 15px 24px;
   cursor: pointer;
   transition:
     transform 0.2s,
@@ -924,7 +998,7 @@
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--bg);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
@@ -963,7 +1037,7 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .analysis-retry-desc {
@@ -1026,7 +1100,7 @@
 .apply-confirm-site {
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   text-align: center;
   background: var(--bg);
   border: 1px solid var(--accent-border);
@@ -1100,7 +1174,7 @@
 
 .target-chips li {
   font-size: 12.5px;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
@@ -1175,7 +1249,7 @@
   font-weight: 600;
   min-width: 34px;
   padding: 7px 10px;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--bg);
   border: 1px solid var(--accent-border);
   border-radius: 8px;
@@ -1190,7 +1264,7 @@
 }
 
 .contest-pagination-buttons button.active {
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent);
   border-color: var(--accent);
 }

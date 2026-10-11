@@ -17,6 +17,7 @@ import {
   buildFieldBreakdown,
   buildSparkStats,
 } from './dashboard.js'
+import { STORAGE_KEYS } from '../utils/storageKeys.js'
 
 // 오늘 날짜를 지역 시간대 기준 'YYYY-MM-DD'로 만든다.
 // toISOString은 UTC라 한국 시간 새벽에 날짜가 하루 밀릴 수 있다.
@@ -44,11 +45,11 @@ function slimNotif(stats) {
   }
 }
 
-// 유형 검사 결과(localStorage 'gongnabi:type-test')를 스냅숏용으로 축약한다.
+// 유형 검사 결과(localStorage 'idea-navigation:type-test')를 스냅숏용으로 축약한다.
 // 검사를 안 했거나 저장된 typeId가 현재 유형 정의에 없으면 null로 넘겨 AI가 언급하지 않게 한다.
 function slimTypeTest() {
   try {
-    const raw = localStorage.getItem('gongnabi:type-test')
+    const raw = localStorage.getItem(STORAGE_KEYS.typeTest)
     const record = raw ? JSON.parse(raw) : null
     if (!record || typeof record !== 'object' || Array.isArray(record)) return null
     const hasOwn = Object.prototype.hasOwnProperty.call(CONTEST_TYPES, record.typeId)

@@ -17,7 +17,7 @@
   display: inline-block;
   font-size: 12px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
@@ -41,18 +41,20 @@
 
 /* 로그인 상태 — 배지를 채워 개인 화면임을 구분 */
 .dashboard-header.is-personal .dashboard-badge {
-  color: #fff;
+  color: var(--accent-ink);
   background: var(--accent);
   border-color: var(--accent);
 }
 
 /* 로그아웃 상태의 로그인 유도 버튼 */
 .dash-login-cta {
+  /* 링크(a)로도 쓰이는 버튼 — inline이면 세로 마진·패딩이 무시되므로 명시 */
+  display: inline-block;
   margin: -12px 0 24px;
   font: inherit;
   font-size: 13.5px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
@@ -111,7 +113,7 @@
 }
 
 .kpi-hot .kpi-num {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .kpi-sub {
@@ -135,7 +137,51 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
   margin-bottom: 12px;
+}
+
+/* 패널 머리글 오른쪽 — 안내 문구와 이동 링크를 나란히 */
+.panel-head-side {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.panel-link {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.panel-link:hover {
+  background: var(--accent-bg);
+  text-decoration: underline;
+}
+
+/* 빈 상태 안내문 + 다음 행동 버튼 */
+.panel-empty-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.panel-empty-group .panel-link {
+  font-size: 13px;
+  padding: 6px 10px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  border-radius: 10px;
 }
 
 .panel-head h2 {
@@ -160,8 +206,11 @@
   word-break: keep-all;
 }
 
-/* --- 마감 임박 목록 --- */
-.deadline-list {
+/* --- 마감 임박 목록 ---
+   클래스명은 dash- 접두사 필수: 홈 '곧 마감되는 공모전' 패널(HeroDeadlines.css)도
+   .deadline-list·.deadline-info·.deadline-title을 쓴다. CSS는 전역 번들이라 접두사 없이
+   같은 이름을 쓰면 번역 순서에 따라 홈 패널 레이아웃이 이 규칙에 덮여 쓰인다(2026-10-11 실제 사고). */
+.dash-deadline-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -196,7 +245,7 @@
 }
 
 .deadline-d {
-  font-family: var(--mono);
+  font-family: var(--sans);
   font-size: 12px;
   font-weight: 700;
   text-align: center;
@@ -208,11 +257,11 @@
 .deadline-d.tone-today,
 .deadline-d.tone-urgent {
   color: var(--error);
-  background: rgba(229, 72, 77, 0.1);
+  background: #ffffff;
 }
 
 .deadline-d.tone-upcoming {
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
 }
 
@@ -221,14 +270,14 @@
   background: var(--code-bg);
 }
 
-.deadline-info {
+.dash-deadline-info {
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
-.deadline-title {
+.dash-deadline-title {
   font-size: 13px;
   font-weight: 700;
   color: var(--text-h);
@@ -255,7 +304,7 @@
 .deadline-kind {
   font-size: 10.5px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-bg);
   border-radius: 999px;
   padding: 0 7px;
@@ -299,7 +348,7 @@
 }
 
 .field-count {
-  font-family: var(--mono);
+  font-family: var(--sans);
   font-size: 12px;
   color: var(--text);
   text-align: right;
@@ -333,7 +382,7 @@
 }
 
 .challenge-num {
-  font-family: var(--heading);
+  font-family: var(--sans);
   font-size: 22px;
   line-height: 1.1;
   color: var(--text-h);
@@ -347,11 +396,11 @@
 }
 
 .challenge-count.is-total .challenge-num {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .challenge-count.is-won .challenge-num {
-  color: #1fb46f;
+  color: var(--accent-text);
 }
 
 .challenge-count.is-lost .challenge-num {
@@ -405,7 +454,7 @@
 .archive-tab.is-on {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
 }
 
 /* --- 목록 페이지 네비게이션 --- */
@@ -443,7 +492,7 @@
 .pager-num.is-on {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
 }
 
 /* --- 출품 로드맵(5단계 출품 경로) --- */
@@ -469,10 +518,10 @@
 }
 
 .roadmap-percent {
-  font-family: var(--mono);
+  font-family: var(--sans);
   font-size: 15px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--accent-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -546,7 +595,7 @@
   height: 17px;
   border-radius: 50%;
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
   font-size: 11px;
   line-height: 17px;
   text-align: center;
@@ -559,7 +608,7 @@
 }
 
 .roadmap-due {
-  font-family: var(--mono);
+  font-family: var(--sans);
   font-size: 11px;
   color: var(--text);
   white-space: nowrap;
@@ -592,7 +641,7 @@
 
 .roadmap-tasks label input {
   margin: 2px 0 0;
-  accent-color: var(--accent);
+  accent-color: var(--accent-text);
   cursor: pointer;
 }
 

@@ -5,11 +5,13 @@
 // 계정 정보(비밀번호 해시 포함)는 보안상 내보내기에서 제외합니다.
 // ==========================================================
 
+import { STORAGE_KEYS } from './storageKeys.js'
+
 const KEYS = {
   myContests: 'idea-navigation:my-contests',
   wishlist: 'idea-navigation:wishlist',
   savedIdeas: 'idea-navigation:saved-ideas',
-  typeTest: 'gongnabi:type-test',
+  typeTest: STORAGE_KEYS.typeTest,
   checklist: 'idea-navigation:submission-checklist',
   roadmaps: 'idea-navigation:roadmaps',
   practiceNotes: 'idea-navigation:practice-notes',
