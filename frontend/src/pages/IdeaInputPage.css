@@ -6,7 +6,7 @@
   margin: 0 auto;
   padding: 48px 24px 88px;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 15px;
 
   @media (max-width: 768px) {
     padding: 32px 20px 64px;
@@ -37,10 +37,11 @@
 .input-header h1 {
   margin: 12px 0 8px;
   font-size: clamp(24px, 4.5vw, 30px);
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .input-header p {
+  line-height: 175%;
   color: var(--text);
   word-break: keep-all;
 }
@@ -62,7 +63,7 @@
 }
 
 .field label {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
   color: var(--text-h);
 }
@@ -73,17 +74,17 @@
 
 .optional {
   font-weight: 400;
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  color: var(--text-2);
 }
 
 /* 입력 글자수 카운터 — 라벨 줄 오른쪽 끝에 붙인다 */
 .char-count {
   float: right;
   font-weight: 400;
-  font-size: 12px;
-  color: var(--text);
-  opacity: 0.75;
+  font-size: 12.5px;
+  color: var(--text-2);
+  opacity: 0.9;
 }
 
 .field input[type='text'],
@@ -101,7 +102,7 @@
 .field textarea {
   resize: vertical;
   min-height: 140px;
-  line-height: 160%;
+  line-height: 170%;
   word-break: keep-all;
 }
 
@@ -144,8 +145,9 @@
 }
 
 .hint-panel-caption {
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  line-height: 165%;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
@@ -158,8 +160,8 @@
 
 .hint-chip {
   font: inherit;
-  font-size: 13px;
-  line-height: 155%;
+  font-size: 13.5px;
+  line-height: 165%;
   text-align: left;
   word-break: keep-all;
   color: var(--text-h);
@@ -170,11 +172,13 @@
   cursor: pointer;
   transition:
     border-color 0.2s,
+    background 0.2s,
     transform 0.2s;
 }
 
 .hint-chip:hover {
   border-color: var(--accent);
+  background: var(--hover-bg);
   transform: translateY(-1px);
 }
 
@@ -183,14 +187,18 @@
   outline-offset: 2px;
 }
 
+/* 분석하기 버튼 — 화면의 핵심 CTA라 포인트 색(파랑)을 쓴다.
+   hover 광택 스윕(uiverse식): 비스듬한 빛 띠가 왼→오른쪽으로 지나간다 */
 .analyze-button {
   margin-top: 32px;
   width: 100%;
+  position: relative;
+  overflow: hidden;
   font: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: var(--accent-ink);
-  background: var(--accent);
+  color: var(--brand-ink);
+  background: var(--brand);
   border: none;
   border-radius: 12px;
   padding: 16px 32px;
@@ -198,21 +206,41 @@
   box-shadow: var(--shadow);
   transition:
     transform 0.2s,
-    box-shadow 0.2s,
-    opacity 0.2s;
+    box-shadow 0.2s;
+}
+
+.analyze-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -80%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.55s ease;
+  pointer-events: none;
 }
 
 .analyze-button:hover {
   transform: translateY(-2px);
-  opacity: 0.92;
+}
+
+.analyze-button:hover::after {
+  left: 135%;
 }
 
 .analyze-button:active {
   transform: translateY(0);
 }
 
+/* 누를 때도 광택 스윕 — 모바일은 hover가 없어 터치 눌림에서 같은 효과를 재생한다(2026-10-13) */
+.analyze-button:active::after {
+  left: 135%;
+}
+
 .analyze-button:focus-visible {
-  outline: 3px solid var(--accent-border);
+  outline: 3px solid var(--brand-border);
   outline-offset: 3px;
 }
 
@@ -223,8 +251,8 @@
 
 .input-archive h2 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   color: var(--text-h);
 }
 
@@ -237,15 +265,16 @@
 
 .input-archive-caption {
   margin: 6px 0 0;
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
 .input-archive-empty {
   margin: 16px 0 0;
   padding: 20px 18px;
-  font-size: 13px;
+  font-size: 13.5px;
+  line-height: 170%;
   color: var(--text);
   background: var(--code-bg);
   border: 1px dashed var(--border);
@@ -282,15 +311,15 @@
 
 .input-archive-info h3 {
   margin: 0 0 4px;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-h);
   word-break: keep-all;
 }
 
 .input-archive-meta {
   margin: 0;
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
@@ -338,5 +367,75 @@
 
 .input-archive-delete:hover {
   color: var(--error);
+  text-decoration: underline;
+}
+
+/* 보관함 항목 '수정' — 삭제와 같은 크기의 보조 버튼 */
+.input-archive-edit {
+  font: inherit;
+  font-size: 11px;
+  color: var(--text);
+  background: none;
+  border: none;
+  padding: 2px 0;
+  cursor: pointer;
+}
+
+.input-archive-edit:hover {
+  color: var(--text-h);
+  text-decoration: underline;
+}
+
+/* 수정 중인 보관함 항목 — 어느 아이디어를 고치는지 포인트 색으로 알려 준다 */
+.input-archive-item--editing {
+  border-color: var(--brand-border);
+  background: var(--brand-bg);
+}
+
+/* 수정 모드 배너 — 분석 버튼 아래에서 '무엇을 고치는지'와 취소를 안내한다 */
+.input-edit-banner {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--brand-border);
+  border-radius: 10px;
+  background: var(--brand-bg);
+  box-sizing: border-box;
+}
+
+.input-edit-banner-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 165%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+.input-edit-notice {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--brand-text);
+  word-break: keep-all;
+}
+
+/* 수정 배너가 닫힌 뒤에도 잠깐 남는 성공 안내 */
+.input-edit-notice--done {
+  margin: 10px 0 -6px;
+}
+
+.input-edit-cancel {
+  margin-top: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.input-edit-cancel:hover {
+  color: var(--text-h);
   text-decoration: underline;
 }

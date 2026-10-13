@@ -55,9 +55,9 @@ export async function postSubscribe(req: Request, res: Response) {
   if (subscriber.optIn) {
     delivery = await sendEmail(
       email,
-      '[공내비] 알림 구독이 시작됐어요',
+      '[공모온] 알림 구독이 시작됐어요',
       [
-        `${subscriber.nickname}님, 공내비 알림 구독이 완료됐습니다!`,
+        `${subscriber.nickname}님, 공모온 알림 구독이 완료됐습니다!`,
         '',
         `· 등록한 이메일: ${subscriber.email}`,
         `· 알림 대상 공모전: ${subscriber.contests.length}개`,
@@ -146,7 +146,7 @@ export async function postWeeklyDigest(req: Request, res: Response) {
   }
 
   const lines: string[] = [
-    `${nickname || '공내비 이용자'}님, 이번 주 공내비 새 공모전 소식이에요.`,
+    `${nickname || '공모온 이용자'}님, 이번 주 공모온 새 공모전 소식이에요.`,
     '',
   ]
   for (const item of matched) {
@@ -159,11 +159,11 @@ export async function postWeeklyDigest(req: Request, res: Response) {
       ? `관심 분야: ${[...wanted].join(', ')}`
       : '관심 분야를 정하면 내 분야의 공모전만 모아 보내 드려요.',
   )
-  lines.push('공내비 — 아이디어에서 공모전까지, 가장 빠른 길')
+  lines.push('공모온 — 아이디어에서 공모전까지, 가장 빠른 길')
 
   const delivery = await sendEmail(
     email,
-    `[공내비] 이번 주 새 공모전 소식 (${matched.length}건)`,
+    `[공모온] 이번 주 새 공모전 소식 (${matched.length}건)`,
     lines.join('\n'),
   )
 

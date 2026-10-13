@@ -6,7 +6,8 @@
 // 정렬과 카드 뱃지가 생기고, 아직 분석 전이면 그 자리에 안내 한 줄이 보인다.
 import { useMemo, useState } from 'react'
 import AppLink from '../components/AppLink'
-import { contests } from '../data/mockData.js'
+import { useContestPool, getSyncedContestCount } from '../data/contestPool.js'
+import { pageItems } from '../utils/pagination'
 import { deadlineStatus, isApplicationOpen } from '../utils/contestAlerts.js'
 import type { WishlistContest } from './MyPage'
 import './ContestListPage.css'
@@ -26,6 +27,21 @@ type Props = {
 }
 
 type ContestStatus = 'open' | 'upcoming' | 'closed'
+
+// 데이터 풀(목업 + 자동 등록)의 공모전이 모두 갖춘 최소 형태 — 목업·자동 등록
+// 어느 쪽이든 이 필드는 존재한다(startDate만 자동 등록 쪽에서도 없을 수 있다).
+type ContestRow = {
+  id: number
+  title: string
+  organizer: string
+  field: string
+  deadline: string
+  startDate?: string
+  ageGroups?: Array<'teen' | 'adult'>
+  image: string
+  url: string
+  description: string
+}
 
 // '곧 시작되는 공모전' 전체 보기처럼 다른 화면에서 필터를 정해 두고 들어올 수 있게 내보낸다.
 export type StatusFilter = 'all' | ContestStatus
@@ -59,16 +75,25 @@ function fieldFamily(field: string): string {
 }
 
 // 접수 중(오늘 마감 포함)·곧 시작·마감을 한 번에 판정합니다.
-function contestStatus(contest: (typeof contests)[number]): ContestStatus {
+function contestStatus(contest: ContestRow): ContestStatus {
   if (deadlineStatus(contest.deadline).tone === 'closed') return 'closed'
   return isApplicationOpen(contest) ? 'open' : 'upcoming'
 }
 
 // 카드 배지 문구 — 접수 중이면 남은 일수(D-x), 곧 시작이면 시작일까지 남은 일수
-function badgeText(contest: (typeof contests)[number], status: ContestStatus): string {
+function badgeText(contest: ContestRow, status: ContestStatus): string {
   if (status === 'closed') return '마감'
   if (status === 'upcoming') return '곧 시작'
   return `접수 중 · ${deadlineStatus(contest.deadline).label}`
+}
+
+// 자동 등록 공모전의 포스터는 원본 사이트 주소를 그대로 걸므로(핫링크) 사라질 수 있다.
+// 이때 준비해 둔 placeholder로 바꿔 카드 레이아웃이 무너지지 않게 한다.
+function handleImageError(event: React.SyntheticEvent<HTMLImageElement>) {
+  const img = event.currentTarget
+  if (img.dataset.fallback) return
+  img.dataset.fallback = '1'
+  img.src = '/contest/ck/placeholder.svg'
 }
 
 function ContestListPage({
@@ -88,6 +113,10 @@ function ContestListPage({
   // 현재 페이지(1부터). 검색어·필터·정렬이 바뀌면 항상 1페이지로 되돌린다.
   const [page, setPage] = useState(1)
 
+  // 목업 + 백엔드 자동 등록이 합쳐진 공모전 풀. 자동 등록분은 앱 시작 직후 도착하며,
+  // 도착하면 이 화면이 다시 그려져 목록에 합쳐져 보인다.
+  const contests = useContestPool()
+
   // 아이디어 분석의 적합도 점수표 — 카드 뱃지와 '적합도순' 정렬이 함께 쓴다.
   const fitScoreById = useMemo(() => {
     const map = new Map<number, number>()
@@ -106,7 +135,7 @@ function ContestListPage({
     return [...counts.entries()]
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-  }, [])
+  }, [contests])
 
   const filtered = useMemo(() => {
     const q = query.trim()
@@ -119,7 +148,7 @@ function ContestListPage({
         if (!q) return true
         return `${contest.title} ${contest.organizer} ${contest.field} ${contest.description}`.includes(q)
       })
-  }, [query, statusFilter, fieldFilter, ageFilter])
+  }, [contests, query, statusFilter, fieldFilter, ageFilter])
 
   // 마감 임박순(기본)은 접수 중·곧 시작을 마감일 가까운 순으로, 마감된 공모전은
   // 맨 뒤에 최근에 닫힌 순으로 보낸다. 마감 여유순은 그 반대. 적합도순은 아이디어
@@ -163,15 +192,17 @@ function ContestListPage({
           ← 돌아가기
         </button>
 
-        <header className="explore-header">
+        <header className="explore-header" data-reveal>
           <h1>공모전 탐색</h1>
           <p className="explore-caption">
-            앱에 등록된 공모전 {contests.length}건을 검색과 필터로 둘러보세요. 카드를 누르면 상세
-            정보에서 바로 응모할 수 있어요.
+            앱에 등록된 공모전 {contests.length}건을 검색과 필터로 둘러보세요.
+            {getSyncedContestCount() > 0 &&
+              ` 이 중 ${getSyncedContestCount()}건은 위비티·콘테스트코리아에서 자동으로 수집한 최신 공모전이에요.`}{' '}
+            카드를 누르면 상세 정보에서 바로 응모할 수 있어요.
           </p>
         </header>
 
-        <div className="explore-toolbar">
+        <div className="explore-toolbar" data-reveal>
           <div className="explore-search-row">
             <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
               <circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" strokeWidth="1.8" />
@@ -287,7 +318,7 @@ function ContestListPage({
         </div>
 
         {!hasFitScores && (
-          <p className="explore-fit-guide">
+          <p className="explore-fit-guide" data-reveal>
             <AppLink
               href="/input"
               title="아이디어 분석 시작하기"
@@ -299,7 +330,7 @@ function ContestListPage({
         )}
 
         {rows.length === 0 ? (
-          <div className="explore-empty">
+          <div className="explore-empty" data-reveal>
             <p>조건에 맞는 공모전이 없어요. 검색어나 필터를 바꿔 보세요.</p>
             {hasFilters && (
               <button type="button" className="explore-reset" onClick={resetFilters}>
@@ -309,7 +340,7 @@ function ContestListPage({
           </div>
         ) : (
           <>
-          <ul className="explore-grid">
+          <ul className="explore-grid" data-reveal>
             {pagedRows.map(({ contest, status }) => {
               const wished = wishlistedContestIds.includes(contest.id)
               return (
@@ -321,7 +352,12 @@ function ContestListPage({
                     onNavigate={() => onOpenContest(contest.id)}
                   >
                     <span className="explore-thumb">
-                      <img src={contest.image} alt="" loading="lazy" />
+                      <img
+                        src={contest.image}
+                        alt=""
+                        loading="lazy"
+                        onError={handleImageError}
+                      />
                       <span className={`explore-badge tone-${status}`}>
                         {badgeText(contest, status)}
                       </span>
@@ -368,7 +404,7 @@ function ContestListPage({
             })}
           </ul>
           {rows.length > PAGE_SIZE && (
-            <nav className="contest-pagination" aria-label="공모전 페이지 넘김">
+            <nav className="contest-pagination" aria-label="공모전 페이지 넘김" data-reveal>
               <p className="contest-pagination-info">
                 총 {rows.length}개 중 {(safePage - 1) * PAGE_SIZE + 1}–
                 {Math.min(safePage * PAGE_SIZE, rows.length)}번째 표시 중
@@ -381,17 +417,23 @@ function ContestListPage({
                 >
                   ‹ 이전
                 </button>
-                {Array.from({ length: totalPages }, (_, index) => index + 1).map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    className={p === safePage ? 'active' : ''}
-                    aria-current={p === safePage ? 'page' : undefined}
-                    onClick={() => setPage(p)}
-                  >
-                    {p}
-                  </button>
-                ))}
+                {pageItems(safePage, totalPages).map((item, index) =>
+                  item === 'gap' ? (
+                    <span key={`gap-${index}`} className="pager-gap" aria-hidden="true">
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={item}
+                      type="button"
+                      className={item === safePage ? 'active' : ''}
+                      aria-current={item === safePage ? 'page' : undefined}
+                      onClick={() => setPage(item)}
+                    >
+                      {item}
+                    </button>
+                  ),
+                )}
                 <button
                   type="button"
                   disabled={safePage === totalPages}

@@ -21,6 +21,7 @@ function InlineAuthPanel({ onSignIn, onSignUp, onAuthed, contextNote }: Props) {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [nickname, setNickname] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordConfirm, setPasswordConfirm] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -42,6 +43,10 @@ function InlineAuthPanel({ onSignIn, onSignUp, onAuthed, contextNote }: Props) {
     }
     if (mode === 'signup' && password.length < 8) {
       setError('비밀번호는 8자 이상이어야 해요.')
+      return
+    }
+    if (mode === 'signup' && password !== passwordConfirm) {
+      setError('비밀번호가 서로 일치하지 않아요.')
       return
     }
     const trimmedEmail = email.trim()
@@ -115,6 +120,16 @@ function InlineAuthPanel({ onSignIn, onSignUp, onAuthed, contextNote }: Props) {
       />
       {mode === 'signup' && (
         <input
+          type="password"
+          value={passwordConfirm}
+          onChange={(event) => setPasswordConfirm(event.target.value)}
+          placeholder="비밀번호 확인"
+          aria-label="비밀번호 확인"
+          maxLength={40}
+        />
+      )}
+      {mode === 'signup' && (
+        <input
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
@@ -128,7 +143,7 @@ function InlineAuthPanel({ onSignIn, onSignUp, onAuthed, contextNote }: Props) {
           type="tel"
           value={phone}
           onChange={(event) => setPhone(event.target.value)}
-          placeholder="휴대폰 번호 (선택 — 문자 알림)"
+          placeholder="휴대폰 번호 (선택)"
           aria-label="휴대폰 번호"
           maxLength={20}
         />

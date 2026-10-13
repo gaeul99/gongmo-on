@@ -1,0 +1,42 @@
+/* 스크롤 등장 애니메이션 — data-reveal이 붙은 요소가 뷰포트에 들어오면
+   is-revealed 클래스가 붙으며 아래에서 스르륵 떠오른다.
+   관찰은 utils/scrollReveal.ts의 useScrollReveal 훅이 담당한다.
+
+   주의: 훅이 is-revealed를 직접 DOM에 더하므로, React가 className을
+   다시 쓰지 않게(추가한 클래스가 지워지지 않게) className이 고정인
+   요소에만 data-reveal을 붙인다. */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* 대기 중에만 레이어 힌트를 준다 — 뜬 뒤엔 불필요한 메모리를 쓰지 않게 */
+[data-reveal]:not(.is-revealed) {
+  will-change: opacity, transform;
+}
+
+[data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* 마키처럼 화면보다 넓은 내용을 품은 블록을 감쌀 때 —
+   .page(flex column) 자식의 최소폭이 화면 폭을 밀어내지 않게 묶는다 */
+.reveal--block {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* 움직임을 줄이겠다고 설정한 사용자에겐 바로 보여 준다 */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

@@ -6,7 +6,7 @@
   margin: 0 auto;
   padding: 48px 24px 88px;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 15px;
 
   @media (max-width: 768px) {
     padding: 32px 20px 64px;
@@ -27,15 +27,15 @@
 .dashboard-header h1 {
   margin: 12px 0 8px;
   font-size: clamp(24px, 4.5vw, 30px);
-  font-weight: 500;
+  font-weight: 700;
   color: var(--text-h);
 }
 
 .dashboard-caption {
   margin: 0 0 24px;
-  font-size: 13px;
-  line-height: 170%;
-  color: var(--text);
+  font-size: 14px;
+  line-height: 175%;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
@@ -65,6 +65,7 @@
 
 .dash-login-cta:hover {
   border-color: var(--accent);
+  background: var(--hover-bg);
 }
 
 .dash-login-cta:focus-visible {
@@ -98,8 +99,8 @@
 
 .kpi-label {
   margin: 0;
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  color: var(--text-2);
 }
 
 .kpi-num {
@@ -118,8 +119,8 @@
 
 .kpi-sub {
   margin: 2px 0 0;
-  font-size: 11px;
-  color: var(--text);
+  font-size: 11.5px;
+  color: var(--text-3);
 }
 
 /* --- 패널 공통 --- */
@@ -161,10 +162,11 @@
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
+  transition: background 0.15s;
 }
 
 .panel-link:hover {
-  background: var(--accent-bg);
+  background: var(--hover-bg);
   text-decoration: underline;
 }
 
@@ -186,22 +188,26 @@
 
 .panel-head h2 {
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.2px;
   color: var(--text-h);
 }
 
 .panel-hint {
-  font-size: 11px;
-  color: var(--text);
-  white-space: nowrap;
+  font-size: 11.5px;
+  color: var(--text-2);
+  /* 줄바꿈 허용 — nowrap이면 좁은 화면에서 안내 문구가 패널 밖까지 이어져
+     문서 전체에 가로 스크롤이 생겼다(2026-10-13). panel-head가 flex-wrap이라
+     다음 줄로 내려가 자연스럽게 배치된다 */
+  white-space: normal;
+  word-break: keep-all;
 }
 
 .panel-empty {
   margin: 0;
-  font-size: 13px;
-  line-height: 160%;
+  font-size: 14px;
+  line-height: 170%;
   color: var(--text);
   word-break: keep-all;
 }
@@ -228,11 +234,12 @@
   border-radius: 10px;
   padding: 9px 12px;
   cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .deadline-row:hover {
   border-color: var(--accent-border);
-  background: var(--accent-bg);
+  background: var(--hover-bg);
 }
 
 .deadline-row:focus-visible {
@@ -254,19 +261,21 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* 2026-10-13 톤 통일: 임박(오늘·7일 이내)만 검정 채움, 여유는 인셋 회색,
+   마감은 가장 조용한 회색 글자 */
 .deadline-d.tone-today,
 .deadline-d.tone-urgent {
-  color: var(--error);
-  background: #ffffff;
+  color: #fff;
+  background: var(--accent);
 }
 
 .deadline-d.tone-upcoming {
-  color: var(--accent-text);
-  background: var(--accent-bg);
+  color: var(--text-h);
+  background: var(--code-bg);
 }
 
 .deadline-d.tone-closed {
-  color: var(--text);
+  color: var(--text-3);
   background: var(--code-bg);
 }
 
@@ -278,7 +287,7 @@
 }
 
 .dash-deadline-title {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-h);
   overflow: hidden;
@@ -290,8 +299,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
-  color: var(--text);
+  font-size: 12px;
+  color: var(--text-2);
   min-width: 0;
 }
 
@@ -313,7 +322,7 @@
 
 .deadline-date {
   font-size: 12px;
-  color: var(--text);
+  color: var(--text-2);
   font-variant-numeric: tabular-nums;
 }
 
@@ -390,9 +399,9 @@
 }
 
 .challenge-label {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text);
+  color: var(--text-2);
 }
 
 .challenge-count.is-total .challenge-num {
@@ -448,7 +457,7 @@
 
 .archive-tab:hover {
   border-color: var(--accent-border);
-  background: var(--accent-bg);
+  background: var(--hover-bg);
 }
 
 .archive-tab.is-on {
@@ -462,6 +471,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 4px;
   margin-top: 12px;
 }
@@ -481,7 +491,7 @@
 
 .pager-btn:hover:not(:disabled):not(.is-on) {
   border-color: var(--accent-border);
-  background: var(--accent-bg);
+  background: var(--hover-bg);
 }
 
 .pager-btn:disabled {
@@ -495,6 +505,8 @@
   color: var(--accent-ink);
 }
 
+/* 생략된 페이지 구간의 '…' 모양은 index.css의 .pager-gap 규칙을 쓴다 */
+
 /* --- 출품 로드맵(5단계 출품 경로) --- */
 .roadmap-summary {
   display: flex;
@@ -507,7 +519,8 @@
 
 .roadmap-next {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 14px;
+  line-height: 165%;
   color: var(--text);
   min-width: 0;
 }
@@ -583,7 +596,7 @@
 }
 
 .roadmap-stage-label {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-h);
 }
@@ -609,8 +622,8 @@
 
 .roadmap-due {
   font-family: var(--sans);
-  font-size: 11px;
-  color: var(--text);
+  font-size: 11.5px;
+  color: var(--text-2);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
@@ -632,17 +645,50 @@
   display: flex;
   align-items: flex-start;
   gap: 7px;
-  font-size: 12.5px;
-  line-height: 1.5;
+  font-size: 13.5px;
+  line-height: 1.65;
   color: var(--text);
   cursor: pointer;
   word-break: keep-all;
 }
 
 .roadmap-tasks label input {
-  margin: 2px 0 0;
-  accent-color: var(--accent-text);
+  /* 커스텀 체크박스(uiverse식) — appearance를 해제하고 사각 박스+흰 체크를 직접 그린다 */
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 3px 0 0;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 5px;
+  position: relative;
   cursor: pointer;
+  transition:
+    background 0.18s,
+    border-color 0.18s;
+}
+
+.roadmap-tasks label input:hover {
+  border-color: var(--accent-border);
+}
+
+.roadmap-tasks label input:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.roadmap-tasks label input:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .roadmap-tasks label.is-checked span {

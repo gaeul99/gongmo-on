@@ -8,7 +8,7 @@
 // ==========================================================
 import { useMemo } from 'react'
 import AppLink from './AppLink'
-import { contests } from '../data/mockData.js'
+import { useContestPool } from '../data/contestPool.js'
 import './HeroUpcoming.css'
 
 type Props = {
@@ -28,6 +28,8 @@ function daysUntilStart(startDate: string, now = new Date()): number | null {
 }
 
 function HeroUpcoming({ onOpenContest, onOpenExplore }: Props) {
+  // 목업 + 자동 등록이 합쳐진 공모전 풀
+  const contests = useContestPool()
   const all = useMemo(
     () =>
       contests
@@ -37,7 +39,7 @@ function HeroUpcoming({ onOpenContest, onOpenExplore }: Props) {
         }))
         .filter((row) => row.untilStart !== null && row.untilStart >= 0)
         .sort((a, b) => (a.untilStart ?? 0) - (b.untilStart ?? 0)),
-    [],
+    [contests],
   )
 
   // 박스 높이를 '곧 마감' 박스와 맞추려 최근 시작 순 일부만 보여 주고, 총 건수는 안내 문구에 표시한다.

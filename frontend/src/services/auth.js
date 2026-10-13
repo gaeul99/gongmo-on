@@ -8,7 +8,7 @@
 // ==========================================================
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
-const TOKEN_KEY = 'idea-navigation:auth-token'
+const TOKEN_KEY = 'gongmo-on:auth-token'
 // 백엔드가 멈춰 있을 때 로그인 폼이 영원히 '처리 중'에 걸리지 않게 한다.
 const REQUEST_TIMEOUT_MS = 15_000
 

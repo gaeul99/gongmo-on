@@ -167,7 +167,7 @@ export function buildCalendarICS(entries, now = new Date()) {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//GongNabi//GongNabi Deadlines//KO',
+    'PRODID:-//GongmoOn//GongmoOn Deadlines//KO',
     'CALSCALE:GREGORIAN',
   ]
   const todayKey = todayKeyOf(now)
@@ -176,11 +176,11 @@ export function buildCalendarICS(entries, now = new Date()) {
     const description = `구분: ${kind} / 상태: ${statusOf(entry, now)} / 주최: ${entry.organizer} / 공모전 페이지: ${entry.url}`
     lines.push(
       'BEGIN:VEVENT',
-      `UID:gongnabi-${entry.kind}-${entry.id}-${toIcsDate(entry.deadline)}@gongnabi.local`,
+      `UID:gongmo-on-${entry.kind}-${entry.id}-${toIcsDate(entry.deadline)}@gongmo-on.local`,
       `DTSTAMP:${stamp}`,
       `DTSTART;VALUE=DATE:${toIcsDate(entry.deadline)}`,
       `DTEND;VALUE=DATE:${toIcsDate(addOneDay(entry.deadline))}`,
-      `SUMMARY:[공내비] ${escapeIcsText(entry.title)}`,
+      `SUMMARY:[공모온] ${escapeIcsText(entry.title)}`,
       `DESCRIPTION:${escapeIcsText(description)}`,
       'END:VEVENT',
     )
@@ -189,11 +189,11 @@ export function buildCalendarICS(entries, now = new Date()) {
       const remindDate = remindDateOf(entry.deadline)
       lines.push(
         'BEGIN:VEVENT',
-        `UID:gongnabi-remind-${entry.id}-${toIcsDate(remindDate)}@gongnabi.local`,
+        `UID:gongmo-on-remind-${entry.id}-${toIcsDate(remindDate)}@gongmo-on.local`,
         `DTSTAMP:${stamp}`,
         `DTSTART;VALUE=DATE:${toIcsDate(remindDate)}`,
         `DTEND;VALUE=DATE:${toIcsDate(addOneDay(remindDate))}`,
-        `SUMMARY:[공내비] 마감 7일 전 — ${escapeIcsText(entry.title)}`,
+        `SUMMARY:[공모온] 마감 7일 전 — ${escapeIcsText(entry.title)}`,
         `DESCRIPTION:${escapeIcsText(description)}`,
         'END:VEVENT',
       )
@@ -228,7 +228,7 @@ export function downloadCalendarICS(entries) {
   // 한국어 제목이 포함되므로 BOM을 붙여 윈도우 캘린더 앱에서도 깨지지 않게 합니다.
   triggerDownload(new Blob([`\ufeff${buildCalendarICS(entries)}`], {
     type: 'text/calendar;charset=utf-8',
-  }), 'gongnabi-deadlines.ics')
+  }), 'gongmo-on-deadlines.ics')
 }
 
 /**
@@ -242,7 +242,7 @@ export function buildDeadlinesCSV(entries, now = new Date()) {
     return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
   }
   const rows = [
-    ['공내비 달력 (응모·관심 전체)'],
+    ['공모온 달력 (응모·관심 전체)'],
     ['◆ 응모한 공모전 · ● 공모전 마감일 · ▲ 마감 7일 전 · × 마감 지난 공모전'],
     [],
   ]
@@ -287,7 +287,7 @@ export function downloadDeadlinesCSV(entries) {
   if (entries.length === 0) return
   triggerDownload(new Blob([`\ufeff${buildDeadlinesCSV(entries)}`], {
     type: 'text/csv;charset=utf-8',
-  }), 'gongnabi-deadlines.csv')
+  }), 'gongmo-on-deadlines.csv')
 }
 
 /**
@@ -321,7 +321,7 @@ export function printDeadlinesPdf(entries, asOf) {
     .join('')
   const gridsHtml = grids.map(monthGridHtml).join('')
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8" />
-<title>공내비 달력 · 마감 일정</title>
+<title>공모온 달력 · 마감 일정</title>
 <style>
   body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; margin: 32px; color: #000000;
     print-color-adjust: exact; -webkit-print-color-adjust: exact; }
@@ -355,7 +355,7 @@ export function printDeadlinesPdf(entries, asOf) {
   .cal-ev { display: block; font-size: 9px; line-height: 1.35; margin-top: 2px; }
   .list-title { font-size: 15px; font-weight: 700; margin: 8px 0; page-break-after: avoid; }
 </style></head><body>
-<h1>공내비 달력 · 마감 일정 (응모·관심 전체)</h1>
+<h1>공모온 달력 · 마감 일정 (응모·관심 전체)</h1>
 ${basis}
 <p class="cal-legend">${legend}</p>
 <div class="cal-wrap">${gridsHtml}</div>

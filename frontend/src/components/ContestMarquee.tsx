@@ -8,7 +8,7 @@
 // ==========================================================
 import { useEffect, useRef, useState } from 'react'
 import AppLink from './AppLink'
-import { contests } from '../data/mockData.js'
+import { useContestPool } from '../data/contestPool.js'
 import { deadlineStatus, isApplicationOpen } from '../utils/contestAlerts.js'
 import './ContestMarquee.css'
 
@@ -30,6 +30,8 @@ type Props = {
 }
 
 function ContestMarquee({ onOpenContest }: Props) {
+  // 목업 + 자동 등록이 합쳐진 공모전 풀
+  const contests = useContestPool()
   const rows = contests
     .map((contest) => ({ contest, status: deadlineStatus(contest.deadline) }))
     .filter(
@@ -126,7 +128,18 @@ function ContestMarquee({ onOpenContest }: Props) {
                     onNavigate={() => onOpenContest(contest.id)}
                   >
                     <span className="marquee-thumb">
-                      <img src={contest.image} alt="" loading="lazy" />
+                      <img
+                        src={contest.image}
+                        alt=""
+                        loading="lazy"
+                        onError={(event) => {
+                          // 자동 등록 공모전의 포스터는 원본 사이트 주소라 사라질 수 있다
+                          const img = event.currentTarget
+                          if (img.dataset.fallback) return
+                          img.dataset.fallback = '1'
+                          img.src = '/contest/ck/placeholder.svg'
+                        }}
+                      />
                       <span className={`marquee-badge tone-${status.tone}`}>
                         {TONE_EMOJI[status.tone] ?? '📌'} {status.label}
                       </span>

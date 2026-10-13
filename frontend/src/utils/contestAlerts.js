@@ -82,7 +82,7 @@ export function isApplicationOpen(contest, now = new Date()) {
 }
 
 // 내가 개별로 확인(읽음)한 마감 알림 id 목록. 브라우저마다 따로 저장합니다.
-const DISMISSED_ALERTS_STORAGE_KEY = 'idea-navigation:dismissed-alerts'
+const DISMISSED_ALERTS_STORAGE_KEY = 'gongmo-on:dismissed-alerts'
 
 export function loadDismissedAlertIds() {
   try {
@@ -116,7 +116,7 @@ export function markAlertDismissed(ids, alert) {
 // 마이페이지에서 마지막으로 확인한 마감 알림 조합(알림 id 나열). 이후 새 알림이 생기면 다시 배지가 붙습니다.
 // localStorage를 외부 스토어로 다룹니다 — React 컴포넌트는 useSyncExternalStore로 구독하고,
 // 갱신은 markAlertsSeen 하나로만 하면 구독 중인 화면이 알아서 다시 그려집니다.
-const ALERTS_SEEN_STORAGE_KEY = 'idea-navigation:alerts-seen'
+const ALERTS_SEEN_STORAGE_KEY = 'gongmo-on:alerts-seen'
 
 let seenAlertsCache = null
 const seenAlertsListeners = new Set()

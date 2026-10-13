@@ -10,7 +10,6 @@ import ContestListPage, { type StatusFilter } from './pages/ContestListPage'
 import PracticeNotePage from './pages/PracticeNotePage'
 import type { NotePrefill } from './pages/PracticeNotePage'
 import TopNav from './components/TopNav'
-import NabiChat from './components/NabiChat'
 import SiteFooter from './components/SiteFooter'
 import type {
   AppliedContest,
@@ -26,7 +25,9 @@ import { signIn, signUp, requestLogout, getAuthToken, updateProfile } from './se
 import { syncNotificationSubscription } from './services/notificationService.js'
 import { pullUserData, pushUserData } from './services/userDataSync.js'
 import { mergeImportedData, writeLocalOnlyData, EXPORT_KIND, EXPORT_VERSION } from './utils/dataPortability.js'
+import { loadSyncedContests } from './data/contestPool.js'
 import { STORAGE_KEYS } from './utils/storageKeys.js'
+import { useScrollReveal } from './utils/scrollReveal'
 import {
   buildContestAlerts,
   urgentAlertCount,
@@ -62,20 +63,20 @@ const PATH_BY_SCREEN: Record<Screen, string> = {
   notes: '/notes',
 }
 
-const IDEA_STORAGE_KEY = 'idea-navigation:idea'
+const IDEA_STORAGE_KEY = 'gongmo-on:idea'
 // 마지막 분석 스냅숏 — 새로고침해도 결과 화면을 바로 볼 수 있게 세션에만 보관한다.
-const ANALYSIS_STORAGE_KEY = 'idea-navigation:analysis'
-const USER_STORAGE_KEY = 'idea-navigation:user'
-const MY_CONTESTS_STORAGE_KEY = 'idea-navigation:my-contests'
-const WISHLIST_STORAGE_KEY = 'idea-navigation:wishlist'
-const SAVED_IDEAS_STORAGE_KEY = 'idea-navigation:saved-ideas'
-const NOTIF_OPT_IN_STORAGE_KEY = 'idea-navigation:notif-opt-in'
+const ANALYSIS_STORAGE_KEY = 'gongmo-on:analysis'
+const USER_STORAGE_KEY = 'gongmo-on:user'
+const MY_CONTESTS_STORAGE_KEY = 'gongmo-on:my-contests'
+const WISHLIST_STORAGE_KEY = 'gongmo-on:wishlist'
+const SAVED_IDEAS_STORAGE_KEY = 'gongmo-on:saved-ideas'
+const NOTIF_OPT_IN_STORAGE_KEY = 'gongmo-on:notif-opt-in'
 // 유형 검사·자가 점검·연습 노트는 각 화면이 localStorage에 직접 씁니다.
 // 서버 백업 시 푸시 시점의 최신 값을 함께 담아 갑니다.
 const TYPE_TEST_STORAGE_KEY = STORAGE_KEYS.typeTest
-const CHECKLIST_STORAGE_KEY = 'idea-navigation:submission-checklist'
-const ROADMAP_STORAGE_KEY = 'idea-navigation:roadmaps'
-const PRACTICE_NOTES_STORAGE_KEY = 'idea-navigation:practice-notes'
+const CHECKLIST_STORAGE_KEY = 'gongmo-on:submission-checklist'
+const ROADMAP_STORAGE_KEY = 'gongmo-on:roadmaps'
+const PRACTICE_NOTES_STORAGE_KEY = 'gongmo-on:practice-notes'
 
 function loadStoredIdea(): IdeaInput | null {
   try {
@@ -257,6 +258,8 @@ function contestIdFromLocation(): number {
 }
 
 function App() {
+  // 모든 화면의 data-reveal 요소를 관찰해 스크롤 등장 애니메이션을 담당한다.
+  useScrollReveal()
   const [screen, setScreen] = useState<Screen>(screenFromLocation)
   // 개별 공모전 상세 화면(/contest/:id)의 id. 새 탭에서 상세 주소를 곧바로
   // 열 때도 이 값으로 화면을 그립니다. 상세 화면에서 다른 상세로 넘어가거나
@@ -351,15 +354,18 @@ function App() {
   // 배지 개수 = 오늘 마감·임박 알림 중 내가 아직 확인하지 않은 것.
   // 또한 한 번도 확인 화면을 안 열었던 새 조합이면 전부 세어 보여 준다(seenAlertKey).
   const dismissedKeys = useMemo(() => new Set(dismissedAlertIds), [dismissedAlertIds])
-  const unconfirmedUrgentCount = useMemo(
+  // 아직 읽지 않은 '지금 확인이 필요한'(오늘 마감·마감 임박) 알림 — 상단 종 배지 개수가
+  // 이 목록을 센다(2026-10-13).
+  const unreadUrgentAlerts = useMemo(
     () =>
       alerts.filter(
         (alert) =>
           (alert.tone === 'today' || alert.tone === 'urgent') &&
           !dismissedKeys.has(alertDismissKey(alert)),
-      ).length,
+      ),
     [alerts, dismissedKeys],
   )
+  const unconfirmedUrgentCount = unreadUrgentAlerts.length
   const newCombination =
     urgentCount > 0 && urgentAlertKey !== seenAlertKey
   const myPageBadgeCount = newCombination
@@ -575,6 +581,22 @@ function App() {
     }
   }
 
+  // 새로고침해도 토큰이 남아 로그인이 유지되는 세션은 로그인 버튼을 다시 누르지 않는다.
+  // 시작 시 복원을 직접 돌려야 자동 백업(canPushRef)이 켜진다 — 이 호출이 없으면
+  // 로그인 상태인데도 변경 사항이 서버에 올라가지 않는 빈틈이 있었다.
+  // 마운트 1회만 실행 — 로그인 버튼을 누른 흐름은 handleSignIn/SignUp이 이미 복원을 돌린다.
+  useEffect(() => {
+    if (!getAuthToken()) return
+    void restoreFromServer()
+  }, [])
+
+  // 백엔드가 자동 등록한 공모전(/api/contests)을 시작 때 한 번 가져온다.
+  // 실패해도 목업 데이터로 화면은 그대로 동작하고, 도착하면 데이터 풀을 쓰는
+  // 화면들이 알아서 다시 그려진다.
+  useEffect(() => {
+    void loadSyncedContests()
+  }, [])
+
   // 로그인 중이고 서버 복원이 한 번 성공한 뒤에는 목록이 바뀔 때마다
   // 서버에 백업합니다(0.8초 디바운스). 유형 검사·자가 점검·연습 노트처럼
   // 각 화면이 localStorage에 직접 쓴 값도 이 시점에 함께 백업됩니다.
@@ -582,7 +604,7 @@ function App() {
     if (!user || !canPushRef.current) return
     const timer = window.setTimeout(() => {
       pushUserData(buildSyncPayload(myContests, wishlist, savedIdeas))
-        .then(() => setBackupFailed(false))
+        .then((result) => setBackupFailed(!result.ok))
         .catch(() => {
           // 백엔드가 꺼져 있으면 다음 변경 때 다시 시도합니다.
           setBackupFailed(true)
@@ -590,6 +612,23 @@ function App() {
     }, 800)
     return () => window.clearTimeout(timer)
   }, [user, myContests, wishlist, savedIdeas, syncVersion])
+
+  // 백업 실패 상태가 이어지면 서버 복원을 주기적으로 다시 시도한다 — 서버 재시작
+  // 순간에 뜬 '백업 지연' 배너가 사용자의 새로고침 없이도 스스로 내려가게 한다.
+  // 병합은 '없는 것만 추가' 규칙이라 활동 중 복원에도 로컬 변경이 덮이지 않는다.
+  // restoreFromServer는 매 렌더마다 새로 만들어지므로 ref로 읽어 인터벌이
+  // 렌더마다 리셋되는 것을 막는다(settledRef와 같은 패턴).
+  const restoreRef = useRef(restoreFromServer)
+  useEffect(() => {
+    restoreRef.current = restoreFromServer
+  })
+  useEffect(() => {
+    if (!user || !backupFailed) return
+    const timer = window.setInterval(() => {
+      void restoreRef.current()
+    }, 20_000)
+    return () => window.clearInterval(timer)
+  }, [user, backupFailed])
 
   const handleApplyContest = (target: Omit<AppliedContest, 'appliedAt'>) => {
     // 응모 기록은 찜과 마찬가지로 로그인 없이도 남긴다 — 로그인 사용자만 허용하면
@@ -666,6 +705,30 @@ function App() {
     const next = savedIdeas.filter((idea) => idea.id !== id)
     setSavedIdeas(next)
     persistList(SAVED_IDEAS_STORAGE_KEY, next)
+  }
+
+  // 보관함에 저장된 아이디어를 수정합니다. 다른 아이디어와 제목·설명·분야가
+  // 모두 같으면 저장하지 않고 false를 돌려줍니다. 입력이 바뀌면 저장된 분석
+  // 스냅숏은 더는 같은 아이디어의 결과가 아니므로 함께 지웁니다 — '다시 보기'는
+  // 수정된 내용으로 분석을 새로 요청해 보여 줍니다.
+  const handleUpdateIdea = (
+    id: string,
+    patch: { title: string; description: string; category: string },
+  ): boolean => {
+    const duplicated = savedIdeas.some(
+      (saved) =>
+        saved.id !== id &&
+        saved.title === patch.title &&
+        saved.description === patch.description &&
+        saved.category === patch.category,
+    )
+    if (duplicated) return false
+    const next = savedIdeas.map((saved) =>
+      saved.id === id ? { ...saved, ...patch, analysis: null } : saved,
+    )
+    setSavedIdeas(next)
+    persistList(SAVED_IDEAS_STORAGE_KEY, next)
+    return true
   }
 
   // 보관함의 아이디어를 다시 열어 분석 결과 화면으로 이동합니다.
@@ -787,40 +850,35 @@ function App() {
         }}
         onToggleWish={handleToggleWish}
         wishlistedContestIds={wishlist.map((contest) => contest.id)}
-      />
-      <NabiChat
-        onOpenContest={openContest}
-        onGoInput={() => {
+        // 메뉴바 바로가기 링크 — 홈 화면 탭이 메뉴바로 흡수됐다(2026-10-13)
+        onStart={() => {
           setPrefill(null)
           setTypeHints(null)
           navigate('input')
         }}
+        onTypeTest={() => navigate('test')}
+        onDashboard={() => navigate('dashboard')}
+        onNotes={() => {
+          setNotePrefill(null)
+          navigate('notes')
+        }}
       />
       {screen === 'home' && (
-        <HomePage
-          onStart={() => {
-            setPrefill(null)
-            setTypeHints(null)
-            navigate('input')
-          }}
-          onDashboard={() => navigate('dashboard')}
-          onTypeTest={() => navigate('test')}
-          onNotes={() => {
-            setNotePrefill(null)
-            navigate('notes')
-          }}
-          onExplore={() => {
-            setExploreFilter('all')
-            navigate('contests')
-          }}
-          // '곧 시작되는 공모전'의 전체 보기 — 탐색 화면을 '곧 시작' 필터로 엽니다.
-          // 주소에도 ?status=를 심어 새 탭으로 열어도 같은 필터가 걸리게 합니다.
-          onExploreUpcoming={() => {
-            setExploreFilter('upcoming')
-            navigate('contests', '?status=upcoming')
-          }}
-          onOpenContest={openContest}
-        />
+        <>
+          <HomePage
+            onExplore={() => {
+              setExploreFilter('all')
+              navigate('contests')
+            }}
+            // '곧 시작되는 공모전'의 전체 보기 — 탐색 화면을 '곧 시작' 필터로 엽니다.
+            // 주소에도 ?status=를 심어 새 탭으로 열어도 같은 필터가 걸리게 합니다.
+            onExploreUpcoming={() => {
+              setExploreFilter('upcoming')
+              navigate('contests', '?status=upcoming')
+            }}
+            onOpenContest={openContest}
+          />
+        </>
       )}
       {screen === 'input' && (
         <IdeaInputPage
@@ -829,6 +887,7 @@ function App() {
           savedIdeas={savedIdeas}
           onOpenIdea={handleOpenIdea}
           onDeleteIdea={handleDeleteIdea}
+          onUpdateIdea={handleUpdateIdea}
           onBack={() => navigate('home')}
           onAnalyze={handleAnalyze}
         />
@@ -957,6 +1016,7 @@ function App() {
           onOpenIdea={handleOpenIdea}
           onDeleteIdea={handleDeleteIdea}
           onAddIdea={handleSaveIdea}
+          onUpdateIdea={handleUpdateIdea}
           onImportLists={handleImportLists}
           onBack={() => navigate('home')}
           onGoInput={() => {

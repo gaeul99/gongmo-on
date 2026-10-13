@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { contests, referenceCases, winnerArchives } from "../data/mockData.js";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { referenceCases, winnerArchives } from "../data/mockData.js";
+import { useContestPool } from "../data/contestPool.js";
 import type { ContestAlert, WishlistContest } from "../pages/MyPage";
 import { alertDismissKey } from "../utils/contestAlerts.js";
 import AppLink from "./AppLink";
@@ -22,8 +23,13 @@ type Props = {
   onGoHome: () => void;
   onGoMyPage: () => void;
   onOpenContest: (id: number) => void;
-  // 검색 팝업 하단의 '공모전 전체 탐색' 입구
+  // 검색 팝업 하단의 '공모전 전체 탐색' 입구. 메뉴바의 '공모전 탐색' 링크도 같은 핸들러를 쓴다.
   onOpenExplore: () => void;
+  // 메뉴바 바로가기 링크(홈 화면 탭이 메뉴바로 흡수됐다) — 각 화면으로 보낸다.
+  onStart: () => void;
+  onTypeTest: () => void;
+  onDashboard: () => void;
+  onNotes: () => void;
   onToggleWish: (target: Omit<WishlistContest, "addedAt">) => void;
   wishlistedContestIds: number[];
 };
@@ -45,25 +51,28 @@ type SearchItem = {
 };
 
 // 앱이 소개하는 실제 자료(추천 공모전·유사 사례·수상작 페이지)를 검색 대상으로 모읍니다.
-const SEARCH_ITEMS: SearchItem[] = [
-  ...contests.map((contest) => ({
-    title: contest.title,
-    sub: `추천 공모전 · ${contest.organizer}`,
-    url: contest.url,
-    kind: "contest" as const,
-    contestId: contest.id,
-  })),
-  ...referenceCases.map((item) => ({
-    title: item.title,
-    sub: `유사 사례 · ${item.organizer}`,
-    url: item.url,
-  })),
-  ...winnerArchives.map((archive) => ({
-    title: archive.title,
-    sub: `수상작 자료 · ${archive.organizer}`,
-    url: archive.url,
-  })),
-];
+// 공모전은 데이터 풀(목업 + 자동 등록)에서 가져온다 — 자동 등록분도 검색에서 찾을 수 있게.
+function buildSearchItems(contests: Array<{ id: number; title: string; organizer: string; url: string }>): SearchItem[] {
+  return [
+    ...contests.map((contest) => ({
+      title: contest.title,
+      sub: `추천 공모전 · ${contest.organizer}`,
+      url: contest.url,
+      kind: "contest" as const,
+      contestId: contest.id,
+    })),
+    ...referenceCases.map((item) => ({
+      title: item.title,
+      sub: `유사 사례 · ${item.organizer}`,
+      url: item.url,
+    })),
+    ...winnerArchives.map((archive) => ({
+      title: archive.title,
+      sub: `수상작 자료 · ${archive.organizer}`,
+      url: archive.url,
+    })),
+  ];
+}
 
 // 국내 전체 공모전·행사 검색은 외부 검색으로 연결합니다.
 // 위비티·캠퍼스픽은 site 검색으로 마감된 지난 공모전 아카이브까지 찾을 수 있습니다.
@@ -106,6 +115,10 @@ function TopNav({
   onGoMyPage,
   onOpenContest,
   onOpenExplore,
+  onStart,
+  onTypeTest,
+  onDashboard,
+  onNotes,
   onToggleWish,
   wishlistedContestIds,
 }: Props) {
@@ -114,6 +127,12 @@ function TopNav({
   const [query, setQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const searchBoxRef = useRef<HTMLDivElement | null>(null);
+  // 종 아이콘 + 알림 패널을 함께 감싸는 래퍼 — 패널을 아이콘 바로 밑에 붙이고,
+  // 바깥 클릭 판정(아이콘·패널 둘 다 밖이면 닫기)의 기준이 된다.
+  const bellBoxRef = useRef<HTMLDivElement | null>(null);
+  // 검색 대상 공모전 — 목업 + 자동 등록이 합쳐진 풀
+  const contests = useContestPool();
+  const searchItems = useMemo(() => buildSearchItems(contests), [contests]);
 
   // 검색 드롭다운은 입력 박스 바깥을 누르면 닫습니다.
   useEffect(() => {
@@ -126,6 +145,18 @@ function TopNav({
     document.addEventListener("mousedown", handlePointer);
     return () => document.removeEventListener("mousedown", handlePointer);
   }, [searchOpen]);
+
+  // 알림 패널은 종 아이콘·패널 바깥을 누르면 닫습니다(검색 드롭다운과 같은 방식).
+  useEffect(() => {
+    if (!notifOpen) return;
+    const handlePointer = (event: MouseEvent) => {
+      if (bellBoxRef.current && !bellBoxRef.current.contains(event.target as Node)) {
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handlePointer);
+    return () => document.removeEventListener("mousedown", handlePointer);
+  }, [notifOpen]);
 
   // 검색·알림 패널은 Escape로도 닫습니다.
   useEffect(() => {
@@ -142,7 +173,7 @@ function TopNav({
 
   const trimmed = query.trim();
   const results = trimmed
-    ? SEARCH_ITEMS.filter((item) =>
+    ? searchItems.filter((item) =>
         `${item.title} ${item.sub}`.includes(trimmed),
       ).slice(0, 8)
     : [];
@@ -156,6 +187,26 @@ function TopNav({
   return (
     <nav className="top-nav-bar" aria-label="공통 메뉴">
       <div className="nav-menu-row">
+        {/* 메뉴바 바로가기 — 홈 화면의 서비스 탭이 메뉴바로 흡수됐다(2026-10-13).
+            아이디어 분석이 첫 메뉴다. */}
+        <div className="nav-links">
+          <AppLink className="nav-link" href="/input" onNavigate={onStart}>
+            아이디어 분석
+          </AppLink>
+          <AppLink className="nav-link" href="/test" onNavigate={onTypeTest}>
+            유형 검사
+          </AppLink>
+          <AppLink className="nav-link" href="/dashboard" onNavigate={onDashboard}>
+            대시보드
+          </AppLink>
+          <AppLink className="nav-link" href="/notes" onNavigate={onNotes}>
+            연습 노트<span className="nav-link-new">NEW</span>
+          </AppLink>
+          <AppLink className="nav-link" href="/contest" onNavigate={onOpenExplore}>
+            공모전 탐색
+          </AppLink>
+        </div>
+        <div className="nav-actions">
         {/* 메뉴바 인라인 검색 — 돋보기 버튼 대신 입력 박스가 놓이고,
             입력하면 박스 아래로 검색 결과 드롭다운이 펼쳐진다. */}
         <div className="nav-search" ref={searchBoxRef}>
@@ -225,6 +276,7 @@ function TopNav({
               role="dialog"
               aria-label="공모전 자료 검색"
             >
+              <div className="search-dropdown-scroll">
               {trimmed === "" ? (
                 <p className="search-hint">
                   앱 속 자료부터 국내 공모전 전체(20년 아카이브 포함)까지 검색해
@@ -350,6 +402,7 @@ function TopNav({
               >
                 앱에 등록된 공모전을 검색·필터로 찾고 싶다면 → 공모전 탐색
               </AppLink>
+              </div>
             </div>
           )}
         </div>
@@ -379,6 +432,7 @@ function TopNav({
             />
           </svg>
         </AppLink>
+        <div className="nav-bell" ref={bellBoxRef}>
         <button
           type="button"
           className={
@@ -411,57 +465,14 @@ function TopNav({
             </span>
           )}
         </button>
-        <AppLink
-          className={
-            loggedIn ? "nav-icon-button logged-in" : "nav-icon-button"
-          }
-          href="/mypage"
-          ariaLabel={
-            notificationCount > 0
-              ? `마이페이지, 확인할 알림 ${notificationCount}개`
-              : "마이페이지"
-          }
-          title={
-            notificationCount > 0
-              ? `확인할 알림 ${notificationCount}개`
-              : "마이페이지"
-          }
-          onNavigate={onGoMyPage}
-        >
-          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-            <circle
-              cx="12"
-              cy="8.2"
-              r="3.6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            />
-            <path
-              d="M4.8 19.4 c0.6 -4 3.6 -6 7.2 -6 s6.6 2 7.2 6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-          </svg>
-          {notificationCount > 0 && (
-            <span className="nav-badge" aria-hidden="true">
-              {notificationCount > 9 ? "9+" : notificationCount}
-            </span>
-          )}
-        </AppLink>
-      </div>
-
-      {notifOpen && (
-        <div className="notif-overlay" onClick={() => setNotifOpen(false)}>
+        {notifOpen && (
           <div
             className="notif-panel"
             role="dialog"
             aria-modal="false"
             aria-label="마감 알림"
-            onClick={(event) => event.stopPropagation()}
           >
+            <div className="notif-panel-scroll">
             <div className="notif-head">
               <p className="notif-head-title">알림</p>
               <div className="notif-head-actions">
@@ -542,9 +553,52 @@ function TopNav({
             >
               마이페이지에서 전체 보기 →
             </AppLink>
+            </div>
           </div>
+        )}
         </div>
-      )}
+        <AppLink
+          className={
+            loggedIn ? "nav-icon-button logged-in" : "nav-icon-button"
+          }
+          href="/mypage"
+          ariaLabel={
+            notificationCount > 0
+              ? `마이페이지, 확인할 알림 ${notificationCount}개`
+              : "마이페이지"
+          }
+          title={
+            notificationCount > 0
+              ? `확인할 알림 ${notificationCount}개`
+              : "마이페이지"
+          }
+          onNavigate={onGoMyPage}
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <circle
+              cx="12"
+              cy="8.2"
+              r="3.6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            />
+            <path
+              d="M4.8 19.4 c0.6 -4 3.6 -6 7.2 -6 s6.6 2 7.2 6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
+          {notificationCount > 0 && (
+            <span className="nav-badge" aria-hidden="true">
+              {notificationCount > 9 ? "9+" : notificationCount}
+            </span>
+          )}
+        </AppLink>
+        </div>
+      </div>
     </nav>
   );
 }

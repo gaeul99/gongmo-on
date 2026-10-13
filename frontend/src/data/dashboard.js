@@ -1,11 +1,11 @@
 ﻿// ==========================================================
 // 대시보드 집계 모듈
 // DashboardPage는 이 모듈이 돌려준 결과만 그립니다.
-// 데이터 출처는 네 곳 — mockData.js(공모전·참고자료), ideaSparks.js(스파크),
-// localStorage(내 활동), 백엔드 알림 기록(패널에서 직접 요청).
+// 데이터 출처는 네 곳 — contestPool.js(목업 + 자동 등록 공모전),
+// ideaSparks.js(스파크), localStorage(내 활동), 백엔드 알림 기록(패널에서 직접 요청).
 // ==========================================================
 
-import { contests } from './mockData.js'
+import { getAllContests } from './contestPool.js'
 import {
   DAILY_MISSIONS,
   IDEA_EXAMPLES,
@@ -15,9 +15,9 @@ import {
 } from './ideaSparks.js'
 import { deadlineStatus } from '../utils/contestAlerts.js'
 
-const MY_CONTESTS_STORAGE_KEY = 'idea-navigation:my-contests'
-const WISHLIST_STORAGE_KEY = 'idea-navigation:wishlist'
-const SAVED_IDEAS_STORAGE_KEY = 'idea-navigation:saved-ideas'
+const MY_CONTESTS_STORAGE_KEY = 'gongmo-on:my-contests'
+const WISHLIST_STORAGE_KEY = 'gongmo-on:wishlist'
+const SAVED_IDEAS_STORAGE_KEY = 'gongmo-on:saved-ideas'
 
 // 정적 데이터(공모전·참고자료)의 기준일. mockData.js를 갱신할 때 함께 고칩니다.
 export const DATA_AS_OF = '2026-10-02'
@@ -47,11 +47,12 @@ function readStoredList(key) {
  */
 /**
  * @param {Date} [now]
+ * @param {Array<object>} [pool] 공모전 풀(기본값: contestPool.js 전체). 화면이 풀을 구독 중이면 넘겨 준다.
  * @returns {DeadlineRow[]}
  */
-export function buildDeadlineRows(now = new Date()) {
+export function buildDeadlineRows(now = new Date(), pool = getAllContests()) {
   const byId = new Map()
-  for (const contest of contests) {
+  for (const contest of pool) {
     byId.set(contest.id, { ...contest, kinds: ['접수 중'] })
   }
 
@@ -87,7 +88,7 @@ export function buildDeadlineRows(now = new Date()) {
  */
 export function buildUpcomingStartRows(now = new Date()) {
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  return contests
+  return getAllContests()
     .map((contest) => {
       const start = new Date(`${contest.startDate}T00:00:00`)
       return { contest, start }
@@ -105,9 +106,9 @@ export function buildUpcomingStartRows(now = new Date()) {
 }
 
 // 공모전 분야의 첫 단어('기타 (아이디어·방송통신)' → '기타')로 묶어 건수를 셉니다.
-export function buildFieldBreakdown() {
+export function buildFieldBreakdown(pool = getAllContests()) {
   const counts = new Map()
-  for (const contest of contests) {
+  for (const contest of pool) {
     const field = String(contest.field ?? '').split(' ')[0] || '기타'
     counts.set(field, (counts.get(field) ?? 0) + 1)
   }
@@ -147,14 +148,14 @@ export function buildActivityCounts() {
 
 // 내 응모 기록을 도전 히스토리로 요약 — 누적 도전 수, 수상·탈락·진행 중 건수와
 // 응모한 공모전의 분야 분포. 결과 기록(마이페이지) 전에는 전부 '진행 중'으로 셉니다.
-export function buildChallengeHistory() {
+export function buildChallengeHistory(pool = getAllContests()) {
   const rows = readStoredList(MY_CONTESTS_STORAGE_KEY)
   const tally = { total: rows.length, progress: 0, won: 0, lost: 0 }
   const fields = new Map()
   for (const row of rows) {
     const key = row.result === 'won' ? 'won' : row.result === 'lost' ? 'lost' : 'progress'
     tally[key] += 1
-    const known = contests.find((contest) => contest.id === row.id)
+    const known = pool.find((contest) => contest.id === row.id)
     const field = String(known?.field ?? row.field ?? '기타').split(' ')[0] || '기타'
     fields.set(field, (fields.get(field) ?? 0) + 1)
   }
@@ -166,8 +167,7 @@ export function buildChallengeHistory() {
   }
 }
 
-// 아이디어 스파크 콘텐츠 규모. 오늘의 미션은 챗봇 스냅숏(chatContext.js)에서
-// 브레인스토밍 맥락으로 사용됩니다.
+// 아이디어 스파크 콘텐츠 규모.
 // '하루에 하나' 규칙(날 수로 나눈 나머지)을 따릅니다.
 export function buildSparkStats(now = new Date()) {
   return {

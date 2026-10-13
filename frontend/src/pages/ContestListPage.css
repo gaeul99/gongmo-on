@@ -16,6 +16,7 @@
 
 .explore-caption {
   font-size: 15px;
+  line-height: 165%;
   color: var(--text);
   word-break: keep-all;
 }
@@ -40,7 +41,8 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0 10px;
-  background: var(--bg);
+  /* 흰 도구 카드 안에 파인 입력칸 — 인셋 회색으로 '여기에 입력'이 읽히게 */
+  background: var(--code-bg);
 }
 
 .explore-search-row input {
@@ -69,7 +71,7 @@
 
 .explore-search-clear:hover {
   color: var(--text-h);
-  background: var(--code-bg);
+  background: var(--hover-bg);
 }
 
 .explore-chip-row {
@@ -80,7 +82,7 @@
 
 .explore-chip {
   font: inherit;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text);
   background: var(--bg);
@@ -97,12 +99,30 @@
 .explore-chip:hover {
   color: var(--accent-text);
   border-color: var(--accent-border);
+  background: var(--hover-bg);
 }
 
 .explore-chip.is-on {
   color: var(--accent-ink);
   background: var(--accent);
   border-color: var(--accent);
+}
+
+/* 줄마다 첫 칩('전체'·'분야 전체'·'연령 전체') 폭을 통일한다 — 글자 수대로 두면
+   첫 칩 폭이 줄마다 달라 세 필터 줄의 왼쪽 열이 어긋나 보인다(2026-10-13 사용자 지적).
+   box-sizing 규칙: 프로젝트에 전역 border-box가 없어 width+padding 조합은 명시한다 */
+.explore-chip-row > .explore-chip:first-child {
+  box-sizing: border-box;
+  width: 88px;
+  text-align: center;
+}
+
+/* 접수 상태 줄은 모든 칩('전체'·'접수 중'·'곧 시작'·'마감')을 같은 폭으로 고정한다 —
+   글자 수대로 두면 칩마다 폭이 달라 누른 칩의 박스 크기가 들쭉날쭉해 보인다(같은 날 지적) */
+.explore-chip-row[aria-label='접수 상태 필터'] .explore-chip {
+  box-sizing: border-box;
+  width: 88px;
+  text-align: center;
 }
 
 /* 결과 개수 + 정렬 — 두 행으로 좁은 화면에서도 안전하게 */
@@ -115,7 +135,7 @@
 }
 
 .explore-count {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--text-h);
 }
@@ -124,13 +144,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12.5px;
-  color: var(--text);
+  font-size: 13px;
+  color: var(--text-2);
 }
 
 .explore-sort select {
   font: inherit;
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--text-h);
   background: var(--bg);
   border: 1px solid var(--border);
@@ -162,7 +182,12 @@
 
 .explore-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-hover);
+}
+
+/* 카드 전체가 hover로 떠오르므로 안쪽 버튼의 전역 lift는 꺼서 이중 이동을 막는다 */
+.explore-card-main:hover {
+  transform: none;
 }
 
 .explore-card-main {
@@ -190,6 +215,23 @@
   object-fit: cover;
   object-position: top;
   border-bottom: 1px solid var(--border);
+  /* 카드 hover 시 포스터가 살짝 확대된다(uiverse 카드 스타일) — 카드의
+     overflow: hidden이 줌을 클리핑한다 */
+  transition: transform 0.4s ease;
+}
+
+.explore-card:hover .explore-thumb img {
+  transform: scale(1.045);
+}
+
+/* 누를 때도 카드 반응 — 모바일은 hover가 없어 터치 눌림에서 이미지 줌까지 재생한다(2026-10-13) */
+.explore-card:active {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.explore-card:active .explore-thumb img {
+  transform: scale(1.045);
 }
 
 .explore-badge {
@@ -210,35 +252,25 @@
   white-space: nowrap;
 }
 
-.explore-badge.tone-open {
-  color: #fff;
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.explore-badge.tone-upcoming {
-  color: var(--accent-ink);
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
+/* 2026-10-13 톤 통일: 진행중·예정은 기본 흰 칩(포스터 위 가독성 유지, 기본 상태는
+   조용하게), 마감은 점선+연회색 글자로 가장 조용하게. 검정 채움은 강조 전용 */
 .explore-badge.tone-closed {
-  color: var(--text);
-  background: var(--bg);
+  border-style: dashed;
+  color: var(--text-3);
 }
 
 .explore-info {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 10px 12px 0;
+  gap: 4px;
+  padding: 11px 12px 0;
 }
 
 .explore-name {
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 700;
   color: var(--text-h);
-  line-height: 145%;
+  line-height: 150%;
   word-break: keep-all;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -247,8 +279,9 @@
 }
 
 .explore-meta {
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  line-height: 155%;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
@@ -269,7 +302,7 @@
 /* 아직 분석 전일 때 보이는 안내 한 줄 — 아이디어 입력 화면으로 이어준다 */
 .explore-fit-guide {
   margin: 0 0 16px;
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--text);
 }
 
@@ -301,16 +334,18 @@
   cursor: pointer;
   transition:
     color 0.15s,
-    border-color 0.15s;
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .explore-wish:hover {
   color: var(--accent-text);
   border-color: var(--accent-border);
+  background: var(--hover-bg);
 }
 
 .explore-wish.active {
-  color: #000000;
+  color: var(--accent);
 }
 
 /* --- 결과 없음 --- */
@@ -325,7 +360,7 @@
   background: var(--panel);
   border: 1px dashed var(--border);
   border-radius: 14px;
-  font-size: 14px;
+  font-size: 14.5px;
   color: var(--text);
   word-break: keep-all;
 }
@@ -343,8 +378,8 @@
 }
 
 .explore-reset:hover {
-  /* 회색 틴트 대신 흑백 반전으로 hover 피드백 */
-  background: #000000;
+  /* 회색 틴트 대신 반전으로 hover 피드백 */
+  background: var(--accent);
   color: #ffffff;
 }
 

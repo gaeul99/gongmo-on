@@ -8,9 +8,14 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 
 // AI 프롬프트에 넣을 공모전 후보 수. 후보 전부(350여 건)를 보내면 프롬프트·응답이
-// 토큰 한도를 넘어 분석이 실패하므로, 관련도가 높은 상위 몇 건만 추려 보낸다.
-// AI 점수가 없는 나머지 공모전은 목업 점수를 그대로 쓴다(ResultPage의 mergeAnalysis).
-const AI_CONTEST_LIMIT = 36
+// 토큰 한도를 넘어 분석이 실패하고, 후보가 많을수록 응답 JSON도 길어져 30초 예산을
+// 넘긴다. 관련도가 높은 상위 몇 건만 추려 보내고, AI 점수가 없는 나머지 공모전은
+// 목업 점수를 그대로 쓴다(ResultPage의 mergeAnalysis).
+const AI_CONTEST_LIMIT = 16
+
+// 분석 요청 전체의 상한(초). 이 안에 끝나지 않으면 호출한 쪽이 목업 분석으로
+// 대체한다 — '분석은 30초 안에 답을 준다'가 서비스 약속이므로 백엔드 상한(25초)보다 살짝 크게.
+const AI_TIMEOUT_MS = 30_000
 
 const fieldFamilyOf = (field) => String(field ?? '').split(' ')[0]
 
@@ -65,7 +70,7 @@ export async function requestAiAnalysis(idea, referenceCases, contests) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ idea, referenceCases, contests: aiContests }),
-    signal: AbortSignal.timeout(45000),
+    signal: AbortSignal.timeout(AI_TIMEOUT_MS),
   })
 
   if (!response.ok) {

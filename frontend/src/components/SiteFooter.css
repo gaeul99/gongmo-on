@@ -20,6 +20,7 @@
 }
 
 .site-footer-actions {
+  position: relative; /* 복사 확인 토스트의 기준점 */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,9 +46,60 @@
   text-decoration: underline;
 }
 
+/* 이메일 주소 — 누르면 클립보드로 복사되는 버튼. 평소에는 텍스트와 같은 모습,
+   점선 밑줄이 '복사할 수 있다'는 힌트다 */
 .site-footer-email {
-  color: var(--text);
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
   font-size: 11.5px;
+  color: var(--text);
+  text-decoration: underline dotted;
+  text-decoration-color: var(--border);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.site-footer-email:hover {
+  color: var(--text-h);
+  text-decoration-style: solid;
+  text-decoration-color: var(--accent-border);
+}
+
+/* 복사 확인 토스트 — 이메일 버튼 위에 떠오르는 파란 알림.
+   팝업 계열이므로 포인트 색(파랑)을 쓴다(sync-notice와 같은 톤).
+   항상 렌더링해 두고 opacity·transform으로만 등장해 레이아웃이 흔들리지 않는다 */
+.site-footer-toast {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translate(-50%, 4px);
+  padding: 5px 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--brand-text);
+  background: var(--brand-bg);
+  border: 1px solid var(--brand-border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-pop);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s, transform 0.18s, visibility 0.18s;
+  pointer-events: none;
+}
+
+.site-footer-toast.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-footer-toast {
+    transition: none;
+  }
 }
 
 .site-footer-copy {

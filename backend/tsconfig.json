@@ -44,5 +44,8 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-  }
+  },
+  // 단위 테스트는 Vitest가 자체 변환으로 실행 — 프로덕션 빌드(tsc)에서는 제외
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
 }

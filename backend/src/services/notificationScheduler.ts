@@ -43,7 +43,7 @@ async function notifySubscriber(subscriber: Subscriber, now = new Date()): Promi
     seen.add(key)
 
     const when = left === 0 ? '오늘 마감' : `마감 ${left}일 전`
-    const emailSubject = `[공내비] '${contest.title}' ${when}`
+    const emailSubject = `[공모온] '${contest.title}' ${when}`
     const emailText = [
       `${subscriber.nickname}님, 공모전 마감이 다가왔어요.`,
       '',
@@ -51,7 +51,7 @@ async function notifySubscriber(subscriber: Subscriber, now = new Date()): Promi
       `· 마감일: ${contest.deadline} (${when})`,
       contest.url ? `· 바로 가기: ${contest.url}` : '',
       '',
-      '공내비 — 아이디어에서 공모전까지, 가장 빠른 길',
+      '공모온 — 아이디어에서 공모전까지, 가장 빠른 길',
     ]
       .filter(Boolean)
       .join('\n')

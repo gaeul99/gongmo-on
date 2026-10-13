@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { AppliedContest, AuthResult, User, WishlistContest } from './MyPage'
 import AppLink from '../components/AppLink'
 import InlineAuthPanel from '../components/InlineAuthPanel'
-import { contests } from '../data/mockData.js'
+import { getContestPoolState, useContestPool } from '../data/contestPool.js'
 import './ContestDetailPage.css'
 
 type Props = {
@@ -45,13 +45,33 @@ function ContestDetailPage({
   onSignIn,
   onSignUp,
 }: Props) {
+  // 목업 + 자동 등록이 합쳐진 풀에서 찾는다. 자동 등록 공모전을 상세 주소로
+  // 바로 열어도(새로고침) 데이터가 도착하면 이 화면이 다시 그려져 나타난다.
+  const contests = useContestPool()
   const contest = contests.find((item) => item.id === contestId)
+  // 자동 등록 공모전은 백엔드에서 늦게 도착한다 — 도착 전에 '없어요'를 보여 주면
+  // 새 탭·새로고침으로 연 상세 주소가 오류로 번쩍인다. 불러오는 중에는 로딩을 보인다.
+  const poolState = getContestPoolState()
   // 실제 응모 안내(2단계)를 보여 줄지 — 확정·취소하면 false로 돌아갑니다.
   const [confirming, setConfirming] = useState(false)
   // 로그인하지 않은 사용자가 응모 버튼을 눌렀을 때 인라인 로그인 패널을 보여 줍니다.
   const [showAuthPanel, setShowAuthPanel] = useState(false)
 
   if (!contest) {
+    if (poolState === 'loading' || poolState === 'idle') {
+      return (
+        <div className="page">
+          <div className="detail-inner">
+            <button type="button" className="back-button" onClick={onBack}>
+              ← 돌아가기
+            </button>
+            <div className="empty-state">
+              <p>공모전 정보를 불러오는 중이에요. 잠시만 기다려 주세요.</p>
+            </div>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="page">
         <div className="detail-inner">
@@ -81,11 +101,18 @@ function ContestDetailPage({
           ← 돌아가기
         </button>
 
-        <header className="detail-hero">
+        <header className="detail-hero" data-reveal>
           <img
             className="detail-image"
             src={contest.image}
             alt={`${contest.title} 공모전 포스터`}
+            onError={(event) => {
+              // 자동 등록 공모전의 포스터는 원본 사이트 주소라 사라질 수 있다 — placeholder로 대체
+              const img = event.currentTarget
+              if (img.dataset.fallback) return
+              img.dataset.fallback = '1'
+              img.src = '/contest/ck/placeholder.svg'
+            }}
           />
           <div className="detail-hero-text">
             <div className="detail-badges">
@@ -97,7 +124,7 @@ function ContestDetailPage({
           </div>
         </header>
 
-        <dl className="detail-facts">
+        <dl className="detail-facts" data-reveal>
           <div>
             <dt>주최</dt>
             <dd>{contest.organizer}</dd>
@@ -122,21 +149,21 @@ function ContestDetailPage({
           </div>
         </dl>
 
-        <section aria-labelledby="detail-desc-title">
+        <section aria-labelledby="detail-desc-title" data-reveal>
           <h2 id="detail-desc-title">공모전 소개</h2>
-          <p className="detail-desc">{contest.description}</p>
+          <p className="detail-desc prose">{contest.description}</p>
         </section>
 
-        <section aria-labelledby="detail-how-title">
+        <section aria-labelledby="detail-how-title" data-reveal>
           <h2 id="detail-how-title">응모 방법</h2>
           <ol className="detail-steps">
-            {contest.applySteps.map((step) => (
+            {(contest.applySteps ?? []).map((step) => (
               <li key={step}>{step}</li>
             ))}
           </ol>
         </section>
 
-        <div className="detail-actions">
+        <div className="detail-actions" data-reveal>
           {/* 마감된 공모전도 응모 기록은 남길 수 있다 — 기록 기능이므로.
               마감 여부는 흐름을 막지 않고 안내 문구로만 알려준다. */}
           {left < 0 && !applied && (

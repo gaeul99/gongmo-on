@@ -9,7 +9,7 @@
   margin: 0 auto;
   padding: 48px 24px 88px;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 15px;
 
   @media (max-width: 768px) {
     padding: 32px 20px 64px;
@@ -35,12 +35,12 @@
 .notes-header h1 {
   margin: 12px 0 8px;
   font-size: clamp(24px, 4.5vw, 30px);
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .notes-header p {
-  color: var(--text);
-  line-height: 165%;
+  color: var(--text-2);
+  line-height: 175%;
   word-break: keep-all;
 }
 
@@ -104,8 +104,8 @@
 .notes-empty-sub {
   margin-top: 6px;
   font-weight: 400 !important;
-  font-size: 13px;
-  color: var(--text);
+  font-size: 13.5px;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
@@ -123,7 +123,7 @@
 }
 
 .notes-empty-button:hover {
-  opacity: 0.9;
+  background: var(--hover-bg);
 }
 
 /* 노트 목록 */
@@ -144,6 +144,12 @@
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px 16px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+/* 노트 카드 전체가 눌릴 대상(main 버튼)을 담고 있다 — hover로 어디를 누를지 알려 준다 */
+.note-card:hover {
+  background: var(--hover-bg);
 }
 
 .note-card-main {
@@ -161,7 +167,7 @@
 }
 
 .note-card-title {
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-h);
   word-break: keep-all;
@@ -172,8 +178,8 @@
 }
 
 .note-card-meta {
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  color: var(--text-2);
 }
 
 .note-card-delete {
@@ -206,13 +212,13 @@
 .note-editor h1 {
   margin: 12px 0 0;
   font-size: clamp(22px, 4vw, 28px);
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .note-editor-lead {
   margin-top: 8px;
-  color: var(--text);
-  line-height: 165%;
+  color: var(--text-2);
+  line-height: 175%;
   word-break: keep-all;
 }
 
@@ -258,7 +264,7 @@
 .note-field textarea,
 .note-qa textarea {
   resize: vertical;
-  line-height: 160%;
+  line-height: 170%;
   word-break: keep-all;
 }
 
@@ -287,13 +293,13 @@
   color: var(--error);
 }
 
-/* 예상 질문·답변 묶음 */
+/* 예상 질문·답변 묶음 — 캔버스 위의 묶음 카드. 안쪽 행(--bg 흰색)이 테두리로 파여 보인다 */
 .note-qa {
   margin: 0;
   padding: 16px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--code-bg);
+  background: var(--panel);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -307,8 +313,8 @@
 }
 
 .note-qa-lead {
-  font-size: 12.5px;
-  color: var(--text);
+  font-size: 13px;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
@@ -353,7 +359,7 @@
 }
 
 .note-qa-add:hover {
-  background: var(--accent-bg);
+  background: var(--hover-bg);
 }
 
 /* 저장·취소 */
@@ -407,7 +413,7 @@
 }
 
 .notes-tips h2 {
-  margin: 0 0 10px;
+  margin: 0 0 var(--sp-3);
   font-size: 16px;
 }
 
@@ -423,8 +429,8 @@
 .notes-tips li {
   position: relative;
   padding-left: 16px;
-  font-size: 13px;
-  line-height: 165%;
+  font-size: 14px;
+  line-height: 175%;
   color: var(--text);
   word-break: keep-all;
 }

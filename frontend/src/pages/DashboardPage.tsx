@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import AppLink from '../components/AppLink'
-import { contests } from '../data/mockData.js'
+import { useContestPool } from '../data/contestPool.js'
+import { pageItems } from '../utils/pagination'
 import {
   DATA_AS_OF,
   buildActivityCounts,
@@ -34,6 +35,7 @@ type Props = {
 const DEADLINE_PAGE_SIZE = 8
 
 // 목록이 길어져 스크롤이 길어지지 않게 쓰는 최소 페이지 네비게이션. 한 쪽이면 아예 숨긴다.
+// 번호가 많으면 utils/pagination.ts가 양끝과 현재 주변만 남겨 준다(1 … 4 5 6 … 52).
 function Pager({
   page,
   pages,
@@ -56,17 +58,23 @@ function Pager({
       >
         이전
       </button>
-      {Array.from({ length: pages }, (_, index) => index + 1).map((num) => (
-        <button
-          key={num}
-          type="button"
-          className={`pager-btn pager-num${num === page ? ' is-on' : ''}`}
-          aria-current={num === page ? 'page' : undefined}
-          onClick={() => onPage(num)}
-        >
-          {num}
-        </button>
-      ))}
+      {pageItems(page, pages).map((item, index) =>
+        item === 'gap' ? (
+          <span key={`gap-${index}`} className="pager-gap" aria-hidden="true">
+            …
+          </span>
+        ) : (
+          <button
+            key={item}
+            type="button"
+            className={`pager-btn pager-num${item === page ? ' is-on' : ''}`}
+            aria-current={item === page ? 'page' : undefined}
+            onClick={() => onPage(item)}
+          >
+            {item}
+          </button>
+        ),
+      )}
       <button
         type="button"
         className="pager-btn"
@@ -180,12 +188,17 @@ function DashboardPage({ onOpenContest, user, onGoLogin, onOpenExplore, onGoInpu
   // 로그인하면 계정에 저장된 기록(응모·관심·보관함·로드맵)이 복원되므로
   // 같은 대시보드라도 계정마다 다른 화면이 됩니다.
   const basis = user ? `${user.nickname}님 계정 기준` : '이 브라우저 기준'
-  const deadlineRows = useMemo(() => buildDeadlineRows(), [])
-  const activity = useMemo(() => buildActivityCounts(), [])
+  // 목업 + 백엔드 자동 등록이 합쳐진 공모전 풀 — 자동 등록분이 도착하면 패널들이 다시 계산된다.
+  const contests = useContestPool()
+  const deadlineRows = useMemo(() => buildDeadlineRows(new Date(), contests), [contests])
+  // 수치 계산은 localStorage를 직접 읽는다 — useMemo로 묶어 두면 로그인 직후 서버
+  // 복원처럼 화면에 머물러 일어난 기록 변화가 반영되지 않으므로, 데이터가 작은 만큼
+  // 매 렌더 다시 계산한다(App.tsx의 알림 계산과 같은 패턴).
+  const activity = buildActivityCounts()
   // 도전 히스토리 — 내 응모 기록을 수상·탈락·진행 중으로 요약한 '성장의 증거'
-  const challenge = useMemo(() => buildChallengeHistory(), [])
+  const challenge = buildChallengeHistory(contests)
   // 출품 로드맵 후보 — 내 응모·관심 중 아직 마감하지 않은 공모전
-  const roadmapCandidates = useMemo(() => buildRoadmapCandidates(), [])
+  const roadmapCandidates = buildRoadmapCandidates()
   const maxChallengeField = Math.max(...challenge.fields.map((bar) => bar.count), 1)
 
   // 아직 마감하지 않은 공모전 중 가장 빠른 마감일 (KPI 보조 문구용)
@@ -210,7 +223,7 @@ function DashboardPage({ onOpenContest, user, onGoLogin, onOpenExplore, onGoInpu
     <div className="dashboard-page">
       <header className={`dashboard-header${user ? ' is-personal' : ''}`}>
         <p className="dashboard-badge">{user ? `${user.nickname}님 계정 현황` : '현황 대시보드'}</p>
-        <h1>{user ? `${user.nickname}님의 공내비` : '한눈에 보는 공내비'}</h1>
+        <h1>{user ? `${user.nickname}님의 공모온` : '한눈에 보는 공모온'}</h1>
         {user ? (
           <p className="dashboard-caption">
             공모전 데이터는 {DATA_AS_OF} 기준이에요. 응모·관심·보관함·로드맵 수치는{' '}
@@ -231,29 +244,29 @@ function DashboardPage({ onOpenContest, user, onGoLogin, onOpenExplore, onGoInpu
       </header>
 
       <section className="kpi-row" aria-label="요약 수치">
-        <div className="kpi-card kpi-hot">
+        <div className="kpi-card kpi-hot" data-reveal>
           <p className="kpi-label">접수 중 공모전</p>
           <p className="kpi-num">{contests.length}</p>
           <p className="kpi-sub">{soonestLabel}</p>
         </div>
-        <div className="kpi-card">
+        <div className="kpi-card" data-reveal data-reveal-delay="90">
           <p className="kpi-label">내 응모</p>
           <p className="kpi-num">{activity.myContests}</p>
           <p className="kpi-sub">{basis}</p>
         </div>
-        <div className="kpi-card">
+        <div className="kpi-card" data-reveal data-reveal-delay="180">
           <p className="kpi-label">내 관심</p>
           <p className="kpi-num">{activity.wishlist}</p>
           <p className="kpi-sub">{basis}</p>
         </div>
-        <div className="kpi-card">
+        <div className="kpi-card" data-reveal data-reveal-delay="270">
           <p className="kpi-label">보관한 아이디어</p>
           <p className="kpi-num">{activity.savedIdeas}</p>
           <p className="kpi-sub">{basis}</p>
         </div>
       </section>
 
-      <section className="dash-panel" aria-label="마감 임박 공모전">
+      <section className="dash-panel" aria-label="마감 임박 공모전" data-reveal>
         <div className="panel-head">
           <h2>마감 임박 공모전</h2>
           <div className="panel-head-side">
@@ -306,7 +319,7 @@ function DashboardPage({ onOpenContest, user, onGoLogin, onOpenExplore, onGoInpu
           />
       </section>
 
-      <section className="dash-panel" aria-label="도전 히스토리">
+      <section className="dash-panel" aria-label="도전 히스토리" data-reveal>
         <div className="panel-head">
           <h2>도전 히스토리</h2>
           <span className="panel-hint">수상·탈락·진행 중은 마이페이지 응모 기록에서 바꿔요</span>
@@ -363,7 +376,7 @@ function DashboardPage({ onOpenContest, user, onGoLogin, onOpenExplore, onGoInpu
         )}
       </section>
 
-      <section className="dash-panel" aria-label="출품 로드맵">
+      <section className="dash-panel" aria-label="출품 로드맵" data-reveal>
         <div className="panel-head">
           <h2>출품 로드맵</h2>
           <span className="panel-hint">

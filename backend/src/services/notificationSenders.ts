@@ -11,7 +11,7 @@ const SMTP_HOST = process.env.SMTP_HOST ?? ''
 const SMTP_PORT = Number(process.env.SMTP_PORT ?? 587)
 const SMTP_USER = process.env.SMTP_USER ?? ''
 const SMTP_PASS = process.env.SMTP_PASS ?? ''
-const MAIL_FROM = process.env.MAIL_FROM ?? '공내비 <no-reply@gongnabi.app>'
+const MAIL_FROM = process.env.MAIL_FROM ?? '공모온 <no-reply@gongmo-on.app>'
 
 export type SendResult = 'sent' | 'log' | 'skipped' | 'failed'
 

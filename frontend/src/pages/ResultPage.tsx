@@ -4,7 +4,8 @@ import { requestAiAnalysis } from '../services/aiAnalysis.js'
 import { buildProposalDraft, proposalToText } from '../services/proposalDraft.js'
 import AppLink from '../components/AppLink'
 import InlineAuthPanel from '../components/InlineAuthPanel'
-import { contests, referenceCases, winnerArchives } from '../data/mockData.js'
+import { referenceCases, winnerArchives } from '../data/mockData.js'
+import { useContestPool } from '../data/contestPool.js'
 import type { IdeaInput } from './IdeaInputPage'
 import type { AppliedContest, AuthResult, User, WishlistContest } from './MyPage'
 import type { Analysis, AiAnalysisPayload, AnalysisDetail } from '../types/analysis'
@@ -18,8 +19,8 @@ const DEMO_TIP =
 // 유사 아이디어는 이 유사도 이상인 사례만 보여 줍니다.
 const SIMILAR_THRESHOLD = 90
 
-// 추천 공모전이 많을 때 한 페이지에 보여 줄 카드 수
-const CONTESTS_PER_PAGE = 6
+// 추천 공모전은 아이디어와 가장 잘 맞는 순서대로 이 개수만 보여 줍니다.
+const RECOMMEND_LIMIT = 4
 
 // 제출 전 자가 점검 항목 — 응모 버튼을 누르기 전 확인용 체크리스트
 const SUBMISSION_CHECKLIST = [
@@ -33,7 +34,7 @@ const SUBMISSION_CHECKLIST = [
   '제출 증명(접수 확인 메일·화면)을 캡처했어요',
 ]
 
-const CHECKLIST_KEY = 'idea-navigation:submission-checklist'
+const CHECKLIST_KEY = 'gongmo-on:submission-checklist'
 
 // services/proposalDraft.js가 만드는 제안서 초안의 표시용 형태
 type ProposalDraft = {
@@ -172,6 +173,8 @@ function ResultPage({
   const [restored, setRestored] = useState(initialAnalysis !== null)
   // AI 요청 실패 후 사용자가 다시 시도하면 1씩 올라가며 분석을 다시 실행합니다.
   const [attempt, setAttempt] = useState(0)
+  // 자동으로 다시 시도할 남은 횟수 — 데모 배너의 자동 재시도 안내에 씁니다.
+  const [autoRetriesLeft, setAutoRetriesLeft] = useState(0)
   // 실제 응모 안내(2단계)를 보여 주는 추천 공모전 id. 확정·취소하면 null로 돌아갑니다.
   const [confirmingApplyId, setConfirmingApplyId] = useState<number | null>(null)
   // 차별화 포인트 '예시로 따라해 보기' 패널 펼침 상태
@@ -179,25 +182,18 @@ function ResultPage({
   // 인라인 로그인 패널을 보여 주는 추천 공모전 id. 로그인 성공 후 응모 확인으로 이어갑니다.
   const [inlineAuthFor, setInlineAuthFor] = useState<number | null>(null)
   const [checklist, setChecklist] = useState<Record<string, boolean>>(loadChecklist)
+  // 추천 후보 풀 — 목업 + 백엔드 자동 등록 공모전. 자동 등록분이 도착하면
+  // 분석을 다시 요청해 후보에 합쳐진다.
+  const contests = useContestPool()
   // 분석 완료 콜백은 ref로 읽어 의존성 배열에서 뺍니다. 콜백이 바뀔 때마다 분석을
   // 다시 요청하는 무한 반복을 막기 위해서입니다.
   const settledRef = useRef(onAnalysisSettled)
   useEffect(() => {
     settledRef.current = onAnalysisSettled
   })
-  // 추천 공모전 페이지네이션 — 현재 보고 있는 페이지(1부터 시작)
-  const [contestPage, setContestPage] = useState(1)
   const checkedCount = SUBMISSION_CHECKLIST.filter((item) => checklist[item]).length
-  // 현재 페이지에 보여 줄 추천 공모전 목록
-  const pagedContests = analysis
-    ? analysis.contests.slice(
-        (contestPage - 1) * CONTESTS_PER_PAGE,
-        contestPage * CONTESTS_PER_PAGE,
-      )
-    : []
-  const contestTotalPages = analysis
-    ? Math.max(1, Math.ceil(analysis.contests.length / CONTESTS_PER_PAGE))
-    : 1
+  // 추천 공모전 — 점수순으로 정렬된 목록에서 가장 잘 맞는 상위 RECOMMEND_LIMIT개만 노출합니다.
+  const recommendedContests = analysis ? analysis.contests.slice(0, RECOMMEND_LIMIT) : []
 
   // 제안서 초안 — 분석이 끝나면 출품용 기획서 양식(문제 정의·기대 효과·실현 계획…)으로 변환
   // proposalDraft.js는 JS 모듈이라 화면 쪽에서 표시용 형태를 타입으로 고정합니다.
@@ -256,30 +252,56 @@ function ResultPage({
 
     const fallback = buildMockAnalysis(idea)
 
-    // 새 분석 결과로 갈아끼울 때 추천 공모전 목록도 바뀌므로 페이지를 1로 되돌립니다.
+    // 새 분석 결과로 갈아끼웁니다.
     const apply = (merged: Analysis) => {
-      setContestPage(1)
       setAnalysis(merged)
       settledRef.current?.(merged)
     }
 
-    requestAiAnalysis(idea, referenceCases, contests)
-      .then((aiData) => {
-        if (!cancelled) {
-          apply(mergeAnalysis('ai', aiData, fallback))
-        }
-      })
-      .catch(() => {
-        // 서버 미실행·키 미설정·타임아웃 등 어떤 경우에도 목업 결과를 표시합니다.
-        if (!cancelled) {
-          apply(mergeAnalysis('demo', null, fallback))
-        }
-      })
+    // 첫 실패로 데모 결과를 보여 준 뒤에도 포기하지 않고 백그라운드에서 두 번 더
+    // 시도한다 — 서버 재시작·게이트웨이 순단 같은 일시적 오류는 이 자동 재시도로
+    // 회복되고, 성공하면 데모 결과가 AI 결과로 조용히 교체된다. 모두 실패하면
+    // 수동 'AI 분석 다시 시도' 버튼에 맡긴다.
+    const RETRY_DELAYS_MS = [2_500, 8_000]
+    const timers: number[] = []
+    let demoShown = false
+
+    const runRequest = (retryIndex: number) => {
+      requestAiAnalysis(idea, referenceCases, contests)
+        .then((aiData) => {
+          if (!cancelled) {
+            apply(mergeAnalysis('ai', aiData, fallback))
+          }
+        })
+        .catch(() => {
+          if (cancelled) return
+          // 서버 미실행·키 미설정·타임아웃 등 어떤 경우에도 목업 결과를 표시합니다.
+          if (!demoShown) {
+            demoShown = true
+            apply(mergeAnalysis('demo', null, fallback))
+          }
+          const delay = RETRY_DELAYS_MS[retryIndex]
+          if (delay !== undefined) {
+            setAutoRetriesLeft(RETRY_DELAYS_MS.length - retryIndex)
+            timers.push(
+              window.setTimeout(() => {
+                if (!cancelled) runRequest(retryIndex + 1)
+              }, delay),
+            )
+          } else {
+            setAutoRetriesLeft(0)
+          }
+        })
+    }
+    runRequest(0)
 
     return () => {
       cancelled = true
+      for (const timer of timers) window.clearTimeout(timer)
     }
-  }, [idea, attempt, restored])
+    // contests(후보 풀)가 의존성에 있다 — 자동 등록 공모전이 늦게 도착하면
+    // 후보에 합쳐진 상태로 분석을 다시 요청한다.
+  }, [idea, attempt, restored, contests])
 
   // 데모 결과로 떨어졌을 때 AI 분석을 다시 요청합니다.
   const retryAnalysis = () => {
@@ -298,7 +320,7 @@ function ResultPage({
 
   return (
     <div className="result-page">
-      <header className="result-header">
+      <header className="result-header" data-reveal>
         {analysis === null ? (
           <p className="result-badge analyzing">분석 중…</p>
         ) : analysis.source === 'ai' ? (
@@ -316,7 +338,7 @@ function ResultPage({
         </p>
         {analysis === null && (
           <p className="result-loading-hint">
-            AI 분석은 최대 45초가 걸릴 수 있어요. 기다려도 실패하면 데모 결과로 자동 표시됩니다.
+            AI 분석은 최대 30초가 걸릴 수 있어요. 실패하면 데모 결과를 보여 드린 뒤 자동으로 다시 시도해요.
           </p>
         )}
         {analysis?.source === 'demo' && (
@@ -325,6 +347,8 @@ function ResultPage({
             <p className="analysis-retry-desc">
               백엔드 서버가 꺼져 있거나 일시적인 오류일 수 있어요. 지금은 데모 결과를 보여 드리고
               있어요.
+              {autoRetriesLeft > 0 &&
+                ` 잠시 뒤 ${autoRetriesLeft}번 더 자동으로 시도하고, 성공하면 AI 결과로 바꿔 드려요.`}
             </p>
             <div className="analysis-retry-actions">
               <button type="button" className="retry-analysis-button" onClick={retryAnalysis}>
@@ -351,7 +375,7 @@ function ResultPage({
         )}
       </header>
 
-      <section className="result-section" aria-labelledby="my-idea-title">
+      <section className="result-section" aria-labelledby="my-idea-title" data-reveal>
         <h2 id="my-idea-title">내 아이디어</h2>
         <div className="idea-card">
           <h3>{idea.title}</h3>
@@ -375,12 +399,12 @@ function ResultPage({
         </div>
       </section>
 
-      <div className="duplication-notice" role="note">
+      <div className="duplication-notice" role="note" data-reveal>
         <strong>전체 중복 가능성 안내</strong>
         <p>{analysis?.overallNotice ?? '아이디어의 중복 가능성을 분석하고 있어요…'}</p>
       </div>
 
-      <section className="result-section" aria-labelledby="differentiation-title">
+      <section className="result-section" aria-labelledby="differentiation-title" data-reveal>
         <h2 id="differentiation-title">차별화 포인트 안내</h2>
         <p className="differentiation-text">
           {analysis?.differentiationTip ??
@@ -394,15 +418,6 @@ function ResultPage({
         >
           📖 예시로 따라해 보기 {showDiffExample ? '▲' : '▼'}
         </button>
-        <div className="note-cta">
-          <button type="button" className="note-cta-button" onClick={handleCreateNote}>
-            🗒️ 이 아이디어로 연습 노트 만들기 →
-          </button>
-          <p className="note-cta-hint">
-            기획 의도가 채워진 채로 시작돼요. 차별점과 예상 질문은 노트에서 직접
-            다듬어 보세요.
-          </p>
-        </div>
         {showDiffExample && (
           <div className="diff-example">
             <ol className="diff-example-steps">
@@ -452,7 +467,7 @@ function ResultPage({
         )}
       </section>
 
-      <section className="result-section" aria-labelledby="detail-title">
+      <section className="result-section" aria-labelledby="detail-title" data-reveal>
         <h2 id="detail-title">아이디어 상세 분석</h2>
         {analysis === null ? (
           <div className="analysis-loading" role="status">
@@ -461,7 +476,10 @@ function ResultPage({
           </div>
         ) : (
           <div className="detail-panel">
-            <p className="detail-summary">{analysis.detail.ideaSummary}</p>
+            <p className="detail-summary">
+              <span className="detail-summary-label">한 줄 요약</span>
+              {analysis.detail.ideaSummary}
+            </p>
             <div className="detail-target">
               <h4>예상 타깃 사용자</h4>
               <ul className="target-chips">
@@ -512,16 +530,42 @@ function ResultPage({
         )}
       </section>
 
-      <section className="result-section proposal-section" aria-labelledby="proposal-title">
+      <div className="note-cta" data-reveal>
+        <button type="button" className="note-cta-button" onClick={handleCreateNote}>
+          🗒️ 이 아이디어로 연습 노트 만들기 →
+        </button>
+        <p className="note-cta-hint">
+          기획 의도가 채워진 채로 시작돼요. 차별점과 예상 질문은 노트에서 직접
+          다듬어 보세요.
+        </p>
+      </div>
+
+      <section className="result-section proposal-section" aria-labelledby="proposal-title" data-reveal>
         <h2 id="proposal-title">제안서 초안 만들기</h2>
+        <p className="proposal-intro">
+          <strong>💡 공모전에 낼 기획서를 빈 페이지에서 쓰기 막막할 때를 위한 기능이에요.</strong>{' '}
+          여기까지의 분석 결과를 출품용 기획서 목차에 맞춰 초안으로 뽑아 드려요.
+        </p>
         {analysis === null || proposalDraft === null ? (
-          <p className="proposal-waiting">분석이 끝나면 이 결과를 출품용 기획서 양식으로 옮겨 드려요.</p>
+          <p className="proposal-waiting">분석이 끝나는 대로 분석 내용을 기획서 초안으로 정리해 드릴게요.</p>
         ) : (
           <>
             <p className="proposal-intro">
-              문제 정의 → 차별점 → 기대 효과 → 실현 계획 순서로 출품용 기획서 초안을 만들었어요.
-              복사해 그대로 다듬어 쓰세요.
+              문제 정의 → 해결 방안 → 차별점 → 기대 효과 → 실현 계획 → 심사 대응 순서의 목차로
+              분석 내용을 옮겨 담았어요.
             </p>
+            <ol className="proposal-howto">
+              <li>
+                <strong>미리보기</strong>를 펼쳐 초안 내용을 확인해요.
+              </li>
+              <li>
+                <strong>초안 복사하기</strong> 또는 <strong>TXT 내려받기</strong>로 내 컴퓨터로
+                가져와요.
+              </li>
+              <li>
+                워드·메모장에 붙여 넣고, 공모전 공고의 기획서 양식과 분량에 맞게 다듬어 제출해요.
+              </li>
+            </ol>
             <div className="proposal-actions">
               <button type="button" className="proposal-copy" onClick={handleCopyProposal}>
                 {proposalCopied ? '복사 완료!' : '초안 복사하기'}
@@ -566,7 +610,7 @@ function ResultPage({
       </section>
 
       <div className="similar-layout">
-        <section className="result-section similar-main" aria-labelledby="similar-title">
+        <section className="result-section similar-main" aria-labelledby="similar-title" data-reveal>
           <h2 id="similar-title">유사 아이디어·수상작</h2>
           {analysis === null ? (
             <div className="analysis-loading" role="status">
@@ -647,8 +691,11 @@ function ResultPage({
         </aside>
       </div>
 
-      <section className="result-section" aria-labelledby="contest-title">
+      <section className="result-section" aria-labelledby="contest-title" data-reveal>
         <h2 id="contest-title">추천 공모전</h2>
+        <p className="contest-subtitle">
+          아이디어와 가장 잘 맞는 순서대로 상위 {RECOMMEND_LIMIT}개만 골라 보여 줘요.
+        </p>
         {analysis === null ? (
           <div className="analysis-loading" role="status">
             <span className="loading-spinner" aria-hidden="true" />
@@ -657,10 +704,13 @@ function ResultPage({
         ) : (
           <>
           <div className="case-list">
-            {pagedContests.map((contest) => (
+            {recommendedContests.map((contest, index) => (
             <article key={contest.id} className="case-card">
               <div className="case-top">
-                <h3>{contest.title}</h3>
+                <div className="case-title-wrap">
+                  <span className="case-rank">{index + 1}</span>
+                  <h3>{contest.title}</h3>
+                </div>
                 <span className="case-source">{contest.field}</span>
               </div>
               <div className="case-body">
@@ -823,46 +873,11 @@ function ResultPage({
             </article>
             ))}
           </div>
-          {analysis.contests.length > CONTESTS_PER_PAGE && (
-            <nav className="contest-pagination" aria-label="추천 공모전 페이지 넘김">
-              <p className="contest-pagination-info">
-                총 {analysis.contests.length}개 중 {(contestPage - 1) * CONTESTS_PER_PAGE + 1}–
-                {Math.min(contestPage * CONTESTS_PER_PAGE, analysis.contests.length)}번째 표시 중
-              </p>
-              <div className="contest-pagination-buttons">
-                <button
-                  type="button"
-                  disabled={contestPage === 1}
-                  onClick={() => setContestPage((page) => Math.max(1, page - 1))}
-                >
-                  ‹ 이전
-                </button>
-                {Array.from({ length: contestTotalPages }, (_, index) => index + 1).map((page) => (
-                  <button
-                    key={page}
-                    type="button"
-                    className={page === contestPage ? 'active' : ''}
-                    aria-current={page === contestPage ? 'page' : undefined}
-                    onClick={() => setContestPage(page)}
-                  >
-                    {page}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  disabled={contestPage === contestTotalPages}
-                  onClick={() => setContestPage((page) => Math.min(contestTotalPages, page + 1))}
-                >
-                  다음 ›
-                </button>
-              </div>
-            </nav>
-          )}
           </>
         )}
       </section>
 
-      <section className="result-section checklist-section" aria-labelledby="checklist-title">
+      <section className="result-section checklist-section" aria-labelledby="checklist-title" data-reveal>
         <h2 id="checklist-title">제출 전 자가 점검</h2>
         <p className="checklist-caption">
           응모 버튼을 누르기 전에 하나씩 확인해 보세요. 체크 기록은 이 브라우저에 저장돼요.
@@ -919,7 +934,7 @@ function ResultPage({
         )}
       </section>
 
-      <div className="result-actions">
+      <div className="result-actions" data-reveal>
         <button type="button" className="restart-button" onClick={onRestart}>
           ← 아이디어 다시 입력하기
         </button>

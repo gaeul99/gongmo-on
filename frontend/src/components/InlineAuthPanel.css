@@ -39,6 +39,10 @@
     border-color 0.15s;
 }
 
+.inline-auth-tab:hover:not(.active) {
+  background: var(--hover-bg);
+}
+
 .inline-auth-tab.active {
   color: var(--accent-text);
   background: var(--bg);
@@ -64,7 +68,7 @@
 .inline-auth-error {
   margin: 0;
   font-size: 12px;
-  color: var(--error, #000000);
+  color: var(--error, #333333);
   word-break: keep-all;
 }
 

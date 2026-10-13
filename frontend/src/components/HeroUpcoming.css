@@ -42,7 +42,9 @@
   margin: 10px 0 0;
   padding: 0;
   display: grid;
-  grid-template-columns: 1fr;
+  /* minmax(0, 1fr): 줄바꿈 금지 meta('.upcoming-meta')의 한 줄 전체 폭이 트랙 최소폭이
+     되어 좁은 화면에서 목록이 패널 밖으로 밀려 나가지 않게 묶는다(2026-10-13). */
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -60,11 +62,14 @@
   cursor: pointer;
   text-align: left;
   font: inherit;
-  transition: border-color 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
 }
 
 .upcoming-item:hover {
   border-color: var(--accent-border);
+  background: var(--hover-bg);
 }
 
 .upcoming-item:hover .upcoming-title {

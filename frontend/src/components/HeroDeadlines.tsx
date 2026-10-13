@@ -7,7 +7,7 @@
 // ==========================================================
 import { useMemo } from 'react'
 import AppLink from './AppLink'
-import { contests } from '../data/mockData.js'
+import { useContestPool } from '../data/contestPool.js'
 import { deadlineStatus, isApplicationOpen } from '../utils/contestAlerts.js'
 import { getNewContests } from '../utils/contestOpenAlerts.js'
 import './HeroDeadlines.css'
@@ -20,8 +20,13 @@ type Props = {
 const SHOW_LIMIT = 3
 
 function HeroDeadlines({ onOpenExplore, onOpenContest }: Props) {
+  // 목업 + 자동 등록이 합쳐진 공모전 풀
+  const contests = useContestPool()
   // 이번 데이터 갱신에서 새로 접수가 시작된 공모전 id (NEW 배지 표시용)
-  const newIds = useMemo(() => new Set(getNewContests(contests).map((contest) => contest.id)), [])
+  const newIds = useMemo(
+    () => new Set(getNewContests(contests).map((contest) => contest.id)),
+    [contests],
+  )
 
   const rows = contests
     .map((contest) => ({ contest, status: deadlineStatus(contest.deadline) }))

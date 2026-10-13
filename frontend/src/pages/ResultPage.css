@@ -6,7 +6,7 @@
   margin: 0 auto;
   padding: 48px 24px 88px;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: 15px;
 
   @media (max-width: 768px) {
     padding: 32px 20px 64px;
@@ -53,8 +53,8 @@
 
 .analysis-loading p {
   margin: 0;
-  font-size: 13px;
-  line-height: 160%;
+  font-size: 14px;
+  line-height: 175%;
   color: var(--text);
   word-break: keep-all;
 }
@@ -63,9 +63,12 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 3px solid var(--accent-bg);
-  border-top-color: var(--accent-text);
-  animation: loading-spin 0.9s linear infinite;
+  /* conic 링 스피너(uiverse 로더 스타일) — 꼬리가 스며드는 호가 돈다.
+     mask로 도넛을 파고, AI 작업 표시라 파랑(--brand)을 쓴다 */
+  background: conic-gradient(from 90deg, transparent 12%, var(--brand));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #333 0);
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #333 0);
+  animation: loading-spin 0.8s linear infinite;
 }
 
 @keyframes loading-spin {
@@ -77,33 +80,83 @@
 .result-header h1 {
   margin: 12px 0 8px;
   font-size: clamp(24px, 4.5vw, 30px);
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .result-caption {
+  line-height: 175%;
   color: var(--text);
   word-break: keep-all;
 }
 
 .result-section {
-  margin-top: 40px;
+  margin-top: 52px;
 }
 
 .result-section h2 {
-  margin: 0 0 16px;
-  font-size: 18px;
+  margin: 0 0 18px;
+  font-size: 20px;
 }
 
 /* --- 제안서 초안 만들기 --- */
 .proposal-intro {
   margin: 0 0 14px;
-  font-size: 13.5px;
+  font-size: 14.5px;
+  line-height: 170%;
   word-break: keep-all;
+}
+
+.proposal-intro strong {
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+/* 초안 이용법 3단계 — 버튼 이름을 그대로 언급해 무엇을 누를지 바로 보이게 한다.
+   번호는 검정 원 배지로 강조(흑백 테마, 컬러 없음) */
+.proposal-howto {
+  margin: 0 0 14px;
+  padding-left: 0;
+  list-style: none;
+  font-size: 13.5px;
+  line-height: 175%;
+  color: var(--text);
+  word-break: keep-all;
+  counter-reset: howto;
+}
+
+.proposal-howto li {
+  margin: 6px 0;
+  padding-left: 27px;
+  position: relative;
+  counter-increment: howto;
+}
+
+.proposal-howto li::before {
+  content: counter(howto);
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+.proposal-howto strong {
+  font-weight: 700;
+  color: var(--text-h);
 }
 
 .proposal-waiting {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 14.5px;
+  line-height: 170%;
   color: var(--text);
 }
 
@@ -137,42 +190,69 @@
   border-color: var(--accent-border);
 }
 
+.proposal-copy:hover {
+  /* 검정 채움 버튼 — 밝기만 살짝 낮춰 눌려 보이게 한다 */
+  opacity: 0.85;
+}
+
+.proposal-download:hover,
+.proposal-toggle:hover {
+  background: var(--hover-bg);
+}
+
 .proposal-copy {
   background: var(--accent);
   border-color: transparent;
   color: var(--accent-ink);
+  font-weight: 700;
 }
 
 .proposal-preview {
-  background: var(--code-bg);
+  /* 결과 화면의 다른 카드(idea-card 등)와 같은 흰 카드 층위 — 초안 문서라는 뜻의
+     회색 인셋이 아니라 '만들어진 결과물' 카드로 보이게 한다 */
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 20px 22px;
+  padding: 24px 26px;
+  box-shadow: var(--shadow);
 }
 
 .proposal-title-line {
-  margin: 0 0 4px;
-  font-size: 15px;
+  margin: 0 0 6px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text-h);
   word-break: keep-all;
 }
 
 .proposal-meta-line {
-  margin: 0 0 12px;
-  font-size: 12.5px;
-  color: var(--accent-text);
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
 .proposal-block {
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 .proposal-block h4 {
-  margin: 0 0 6px;
-  font-size: 14px;
+  margin: 0 0 8px;
+  font-size: 14.5px;
   color: var(--text-h);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+/* 목차 항목 표시 — 검정 세로 바로 6단계 구조를 훑어 볼 수 있게 한다 */
+.proposal-block h4::before {
+  content: '';
+  flex: none;
+  width: 4px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 2px;
 }
 
 .proposal-block ul {
@@ -180,20 +260,28 @@
   padding-left: 18px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 8px;
 }
 
 .proposal-block li {
-  font-size: 13px;
-  line-height: 160%;
+  font-size: 14px;
+  line-height: 175%;
   word-break: keep-all;
 }
 
+/* 제출 전 주의 문구 — 점선 구분선 + ⚠️로 '여기서 끝이 아니라 다듬어야 한다'를 강조 */
 .proposal-note {
   margin: 16px 0 0;
-  font-size: 12px;
-  color: var(--text);
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
   word-break: keep-all;
+}
+
+.proposal-note::before {
+  content: '⚠️ ';
 }
 
 /* 내 아이디어 */
@@ -205,14 +293,15 @@
 }
 
 .idea-card h3 {
-  margin: 0 0 8px;
-  font-size: 16px;
+  margin: 0 0 10px;
+  font-size: 17px;
   color: var(--text-h);
   word-break: keep-all;
 }
 
 .idea-description {
-  line-height: 165%;
+  font-size: 15px;
+  line-height: 180%;
   word-break: keep-all;
   white-space: pre-line;
 }
@@ -242,7 +331,8 @@
 }
 
 .duplication-notice p {
-  margin-top: 4px;
+  margin-top: 6px;
+  line-height: 175%;
   /* 문장 안의 줄바꿈(\n)을 화면에도 반영 — 'AI 분석…' 문장은 다음 줄에 표시 */
   white-space: pre-line;
   word-break: keep-all;
@@ -258,8 +348,8 @@
 /* 유사도 기준 안내·빈 결과 */
 .similar-threshold {
   margin: 0;
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  color: var(--text-2);
 }
 
 .similar-empty {
@@ -276,8 +366,8 @@
 
 .similar-empty p {
   margin: 8px 0 0;
-  font-size: 13px;
-  line-height: 160%;
+  font-size: 14px;
+  line-height: 170%;
   color: var(--text);
   word-break: keep-all;
 }
@@ -299,14 +389,45 @@
 
 .case-top h3 {
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--text-h);
   word-break: keep-all;
 }
 
+/* 추천 순위 — 제목 왼쪽에 붙는 검정 원 배지(흰 숫자). 목업·AI 어느 쪽이든
+   점수가 높은 순서로 1번부터 매겨진다 */
+.case-rank {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+.case-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.contest-subtitle {
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 165%;
+  color: var(--text-2);
+  word-break: keep-all;
+}
+
 .case-source {
-  font-size: 11px;
-  color: var(--text);
+  font-size: 11.5px;
+  color: var(--text-2);
   background: var(--code-bg);
   border-radius: 999px;
   padding: 4px 12px;
@@ -315,11 +436,11 @@
 
 /* 유사도 */
 .similarity {
-  margin-top: 14px;
+  margin-top: 16px;
 }
 
 .similarity-label {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--accent-text);
 }
@@ -340,33 +461,49 @@
 }
 
 .case-summary {
-  margin-top: 14px;
-  line-height: 165%;
+  margin-top: 16px;
+  line-height: 180%;
   word-break: keep-all;
 }
 
 .case-block {
-  margin-top: 16px;
+  margin-top: 18px;
 }
 
 .case-block h4 {
-  margin: 0 0 6px;
-  font-size: 13px;
-  color: var(--text);
+  margin: 0 0 8px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-h);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.case-block h4::before {
+  content: '';
+  flex: none;
+  width: 4px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 2px;
 }
 
 .case-block ul {
   margin: 0;
   padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .case-block li {
-  line-height: 170%;
+  line-height: 180%;
   word-break: keep-all;
 }
 
 .case-block p {
-  line-height: 165%;
+  line-height: 180%;
   word-break: keep-all;
 }
 
@@ -376,7 +513,7 @@
   border: 1px dashed var(--accent-border);
   border-radius: 16px;
   padding: 20px 24px;
-  line-height: 170%;
+  line-height: 180%;
   /* 문장 안의 줄바꿈(\n)을 화면에도 반영 */
   white-space: pre-line;
   word-break: keep-all;
@@ -399,18 +536,23 @@
     color 0.15s;
 }
 
+.diff-example-toggle:hover:not(.is-open) {
+  background: var(--hover-bg);
+}
+
 .diff-example-toggle.is-open {
   color: var(--accent-ink);
   background: var(--accent);
 }
 
-/* 연습 노트 연결 — 차별화 문장을 노트로 옮겨 심사 연습까지 잇는 입구 */
+/* 연습 노트 연결 — 아이디어 상세 분석 바로 아래(2026-10-12 이동). 차별화 문장을
+   노트로 옮겨 심사 연습까지 잇는 입구 */
 .note-cta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 14px;
-  margin: 14px 0 0;
+  margin: 14px 0 26px;
   padding: 12px 14px;
   background: var(--code-bg);
   border: 1px dashed var(--border);
@@ -436,8 +578,8 @@
 }
 
 .note-cta-hint {
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  color: var(--text-2);
   word-break: keep-all;
   min-width: 200px;
   flex: 1;
@@ -486,15 +628,15 @@
 
 .diff-example-steps strong {
   display: block;
-  font-size: 13.5px;
+  font-size: 14.5px;
   font-weight: 800;
   color: var(--text-h);
 }
 
 .diff-example-steps p {
   margin: 3px 0 0;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.7;
   color: var(--text);
   word-break: keep-all;
 }
@@ -513,8 +655,8 @@
 
 .diff-example-compare p {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.7;
   padding: 10px 12px;
   border-radius: 10px;
   word-break: keep-all;
@@ -534,8 +676,8 @@
 
 .diff-example-note {
   margin: 14px 0 0;
-  font-size: 12.5px;
-  color: var(--text);
+  font-size: 13px;
+  color: var(--text-2);
   border-top: 1px dashed var(--border);
   padding-top: 12px;
   word-break: keep-all;
@@ -556,13 +698,13 @@
 }
 
 .contest-info dt {
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  color: var(--text-2);
 }
 
 .contest-info dd {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-h);
   word-break: keep-all;
 }
@@ -571,7 +713,7 @@
 .detail-link {
   display: inline-block;
   margin-top: 16px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--accent-text);
   text-decoration: none;
@@ -637,7 +779,7 @@
 }
 
 .archive-side h2 {
-  font-size: 14px;
+  font-size: 15px;
   margin-bottom: 12px;
   word-break: keep-all;
 }
@@ -653,7 +795,7 @@
 
 .archive-links a {
   display: block;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--accent-text);
   text-decoration: none;
@@ -667,9 +809,9 @@
 .archive-organizer {
   display: block;
   margin-top: 2px;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 400;
-  color: var(--text);
+  color: var(--text-3);
 }
 
 @media (max-width: 768px) {
@@ -691,6 +833,8 @@
 .apply-button {
   display: block;
   width: 100%;
+  position: relative;
+  overflow: hidden;
   font: inherit;
   font-size: 14px;
   font-weight: 600;
@@ -700,14 +844,38 @@
   border-radius: 10px;
   padding: 11px 20px;
   cursor: pointer;
-  transition:
-    transform 0.15s,
-    opacity 0.15s;
+  transition: transform 0.15s;
+}
+
+/* hover 광택 스윕(uiverse식) — 핵심 CTA 공통 인터랙션 */
+.apply-button::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -80%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.55s ease;
+  pointer-events: none;
 }
 
 .apply-button:hover {
   transform: translateY(-1px);
-  opacity: 0.92;
+}
+
+.apply-button:hover::after {
+  left: 135%;
+}
+
+.apply-button:active {
+  transform: translateY(0);
+}
+
+/* 누를 때도 광택 스윕 — 모바일은 hover가 없어 터치 눌림에서 같은 효과를 재생한다(2026-10-13) */
+.apply-button:active::after {
+  left: 135%;
 }
 
 .apply-done {
@@ -770,7 +938,7 @@
 }
 
 .save-button:hover {
-  background: var(--accent-bg);
+  background: var(--hover-bg);
   border-color: var(--accent);
 }
 
@@ -803,7 +971,7 @@
 }
 
 .wish-button:hover {
-  background: var(--accent-bg);
+  background: var(--hover-bg);
 }
 
 .wish-button.active {
@@ -851,8 +1019,8 @@
 /* --- 제출 전 자가 점검 --- */
 .checklist-caption {
   margin: 4px 0 14px;
-  font-size: 13px;
-  line-height: 165%;
+  font-size: 14px;
+  line-height: 175%;
   color: var(--text);
   word-break: keep-all;
 }
@@ -891,7 +1059,7 @@
 
 .checklist-complete {
   margin: 0 0 12px;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--accent-text);
   background: var(--accent-bg);
@@ -917,8 +1085,8 @@
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  font-size: 13.5px;
-  line-height: 155%;
+  font-size: 14px;
+  line-height: 165%;
   color: var(--text);
   cursor: pointer;
   word-break: keep-all;
@@ -934,6 +1102,12 @@
   background: var(--accent-bg);
   border-color: var(--accent-border);
   color: var(--text-h);
+}
+
+/* 큰 클릭 영역(체크 행)의 hover 반응 — checked 배경 위에서도 같은 규칙이 이기게
+   뒤에 둔다 */
+.checklist label:hover {
+  background: var(--hover-bg);
 }
 
 .checklist-reset {
@@ -969,7 +1143,7 @@
   font-weight: 600;
   color: var(--accent-text);
   background: var(--bg);
-  border: 2px solid var(--accent);
+  border: 1px solid var(--accent);
   border-radius: 12px;
   padding: 15px 24px;
   cursor: pointer;
@@ -980,7 +1154,7 @@
 
 .restart-button:hover {
   transform: translateY(-2px);
-  background: var(--accent-bg);
+  background: var(--hover-bg);
 }
 
 .restart-button:active {
@@ -1010,16 +1184,16 @@
 }
 
 .retry-analysis-button:hover {
-  background: var(--accent-bg);
+  background: var(--hover-bg);
   border-color: var(--accent);
 }
 
 /* 로딩 중 AI 분석 지연 안내 */
 .result-loading-hint {
   margin: 12px 0 0;
-  font-size: 12.5px;
-  line-height: 160%;
-  color: var(--text);
+  font-size: 13px;
+  line-height: 170%;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
@@ -1042,8 +1216,8 @@
 
 .analysis-retry-desc {
   margin: 0 0 12px;
-  font-size: 13px;
-  line-height: 160%;
+  font-size: 13.5px;
+  line-height: 170%;
   color: var(--text);
   word-break: keep-all;
 }
@@ -1060,17 +1234,18 @@
   color: var(--text);
 }
 
-/* 응모 2단계 확인 — 실제 응모는 공모전 사이트에서 진행함을 안내 */
+/* 응모 2단계 확인 — 실제 응모는 공모전 사이트에서 진행함을 안내.
+   팝업 계열이라 포인트 색(파랑)을 쓴다 */
 .apply-confirm {
-  border: 1px solid var(--accent-border);
+  border: 1px solid var(--brand-border);
   border-radius: 10px;
-  background: var(--accent-bg);
+  background: var(--brand-bg);
   padding: 12px 14px;
 }
 
 .apply-confirm-text {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 13.5px;
+  line-height: 1.6;
   color: var(--text-h);
   margin: 0 0 10px;
 }
@@ -1085,8 +1260,8 @@
 .apply-confirm-steps {
   margin: 0 0 10px;
   padding-left: 18px;
-  font-size: 12.5px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.65;
   color: var(--text);
   word-break: keep-all;
 }
@@ -1097,13 +1272,14 @@
   gap: 8px;
 }
 
+/* 공모전 사이트로 이동 — 확인 박스 안의 기본 동작이라 파랑으로 채운다 */
 .apply-confirm-site {
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent-text);
+  color: var(--brand-ink);
   text-align: center;
-  background: var(--bg);
-  border: 1px solid var(--accent-border);
+  background: var(--brand);
+  border: 1px solid var(--brand);
   border-radius: 10px;
   padding: 9px 20px;
   text-decoration: none;
@@ -1113,8 +1289,8 @@
 }
 
 .apply-confirm-site:hover {
-  background: var(--accent-bg);
-  border-color: var(--accent);
+  background: var(--brand-text);
+  border-color: var(--brand-text);
 }
 
 .apply-confirm-cancel {
@@ -1141,26 +1317,60 @@
   padding: 24px;
 }
 
+/* 한 줄 요약 — 상세 분석의 결론 한 문장. 검정 배너에 흰 글자로 페이지에서
+   가장 먼저 읽히는 덩어리로 만든다(흑백 테마) */
 .detail-summary {
   margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 170%;
-  color: var(--text-h);
+  padding: 14px 18px;
+  background: var(--accent);
+  border-radius: 12px;
+  font-size: 16.5px;
+  font-weight: 700;
+  line-height: 175%;
+  color: var(--accent-ink);
   word-break: keep-all;
-  border-left: 4px solid var(--accent);
-  padding-left: 14px;
+}
+
+/* 배너 안의 라벨 — 검정 위에서 반전된 흰 알약 */
+.detail-summary-label {
+  display: inline-block;
+  margin-right: 10px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-h);
+  background: var(--bg);
+  border-radius: 999px;
+  vertical-align: 1px;
+  white-space: nowrap;
 }
 
 .detail-target {
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
+/* 상세 분석 블록 라벨 — 검정 세로 바로 '여기가 라벨'임을 표시(제안서 초안 h4와 같은 장치) */
 .detail-target h4,
 .detail-block h4 {
-  margin: 0 0 8px;
-  font-size: 13px;
-  color: var(--text);
+  /* 제목 아래 첫 항목 틈새 — 간격 스케일의 문단 단위(12px)를 쓴다 */
+  margin: 0 0 var(--sp-3);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-h);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.detail-target h4::before,
+.detail-block h4::before {
+  content: '';
+  flex: none;
+  width: 4px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 2px;
 }
 
 .target-chips {
@@ -1173,7 +1383,7 @@
 }
 
 .target-chips li {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
@@ -1183,16 +1393,16 @@
 }
 
 .detail-grid {
-  margin-top: 20px;
+  margin-top: 24px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 20px;
 }
 
 .detail-block {
   background: var(--code-bg);
   border-radius: 12px;
-  padding: 16px;
+  padding: 18px;
 }
 
 .detail-block ul {
@@ -1200,19 +1410,19 @@
   padding-left: 18px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
 .detail-block li {
-  font-size: 13px;
-  line-height: 165%;
+  font-size: 14px;
+  line-height: 175%;
   word-break: keep-all;
 }
 
 .detail-note {
-  margin: 18px 0 0;
-  font-size: 12px;
-  color: var(--text);
+  margin: 22px 0 0;
+  font-size: 12.5px;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
@@ -1233,8 +1443,8 @@
 
 .contest-pagination-info {
   margin: 0;
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  color: var(--text-2);
 }
 
 .contest-pagination-buttons {
@@ -1260,7 +1470,7 @@
 }
 
 .contest-pagination-buttons button:hover:not(:disabled) {
-  background: var(--accent-bg);
+  background: var(--hover-bg);
 }
 
 .contest-pagination-buttons button.active {

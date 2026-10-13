@@ -6,7 +6,7 @@ import { useState } from 'react'
 import AppLink from '../components/AppLink'
 import './PracticeNotePage.css'
 
-const NOTES_STORAGE_KEY = 'idea-navigation:practice-notes'
+const NOTES_STORAGE_KEY = 'gongmo-on:practice-notes'
 
 type PracticeQA = { q: string; a: string }
 
@@ -179,6 +179,7 @@ function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, on
 
         <form
           className="note-editor"
+          data-reveal
           onSubmit={(event) => {
             event.preventDefault()
             handleSave()
@@ -292,7 +293,7 @@ function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, on
         ← 돌아가기
       </button>
 
-      <header className="notes-header">
+      <header className="notes-header" data-reveal>
         <h1>연습 노트</h1>
         <p>
           실제 응모 전에 미리 연습해 두는 준비 노트예요. 기획 의도·차별점·예상 질문을
@@ -300,7 +301,7 @@ function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, on
         </p>
       </header>
 
-      <div className="notes-toolbar">
+      <div className="notes-toolbar" data-reveal>
         <button type="button" className="notes-new-button" onClick={openNew}>
           + 새 노트 만들기
         </button>
@@ -310,7 +311,7 @@ function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, on
       </div>
 
       {notes.length === 0 ? (
-        <div className="notes-empty">
+        <div className="notes-empty" data-reveal>
           <p>아직 연습 노트가 없어요.</p>
           <p className="notes-empty-sub">
             도전하고 싶은 공모전을 하나 정하고, 새 노트로 심사 관점을 미리 연습해 보세요.
@@ -320,7 +321,7 @@ function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, on
           </button>
         </div>
       ) : (
-        <ul className="notes-list">
+        <ul className="notes-list" data-reveal>
           {notes.map((note) => (
             <li key={note.id} className="note-card">
               <button
@@ -347,7 +348,7 @@ function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, on
         </ul>
       )}
 
-      <section className="notes-tips" aria-labelledby="notes-tips-title">
+      <section className="notes-tips prose" aria-labelledby="notes-tips-title" data-reveal>
         <h2 id="notes-tips-title">실전에서 통하는 연습 팁</h2>
         <ul>
           {PRACTICE_TIPS.map((tip) => (

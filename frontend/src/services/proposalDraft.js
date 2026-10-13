@@ -3,11 +3,12 @@
 // 분석 결과(Analysis)와 입력 아이디어를 출품용 기획서 양식으로 옮겨 담는
 // 순수 함수. AI·데모 분석 어느 쪽 결과든 같은 형태로 동작합니다.
 // 섹션별 재료 매핑 — 문제 정의: 입력 설명+타깃 / 해결 방안: 요약 /
-// 차별점: 유사 사례의 '다른 점' / 기대 효과: 강점 / 실현 계획: 보완 지침+확장 /
-// 심사 대응: 심사 포인트 — 분석 필드가 겹치지 않게 한 번씩만 씁니다.
+// 차별점: 유사 사례의 '다른 점' / 기대 효과: 강점+입력 수치(정량 목표) /
+// 실현 계획: 보완 지침+확장 / 심사 대응: 심사 포인트 — 분석 필드가 겹치지 않게 한 번씩만 씁니다.
 // ==========================================================
 
 import { josa } from '../utils/korean.js'
+import { extractMetrics } from '../utils/metrics.js'
 
 function pickLines(list, limit) {
   return Array.isArray(list) ? list.filter((item) => typeof item === 'string' && item.trim()).slice(0, limit) : []
@@ -43,6 +44,12 @@ export function buildProposalDraft({ idea, analysis }) {
   if (diffLines.length === 0) diffLines.push(...pickLines(detail.strengths, 1))
 
   const effectLines = pickLines(detail.strengths, 3)
+  // 입력 설명에 적은 수치 목표는 기대 효과의 재료가 아니라 심사위원이 확인할
+  // '정량 목표' 그 자체라 강점 위에 첫 줄로 인용합니다.
+  const metrics = extractMetrics(description)
+  if (metrics.length > 0) {
+    effectLines.unshift(`정량 목표 — 입력 설명에 적은 수치: ${metrics.join(' · ')}`)
+  }
 
   const planLines = pickLines(detail.improvements, 3).map(
     (line, index) => `${index + 1}단계 — ${line}`,
@@ -63,7 +70,7 @@ export function buildProposalDraft({ idea, analysis }) {
     title: String(idea?.title ?? '').trim() || '제목 없는 아이디어',
     metaLines,
     sections,
-    note: '이 초안은 공내비 분석 결과를 옮겨 담은 것입니다. 제출 전 공고의 기획서 양식과 분량에 맞게 다듬으세요.',
+    note: '이 초안은 공모온 분석 결과를 옮겨 담은 것입니다. 제출 전 공고의 기획서 양식과 분량에 맞게 다듬으세요.',
   }
 }
 

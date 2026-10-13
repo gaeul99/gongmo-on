@@ -19,11 +19,12 @@
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
-  /* 좌상단 보라 → 우하단 밝은 보라가 스미는 대각 그라데이션 */
+  /* 좌상단 보라 → 우하단 밝은 보라가 스미는 대각 그라데이션.
+     마지막 층은 카드 뉴스 캔버스(--page) — 흰 카드가 회색 바닥 위에 뜬다 */
   background:
     linear-gradient(165deg, var(--grad-a) 0%, transparent 42%),
     linear-gradient(345deg, var(--grad-b) 0%, transparent 42%),
-    var(--bg);
+    var(--page);
 }
 
 .home-glow {
@@ -77,20 +78,24 @@
   }
 }
 
-/* 히어로 — 바로가기 탭 아래, 넉넉한 간격을 두고 내려온다.
-   로고부터 예시까지 세로로 쌓아 모두 가운데 정렬. */
+/* 시작 히어로 — 첫 화면을 히어로 혼자 채운다(2026-10-13 사용자 요청). 내비를
+   뺀 남은 높이를 최소 높이로 삼고 내용을 세로 중앙에 놓아, 바로가기 탭과
+   접수 중인 공모전 슬라이드가 첫 화면에 들어오지 않게 한다. width: 100% +
+   box-sizing은 .page가 세로 플렉스라 margin: auto만 두면 내용 폭으로 수축하는
+   것을 막는다(프로젝트 규칙) */
 .hero {
-  display: grid;
-  grid-template-columns: 1fr;
-  justify-items: center;
-  gap: 40px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   max-width: var(--content-width);
-  /* 바로가기 탭과 히어로 사이 여백. 아래 여백은 0 — 히어로와 마키 사이 간격은
-     마키의 margin-top(--home-section-gap)이 혼자 담당해 값이 겹치지 않게 한다 */
-  margin: 56px auto 0;
-  padding: 8px 24px 0;
+  margin: 0 auto;
+  padding: 48px 24px 0;
+  min-height: calc(100svh - 40px);
 }
 
+/* 배지부터 예시까지 세로로 쌓아 가운데 정렬 */
 .hero-copy {
   display: flex;
   flex-direction: column;
@@ -98,6 +103,113 @@
   text-align: center;
   /* 배지와 문구 사이 여백 — 첫 화면 안에 기능 섹션까지 보이게 압축 */
   gap: 16px;
+}
+
+/* 'AI 아이디어 분석 서비스' 알약 배지 — 검색 박스·아이콘 버튼과 같은
+   인셋 회색+구조선 회색 칩(2026-10-13 흑백 요소 통일). 검정은 강조에만 쓴다 */
+.badge {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+
+/* 서비스 워드마크 — 홈 대표 글자. Noto Sans KR SemiBold */
+.hero-title {
+  margin: 0;
+  font-family: 'Noto Sans KR', var(--sans);
+  font-weight: 600;
+  font-size: 56px;
+  line-height: 1.1;
+  /* 전체 글씨 진회색 통일(2026-10-13) — 워드마크는 가장 중요한 글씨라 제목 톤(--text-h #333)을 쓴다 */
+  color: var(--text-h);
+}
+
+.tagline {
+  margin: 4px 0 0;
+  font-size: 15px;
+  line-height: 165%;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+/* 타이핑 애니메이션 커서 */
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  background: var(--accent);
+  vertical-align: -0.15em;
+  animation: caret-blink 0.8s step-end infinite;
+}
+
+@keyframes caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* 순환 표시되는 랜덤 아이디어 예시 */
+.idea-example {
+  margin: 2px 0 0;
+  font-size: 14px;
+  line-height: 155%;
+  color: var(--text);
+  word-break: keep-all;
+  animation: idea-example-fade 0.45s ease-out;
+}
+
+.idea-example-label {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--accent-bg);
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-right: 6px;
+  vertical-align: 2px;
+}
+
+@keyframes idea-example-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 720px) {
+  /* 모바일도 PC와 같은 원리 — 히어로가 내비를 뺀 첫 화면을 혼자 채우고 내용은
+     세로 중앙(2026-10-13 사용자 요청: 히어로를 아래로 더 내려 달라). 예전에
+     홈 팝업 배너를 피하려고 위쪽 정렬로 눌러 담았던 특례는 배너 삭제로 해제했다 */
+  .hero {
+    justify-content: center;
+    min-height: calc(100svh - 40px);
+    padding-top: 40px;
+  }
+
+  .hero-title {
+    font-size: 32px;
+  }
 }
 
 /* 공모전 마키 아래 두 패널 — '곧 마감되는 공모전' + '곧 시작되는 공모전' 2단.
@@ -110,8 +222,8 @@
   align-items: stretch;
   max-width: var(--content-width);
   /* 위 여백 — '접수 중인 공모전' 마키와 두 패널 사이 간격.
-     히어로↔마키 간격과 같은 --home-section-gap을 쓴다 */
-  margin: var(--home-section-gap) auto 0;
+     사용자 요청으로 마키(--home-section-gap)보다 넉넉히 따로 둔다 */
+  margin: 140px auto 0;
   padding-inline: 24px;
 }
 
@@ -185,129 +297,11 @@
   }
 }
 
-/* 배지 묶음 — 세로로 쌓고 모두 가운데 정렬 */
-.hero-brand {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-}
-
-/* 워드마크 옆 나침반 — 내비 로고와 같은 모양·파랑 그라데이션(SVG 안 gradient 정의) */
-.hero-title-row {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-/* 나침반은 흐름에서 빼고 글자 왼쪽 바깥에 건다 — '공내비' 글자 기준으로 화면 중앙 정렬 */
-.hero-title-mark {
-  position: absolute;
-  top: 50%;
-  right: calc(100% + 14px);
-  transform: translateY(-50%);
-  width: 56px;
-  height: 56px;
-  @media (max-width: 1024px) {
-    width: 40px;
-    height: 40px;
-  }
-}
-
-/* 히어로 대형 워드마크 — 고딕 계열 굵은 폰트(Noto Sans KR Black), 로드 실패 시 맑은 고딕 Bold로 대체 */
-.hero-title {
-  margin: 0;
-  font-family: 'Noto Sans KR', var(--sans);
-  font-weight: 900;
-  font-size: 64px;
-  line-height: 1.08;
-  letter-spacing: 0;
-  color: #000;
-  @media (max-width: 1024px) {
-    font-size: 44px;
-  }
-}
-
-.badge {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--accent-text);
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-  border-radius: 999px;
-  padding: 4px 11px;
-}
-
-.tagline {
-  margin-top: 0;
-  font-size: 12.5px;
-  line-height: 140%;
-  color: var(--text-h);
-  word-break: keep-all;
-  @media (max-width: 768px) {
-    font-size: 12px;
-  }
-}
-
-/* 타이핑 애니메이션 커서 */
-.caret {
-  display: inline-block;
-  width: 2px;
-  height: 1em;
-  margin-left: 2px;
-  background: var(--accent);
-  vertical-align: -0.15em;
-  animation: caret-blink 0.8s step-end infinite;
-}
-
-@keyframes caret-blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
-}
-
-/* 순환 표시되는 랜덤 아이디어 예시 */
-.idea-example {
-  /* 문구(tagline)와의 간격 20px — hero-copy의 gap 16px에 더해 4px를 얹는다(2026-10-11 사용자 요청) */
-  margin-top: 4px;
-  font-size: 13px;
-  color: var(--text);
-  word-break: keep-all;
-  animation: example-fade 0.45s ease-out;
-}
-
-.idea-example-label {
-  display: inline-block;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--accent-text);
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-  border-radius: 6px;
-  padding: 1px 8px;
-  margin-right: 8px;
-}
-
-@keyframes example-fade {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* 페이지 맨 아래 기능 소개 배너(푸터 바로 위) — 연보라 배경 밴드. 위아래 패딩이 곧 밴드 높이라
    간격을 줄이면 밴드도 함께 낮아집니다. 배경은 브랜드 연보라(--accent-bg, 다크 대응).
-   margin-top은 밴드 높이를 늘리지 않고 섹션 전체를 아래로 내리는 간격입니다(2026-10-10 사용자 요청으로 60→90px). */
+   margin-top은 밴드 높이를 늘리지 않고 섹션 전체를 아래로 내리는 간격입니다(2026-10-10 사용자 요청으로 60→90px, 2026-10-13 90→220px로 확대). */
 .features {
-  margin-top: 90px;
+  margin-top: 220px;
   padding: 64px 24px 56px;
   /* 보라·청록·호박이 스미는 그라데이션 밴드 — 단일 메인컬러 대신 */
   background: linear-gradient(
@@ -318,133 +312,7 @@
   );
 }
 
-/* 서비스 바로가기 탭 — 뉴스 배너 아래, 히어로 위 첫 섹션.
-   아이디어 분석이 첫 탭이고 시작 버튼은 탭으로 흡수됐다(2026-10-10). */
-.service-tabs {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: var(--content-width);
-  margin: 18px auto 0;
-  padding-inline: 24px;
-}
-
-.service-tab-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-}
-
-.service-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font: inherit;
-  text-align: left;
-  background: var(--bg);
-  /* 기본 테두리 없음(2026-10-11 사용자 요청) — 선을 투명으로만 유지해
-     hover 때 테두리가 나타나도 박스 크기가 흔들리지 않게 한다 */
-  border: 1.5px solid transparent;
-  border-radius: 13px;
-  padding: 11px 16px;
-  cursor: pointer;
-  transition:
-    transform 0.15s,
-    border-color 0.15s,
-    box-shadow 0.15s;
-}
-
-.service-tab:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent-border);
-  box-shadow: var(--shadow);
-}
-
-.service-tab svg {
-  width: 20px;
-  height: 20px;
-  color: var(--accent-text);
-  flex-shrink: 0;
-}
-
-.service-tab-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.service-tab-title {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text-h);
-}
-
-.service-tab-sub {
-  font-size: 11px;
-  color: var(--text);
-  word-break: keep-all;
-}
-
-/* 새로 생긴 서비스 표시 */
-.service-tab-new {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--accent-ink);
-  background: var(--accent);
-  border-radius: 999px;
-  padding: 2px 7px;
-}
-
-/* 탭마다 다른 색 — 흑백 테마 예외(2026-10-10 사용자 지시): 바로가기 탭만
-   흑백 전환 이전 팔레트를 유지한다. 전역 --hue-*는 명도 단계(회색)로 쓰이므로
-   원래 색을 탭 전용으로 하드코딩한다(.nav-badge 예외와 같은 방식). */
-/* 아이디어 분석 탭 — 페이지의 주 서비스라 메인컬러(검정)를 쓴다.
-   hover 테두리는 공통 규칙(.service-tab:hover의 --accent-border)을 그대로 따른다 */
-.service-tab--input svg {
-  color: #000;
-}
-
-.service-tab--test svg {
-  color: #0d9488;
-}
-
-.service-tab--test:hover {
-  border-color: rgba(13, 148, 136, 0.45);
-}
-
-.service-tab--dashboard svg {
-  color: #2563eb;
-}
-
-.service-tab--dashboard:hover {
-  border-color: rgba(37, 99, 235, 0.5);
-}
-
-.service-tab--notes svg {
-  color: #e11d48;
-}
-
-.service-tab--notes:hover {
-  border-color: rgba(225, 29, 72, 0.45);
-}
-
-.service-tab--notes .service-tab-new {
-  background: #e11d48;
-}
-
-/* 공모전 탐색 탭 — 보라 */
-.service-tab--explore svg {
-  color: #6d28d9;
-}
-
-.service-tab--explore:hover {
-  border-color: rgba(109, 40, 217, 0.5);
-}
+/* 서비스 바로가기 탭은 메뉴바로 흡수됐다(2026-10-13) — 스타일은 TopNav.css의 .nav-link가 잇는다 */
 
 
 /* 제목 글꼴은 전역 h2(시스템 글꼴·500·text-h)를 그대로 쓴다 —
@@ -475,9 +343,9 @@
   height: 10px;
   margin: 20px auto 0;
   background:
-    radial-gradient(circle at 6px 5px, #000000 4px, transparent 4.5px),
-    radial-gradient(circle at 22px 5px, #000000 4px, transparent 4.5px),
-    radial-gradient(circle at 38px 5px, #000000 4px, transparent 4.5px);
+    radial-gradient(circle at 6px 5px, #333333 4px, transparent 4.5px),
+    radial-gradient(circle at 22px 5px, #333333 4px, transparent 4.5px),
+    radial-gradient(circle at 38px 5px, #333333 4px, transparent 4.5px);
 }
 
 .feature-grid {
@@ -508,6 +376,9 @@
   text-align: left;
 }
 
+/* 기능 번호 칩 — 검색 박스·배지와 같은 인셋 회색 칩(2026-10-13 흑백 요소 통일).
+   과거에는 카드마다 --hue-* 팔레트를 돌려 썼으나 지금은 전부 흑백 별칭이라
+   하나의 기본 규칙으로 통일했다 */
 .feature-number {
   display: inline-flex;
   align-items: center;
@@ -517,45 +388,24 @@
   border-radius: 50%;
   font-size: 13px;
   font-weight: 700;
-  color: var(--accent-text);
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
+  color: var(--text-h);
+  background: var(--code-bg);
+  border: 1px solid var(--border);
   margin-bottom: 12px;
 }
 
 .feature-card h3 {
   margin: 0 0 10px;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-h);
 }
 
 .feature-card p {
-  font-size: 12.5px;
-  line-height: 160%;
+  font-size: 13.5px;
+  line-height: 172%;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
-/* 카드 번호 칩 — 탭과 같은 팔레트를 돌려 쓴다(청록·블루·로즈·호박) */
-.feature-card:nth-child(1) .feature-number {
-  color: var(--hue-teal);
-  background: var(--hue-teal-bg);
-  border-color: var(--hue-teal-border);
-}
-
-.feature-card:nth-child(2) .feature-number {
-  color: var(--hue-blue);
-  background: var(--hue-blue-bg);
-  border-color: var(--hue-blue-border);
-}
-
-.feature-card:nth-child(3) .feature-number {
-  color: var(--hue-rose);
-  background: var(--hue-rose-bg);
-  border-color: var(--hue-rose-border);
-}
-
-.feature-card:nth-child(4) .feature-number {
-  color: var(--hue-amber);
-  background: var(--hue-amber-bg);
-  border-color: var(--hue-amber-border);
-}
+/* (과거 카드별 --hue-* 번호 칩 규칙은 2026-10-13 흑백 통일로 삭제 —
+   모든 hue 변수가 흑백 별칭이라 기본 규칙 하나로 같은 모양이었다) */

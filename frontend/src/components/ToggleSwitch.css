@@ -1,0 +1,47 @@
+/* on/off 토글 스위치 — 흑백 테마 규칙을 따른다.
+   꺼짐: 인셋 회색 트랙(--code-bg) + 구조선(--border), 켜짐: 강조 진회색(--accent) 채움. */
+.toggle-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--code-bg);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.toggle-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-switch:focus-visible {
+  outline: 2px solid var(--accent-border);
+  outline-offset: 2px;
+}
+
+.toggle-switch.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.toggle-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.toggle-switch.is-on .toggle-switch-knob {
+  transform: translateX(20px);
+  border-color: var(--accent);
+}

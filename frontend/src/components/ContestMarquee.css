@@ -2,9 +2,11 @@
 
 .contest-marquee {
   max-width: var(--content-width);
-  /* 위 여백 — 히어로와의 간격. 히어로 하단 여백은 0이고, .page의 --home-section-gap을
-     마키↔곧 마감/곧 시작 패널 간격(.home-deadlines)과 공유해 두 간격이 항상 같다 */
-  margin: var(--home-section-gap) auto 0;
+  /* 위 여백 — 히어로와 마키 사이 간격. 과거 바로가기 탭이 바로 위에 있을 때는
+     타이트하게 40px로 줄였으나, 2026-10-13 탭이 메뉴바로 흡수된 뒤 사용자 요청으로
+     120px로 늘려 마키를 더 아래로 내렸다. 마키↔곧 마감/곧 시작 패널 간격
+     (.home-deadlines)은 여전히 --home-section-gap을 공유한다 */
+  margin: 120px auto 0;
   padding-inline: 24px;
 }
 
@@ -29,11 +31,12 @@
   overflow: hidden;
   /* 카드 hover 시 위로 살짝 뜨는 만큼 위쪽 여백을 넉넉히 */
   padding-block: 6px 4px;
-  mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(to right, transparent, #333 7%, #333 93%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #333 7%, #333 93%, transparent);
 }
 
-/* 좌우 화살표 — 자동 흐름 대신 한 장씩 옮겨 보는 수동 조작 */
+/* 좌우 화살표 — 자동 흐름 대신 한 장씩 옮겨 보는 수동 조작.
+   기본은 구조선 회색 테두리(칩 언어 통일), 올릴 때만 검정 테두리로 강조한다 */
 .marquee-arrow {
   position: absolute;
   top: 50%;
@@ -45,9 +48,9 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  color: var(--accent-text);
+  color: var(--text);
   background: var(--panel);
-  border: 1px solid var(--accent-border);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow);
   cursor: pointer;
   transition:
@@ -57,7 +60,7 @@
 
 .marquee-arrow:hover:not(:disabled) {
   background: var(--accent-bg);
-  border-color: var(--accent);
+  border-color: var(--accent-border);
 }
 
 .marquee-arrow:disabled {
@@ -123,9 +126,16 @@
   transition: transform 0.2s ease;
 }
 
-/* 포인터를 올린 카드만 살짝 들어 올려 눌러 볼 만하게 */
-.marquee-card:hover {
+/* 포인터를 올린 카드만 살짝 들어 올려 눌러 볼 만하게.
+   모바일은 hover가 없어 누를 때(:active)도 같이 떠오르게 한다(2026-10-13) */
+.marquee-card:hover,
+.marquee-card:active {
   transform: translateY(-3px);
+}
+
+.marquee-card button:active .marquee-name,
+.marquee-card a:active .marquee-name {
+  color: var(--accent-text);
 }
 
 /* 카드 안쪽은 버튼·앱 내 링크(AppLink) 모두 같은 모양 — 셀렉터에 a를 함께 둔다 */
@@ -155,13 +165,14 @@
 .marquee-thumb img {
   display: block;
   width: 100%;
-  height: 112px;
+  /* 포스터가 글자 칸보다 훨씬 크게 보이도록 높이 확대(세로형 포스터의 가로 크롭 완화) */
+  height: 160px;
   object-fit: cover;
 }
 
 /* D-x 라벨 — deadlineStatus의 tone 3단(today/urgent/upcoming).
-   포스터 이미지 위에 얹히므로 반투명·유사색 대신 채운 색 + 흰 글씨로
-   어떤 이미지 위에서도 읽히게 한다. */
+   포스터 이미지 위에 얹히므로 채운 색으로 어떤 이미지 위에서도 읽히게 한다.
+   오늘·임박은 검정 채움(강조), 여유는 흰 칩(2026-10-13 톤 통일). */
 .marquee-badge {
   position: absolute;
   top: 8px;
@@ -177,32 +188,34 @@
   background: var(--error);
 }
 
-/* 임박도 마감 계열 — 빨간색(오늘 마감 D-day와 같은 색, 라벨로 구분) */
+/* 오늘 마감 D-day와 같은 검정 채움 — 라벨로 구분 */
 .marquee-badge.tone-urgent {
   color: #fff;
   background: var(--error);
 }
 
 .marquee-badge.tone-upcoming {
-  color: #fff;
-  background: var(--accent);
+  color: var(--text-h);
+  background: #fff;
+  border: 1px solid var(--border);
 }
 
 .marquee-info {
   display: block;
-  padding: 7px 11px 9px;
+  /* 포스터 비중 최대화 — 글자 칸은 48px: 제목·주최 각 한 줄(말줄임)만 남긴다.
+     전체 제목은 링크 title·상세 페이지에서 확인 */
+  padding: 6px 11px 7px;
 }
 
 .marquee-name {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   font-size: 12.5px;
   font-weight: 600;
-  line-height: 1.45;
+  line-height: 1.35;
   color: var(--text-h);
-  min-height: 36.5px;
   word-break: keep-all;
 }
 
@@ -210,6 +223,7 @@
   display: block;
   margin-top: 2px;
   font-size: 12px;
+  line-height: 1.35;
 }
 
 /* 움직임을 줄이기를 원하는 환경에서는 멈춘 상태의 가로 스크롤 목록으로 대체 */

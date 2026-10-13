@@ -54,7 +54,7 @@ export const IDEA_EXAMPLES = [
 
 // 날짜별로 하루에 하나씩 순환하는 창작 미션.
 // 2026-10-02 정리로 '오늘의 미션' UI 컴포넌트는 빠졌지만,
-// 대시보드 통계(buildSparkStats)와 챗봇 스냅숏(chatContext.js)이 여전히 사용하므로 유지합니다.
+// 대시보드 통계(buildSparkStats)가 여전히 사용하므로 유지합니다.
 export const DAILY_MISSIONS = [
   '편의점에서 불편한 점 하나를 찾고, 해결 아이디어를 한 문장으로 적어 보세요.',
   '가장 최근에 쓴 앱에서 아쉬운 점을 고른 뒤, 내가 만든다면 어떻게 바꿀지 생각해 보세요.',

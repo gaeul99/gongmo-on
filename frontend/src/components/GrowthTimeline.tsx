@@ -3,7 +3,7 @@
 // (아이디어 분석 → 유형 검사 → 공모전 응모 → 결과 기록 → 수상)
 // 도전 히스토리가 '결과의 요약'이라면 이 컴포넌트는 '과정의 체크'다.
 // 지금 서 있는 걸음을 표시해 다음에 뭘 하면 되는지 한눈에 알려 준다.
-// 유형 검사 결과는 localStorage('idea-navigation:type-test')를 렌더 때마다 다시 읽어
+// 유형 검사 결과는 localStorage('gongmo-on:type-test')를 렌더 때마다 다시 읽어
 // 로그인 직후 서버 복원으로 갱신된 값도 곧바로 반영한다.
 // ==========================================================
 import type { AppliedContest, SavedIdea } from '../pages/MyPage'

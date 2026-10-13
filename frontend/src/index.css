@@ -1,63 +1,139 @@
-/* 전체 폰트 — 시스템 맑은 고딕 단일 사용. '공내비' 워드마크만 고딕 계열 굵은 폰트(Noto Sans KR Black) */
+/* 전체 폰트 — 시스템 맑은 고딕 단일 사용. '공모온' 워드마크만 고딕 계열 굵은 폰트
+   (Noto Sans KR — 2026-10-12 사용자 요청으로 Black(900)→ExtraBold(800)→Bold(700)→SemiBold(600)로 낮춤) */
 @font-face {
   font-family: 'Noto Sans KR';
-  src: url('/fonts/NotoSansKR-Black.woff2') format('woff2');
-  /* Black(900) 단일 파일 — 900 요청에 그대로 매핑해 브라우저 가짜 볼드 합성을 막는다 */
-  font-weight: 900;
+  src: url('/fonts/NotoSansKR-SemiBold.woff2') format('woff2');
+  /* SemiBold(600) 단일 파일 — 600 요청에 그대로 매핑해 브라우저 가짜 볼드 합성을 막는다 */
+  font-weight: 600;
   font-display: swap;
 }
 
 :root {
-  --text: #000000;
-  --text-h: #000000;
+  /* 글자 명암 위계 — 본문·보조는 진회색(--text-2 #555)으로 통일하고(2026-10-13 사용자 지시),
+     제목 등 중요한 글씨만 한 단계 진한 회색(--text-h #333)으로 위계를 만든다(같은 날 추가 요청).
+     보조 텍스트(메타·안내·출처)는 --text-3 #767676(#555 대비 4.6:1, 흰 배경 4.5:1). */
+  --text-h: #333333;
+  --text: #555555;
+  --text-2: #555555;
+  --text-3: #767676;
+  /* 카드 뉴스 캔버스(2026-10-12) — 앱 배경은 연회색, 카드 표면(--bg·--panel)은 흰색.
+     흰 카드가 회색 바닥 위에 뜨는 명암 차로 화면 구획이 한눈에 잡히게 한다. */
+  --page: #f2f3f5;
   --bg: #fff;
-  --border: #000000;
-  --code-bg: #ffffff;
+  /* 구조선(카드 테두리·구분선)은 회색 — 0.8 축척에서 검정 1px 선은 잔물결처럼
+     뭉개져 전체를 지저분하게 만들었다(2026-10-12 사용자 지적). 검정 선은
+     강조(hover·선택·핵심 배지)에만 쓴다(--accent-border 유지). */
+  --border: #d8dade;
+  /* 인셋(카드 안을 다시 파인 영역: 검색칸·목록 행·미리보기·막대 트랙) — 흰 카드 안에서
+     회색으로 파여 보여야 '안쪽'임이 읽힌다. */
+  --code-bg: #f4f5f7;
   --panel: #fff;
-  --accent: #000000;
+  --accent: #333333;
   --accent-bg: #ffffff;
-  --accent-border: #000000;
-  /* 밝은 배경 위의 강조 글자·아이콘용 — 액센트 채우기 위 글자는 흰색(--accent-ink) */
-  --accent-text: #000000;
+  --accent-border: #333333;
+  /* 밝은 배경 위의 강조 글자·아이콘용 — 액센트 채우기 위 글자는 흰색(--accent-ink).
+     2026-10-13 전체 글씨 진회색 통일로 강조 글자도 진회색(--text-2)으로 맞췄다 */
+  --accent-text: #555555;
   --accent-ink: #ffffff;
-  /* 흑백 테마 — 화이트(#fff/#ffffff)와 블랙(#000000)만 사용(2026-10-10 사용자 지시).
-     배경·틴트는 전부 흰색, 테두리·표시는 전부 검정. 상태·카테고리 구분은
-     채우기(블랙 배지)와 테두리로 한다. --hue-*는 역할 이름만 남긴 별칭. */
-  --hue-teal: #000000;
+  /* 무채색 테마 — 2026-10-13 사용자 지시로 순수 검정(#000)을 전부 폐지했다.
+     강조(강조선·채우기 배지·CTA·핵심 배지)는 진한 회색 #333(--accent)으로 하고,
+     캔버스·구조선·인셋은 회색 명암으로 구획을 만든다.
+     상태·카테고리 구분은 채우기(진회색 배지)와 테두리로 한다. --hue-*는 역할 이름만 남긴 별칭. */
+  --hue-teal: #333333;
   --hue-teal-bg: #ffffff;
-  --hue-teal-border: #000000;
-  --hue-blue: #000000;
+  --hue-teal-border: #333333;
+  --hue-blue: #333333;
   --hue-blue-bg: #ffffff;
-  --hue-blue-border: #000000;
-  --hue-purple: #000000;
+  --hue-blue-border: #333333;
+  --hue-purple: #333333;
   --hue-purple-bg: #ffffff;
-  --hue-purple-border: #000000;
-  --hue-amber: #000000;
+  --hue-purple-border: #333333;
+  --hue-amber: #333333;
   --hue-amber-bg: #ffffff;
-  --hue-amber-border: #000000;
-  --hue-green: #000000;
+  --hue-amber-border: #333333;
+  --hue-green: #333333;
   --hue-green-bg: #ffffff;
-  --hue-green-border: #000000;
-  --hue-rose: #000000;
+  --hue-green-border: #333333;
+  --hue-rose: #333333;
   --hue-rose-bg: #ffffff;
-  --hue-rose-border: #000000;
+  --hue-rose-border: #333333;
+  /* 포인트 색(파랑, 2026-10-12 사용자 지시) — 팝업(응모 확인 박스·동기화 알림 등)과
+     핵심 CTA(아이디어 분석 시작/분석하기)·NEW 배지에만 쓴다. 나머지 UI는 위의
+     흑백 테마를 유지하며 --accent 계열은 검정 그대로 둔다. 알림 배지·마감 칩의
+     빨강과 캘린더 상태색은 별도 기능 색으로 유지된다. */
+  --brand: #2563eb;
+  --brand-ink: #ffffff;
+  --brand-bg: #eff6ff;
+  --brand-border: #2563eb;
+  --brand-soft: #dbeafe;
+  --brand-text: #1d4ed8;
+  /* 상호작용 피드백 전용 토큰(2026-10-12 사용자 지적) — 흑백 테마가 accent-bg·code-bg를
+     순백으로, border·accent-border를 검정으로 통일해 기존 hover 규칙의 배경 틴트와
+     테두리 색 반응이 눈에 보이지 않았다. hover 규칙들은 이 변수를 쓴다. */
+  --hover-bg: #eef0f4;
+  /* 그림자 3단(2026-10-12 카드 뉴스 정비) — 카드가 캔버스 위에 항상 살짝 떠 있어야
+     구획이 읽힌다(--shadow: 잠깐 상태), 손을 올리면 더 뜨고(--shadow-hover),
+     화면 위를 덮는 팝업은 가장 크게 떠 있다(--shadow-pop). */
+  --shadow: 0 1px 2px rgba(16, 18, 22, 0.05), 0 4px 14px rgba(16, 18, 22, 0.06);
+  --shadow-hover: 0 10px 24px rgba(0, 0, 0, 0.16);
+  --shadow-pop: 0 6px 16px rgba(16, 18, 22, 0.1), 0 20px 44px rgba(16, 18, 22, 0.16);
   /* 첫화면 배경 광원(HomePage .home-glow)과 그라데이션 색 — 흑백 테마에서 광원은 끈다(투명) */
   --glow-a: transparent;
   --glow-b: transparent;
   --grad-a: transparent;
   --grad-b: transparent;
-  --error: #000000;
+  --error: #333333;
   --social-bg: #ffffff;
   --shadow: none;
 
   --sans: 'Malgun Gothic', '맑은 고딕', system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  font: 16px/145% var(--sans);
-  letter-spacing: 0.18px;
+  /* 타이포·간격 토큰(2026-10-12 디자인 시스템 정비) — 26종으로 흩어져 있던
+     font-size를 9단 스케일로 통일하고 문단 리듬과 여백을 4pt 그리드로 묶는다.
+     새 코드는 이 토큰을 쓰고, 기존 수치는 해당 화면을 건드릴 때 점진 치환한다.
+     0.5px 절반 단계(12.5/13.5px 등)는 위계가 아니라 잡음이라 토큰에 두지 않는다. */
+  --fs-2xs: 11px; /* 칩·배지·D-day */
+  --fs-xs: 12px; /* 메타·캡션·안내 */
+  --fs-sm: 13px; /* 보조 텍스트 */
+  --fs-md: 14px; /* UI 본문·목록·버튼 */
+  --fs-base: 16px; /* 설명 문단 */
+  --fs-lg: 18px; /* 카드·패널 제목 */
+  --fs-xl: 22px; /* h2·화면 제목 */
+  --fs-2xl: 28px; /* h1 */
+  --fs-display: 56px; /* 히어로 디스플레이 */
+  /* 줄간격 3단 — 제목 1.25 / 두 줄 제목·h3 이하 1.4 / 한글 문단 1.7(권장 1.6~1.75) */
+  --lh-tight: 1.25;
+  --lh-snug: 1.4;
+  --lh-body: 1.7;
+  /* 자간 — 크기 비례 em. 한글 본문은 0에 가깝게, 22px 이상 제목만 살짝 당긴다 */
+  --ls-tight: -0.015em;
+  --ls-label: 0.05em;
+  /* 간격 스케일(4pt 그리드) — 칩 4 / 행·제목-본문 틈 8 / 문단 12 / 카드 16~24 / 섹션 40~48 */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  font: 16px/1.6 var(--sans);
+  letter-spacing: 0.01em;
   color-scheme: light;
+  /* 한글 본문 기본 — 어미 중간 줄바꿈을 막는 keep-all을 앱 전체 기본으로.
+     요소별로 이미 지정된 곳은 그대로고, 빠진 곳까지 한글이 어색하게 끊기지 않는다.
+     overflow-wrap은 긴 영문·URL만 줄 넘침 직전에 끊는 안전 장치다. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  /* 세로 스크롤바 자리를 항상 확보한다 — 스크롤 유무가 필터 전환 등으로 바뀌면
+     콘텐츠 폭이 스크롤바 폭만큼 흔들려 보인다(2026-10-12 공모전 탐색
+     '마감'/'전체' 보기 폭 불일치). 커스텀 스크롤바 트랙은 투명해 남는 자리가 없다. */
+  overflow-y: scroll;
   color: var(--text);
-  background: var(--bg);
+  background: var(--page);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -74,56 +150,196 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  /* 좌우 테두리 — 양쪽 모두 같은 두께의 얇은 보라 선 */
-  border-inline: 1.2px solid var(--accent-border);
 }
 
 body {
   margin: 0;
 
-  /* 전체 축척 — 폰트·여백·레이아웃이 함께 80%로 렌더링돼 화면 전반이 촘촘해 보인다.
-     더 작게/크게 조절할 때는 이 값 하나만 바꾼다(0.9=10% 축소, 0.7=30% 축소). */
-  zoom: 0.8;
+  /* 전체 축척 — 폰트·여백·레이아웃이 함께 렌더링된다. 더 작게/크게 조절할 때는
+     이 값 하나만 바꾼다(0.8=20% 축소, 0.85=15% 축소). 0.8은 실효 본문 12.8px로
+     한글 가독성 기준(실효 13.5px+)에 못 미쳐 본문과 제목이 뭉쳐 보인다는
+     지적(2026-10-12)에 따라 0.9로 올렸다 — 실효 14.4px. */
+  zoom: 0.9;
 
-  /* 모바일: 아이콘·글씨·여백 전체를 웹보다 더 작게(70% 축척).
+  /* 모바일: 아이콘·글씨·여백 전체를 웹보다 더 작게(80% 축척).
      zoom은 자식 전체에 상속되므로 px 고정값도 함께 줄어든다. */
   @media (max-width: 768px) {
-    zoom: 0.7;
+    zoom: 0.8;
   }
 }
 
 h1,
-h2 {
+h2,
+h3,
+h4 {
   font-family: var(--sans);
-  font-weight: 500;
+  /* 본문(400)과 제목의 격차를 명확히 — 굵기로도 위계를 낸다 */
+  font-weight: 700;
   /* 조상의 고정 줄높이를 상속해 큰 제목이 줄 상자에 잘리지 않게 함 */
-  line-height: 1.2;
+  line-height: var(--lh-tight);
   color: var(--text-h);
 }
 
 h1 {
+  font-size: var(--fs-2xl);
+  letter-spacing: var(--ls-tight);
+  margin: 0 0 var(--sp-3);
   @media (max-width: 1024px) {
-    font-size: 32px;
+    font-size: 24px;
   }
 }
 h2 {
-  font-size: 22px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
+  font-size: var(--fs-xl);
+  letter-spacing: var(--ls-tight);
+  /* 22px 제목 아래 본문 틈새 — 실효 6.4px(8px×0.8)로 뭉쳐 보이던 것을 10px로 */
+  margin: 0 0 10px;
   @media (max-width: 1024px) {
     font-size: 18px;
   }
+}
+/* h3·h4 — 카드·블록 제목. 각 화면 CSS가 스코프 셀렉터(.result-section h2 등)로
+   크기를 이기는 곳이 많으므로 여기 값은 오버라이드 없는 곳의 기본값이다.
+   브라우저 기본 위쪽 마진(1em~)을 없애고 '제목 아래 틈새'만 규정해
+   제목-본문 간격이 화면마다 같게 만든다 */
+h3 {
+  font-size: var(--fs-lg);
+  line-height: var(--lh-snug);
+  margin: 0 0 var(--sp-2);
+}
+h4 {
+  font-size: var(--fs-md);
+  line-height: var(--lh-snug);
+  margin: 0 0 var(--sp-2);
 }
 p {
   margin: 0;
 }
 
+/* 문단 리듬 스코프 — 긴 설명이 이어지는 영역(공고 소개·제안서 초안 미리보기·
+   연습 노트 팁 등)에 className="prose"를 붙여 쓴다. 전역 p는 margin 0을 유지해야
+   카드 UI의 라벨·홀더 용법이 깨지지 않으므로 문단 간격은 이 스코프 안에서만 준다.
+   max-width 640px은 한글 본문의 편한 행폭(한 줄 30~40자)이다. */
+.prose {
+  line-height: var(--lh-body);
+  letter-spacing: 0;
+  max-width: 640px;
+}
+.prose p + p {
+  margin-top: var(--sp-3);
+}
+.prose h2,
+.prose h3 {
+  margin-top: var(--sp-6);
+}
+.prose ul {
+  padding-left: 1.2em;
+}
+.prose li + li {
+  margin-top: 6px;
+}
+
+/* 스크롤바 — '구슬 레일 + 검정 알약'(2026-10-13 6차). 트랙은 1px 구조선을
+   점(구슬) 줄로 이어 받아 가볍게 긋고, 손잡이(thumb)는 무늬 없는 검정 알약이
+   레일에서 살짝 떠 있다. 포인터를 올리면 알약이 통통해지고 짙어지고, 눌러
+   끌면 순검정으로 차오른다. 표준 속성(scrollbar-color 등)을 함께 쓰면
+   Chromium 121+에서 표준 쪽이 이겨 커스텀 스타일이 무시되므로 webkit 계열만
+   규정한다. */
+::-webkit-scrollbar {
+  width: 13px;
+  height: 13px;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* 트랙 — 구조선을 9px 간격 구슬 줄로 */
+::-webkit-scrollbar-track {
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, var(--border) 1.1px, transparent 1.6px);
+  background-size: 3px 9px;
+  background-repeat: repeat-y;
+  background-position: center;
+}
+
+/* 가로 스크롤바의 구슬은 가로 줄로 */
+::-webkit-scrollbar-track:horizontal {
+  background-size: 9px 3px;
+  background-repeat: repeat-x;
+}
+
+/* 손잡이 — 투명 테두리(3px)로 레일과의 사이를 낸 무늬 없는 검정 알약 */
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background-color: var(--accent);
+  background-clip: padding-box;
+  min-height: 36px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  border-width: 2px;
+  background-color: #111;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: #000;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* 앱 안 이동 링크(AppLink) — 버튼 스타일을 그대로 쓰는 <a>의 기본 꾸밈을 지운다.
-   :where()로 명시도를 0으로 유지해 각 자리 클래스(.service-tab 등)의 스타일이 그대로 이긴다. */
+   :where()로 명시도를 0으로 유지해 각 자리 클래스(.nav-link 등)의 스타일이 그대로 이긴다. */
 :where(a.app-link) {
   color: inherit;
   text-decoration: none;
+}
+
+/* 카드 뉴스 그림자 — 캔버스 위의 흰 카드들이 항상 살짝 떠 있어야 화면 구획이
+   한눈에 잡힌다(2026-10-12). 표면 색·테두리는 각 파일이 그대로 가지고,
+   여기서는 '카드'에 해당하는 클래스만 골라 잠깐 상태의 그림자를 한꺼번에 부여한다.
+   손을 올릴 때의 추가 상승은 각 hover 규칙의 --shadow-hover가 담당하고, 화면을
+   덮는 패널(notif-panel·search-dropdown·category-panel)은
+   각 컴포넌트 CSS에서 더 강한 --shadow-pop을 쓴다.
+   :where 명시도 0이라 자체 box-shadow를 선언한 카드(marquee-card 등)는 그 값이 이긴다. */
+:where(
+    .service-tab,
+    .feature-card,
+    .explore-card,
+    .explore-toolbar,
+    .idea-card,
+    .case-card,
+    .detail-panel,
+    .kpi-card,
+    .dash-panel,
+    .challenge-count,
+    .roadmap-stage,
+    .growth-timeline,
+    .type-test-panel,
+    .type-test-result-card,
+    .note-card,
+    .note-qa,
+    .input-archive-item,
+    .profile-card,
+    .my-contest-item,
+    .alert-item,
+    .profile-edit
+  ) {
+  box-shadow: var(--shadow);
+}
+
+/* 페이지 넘김에서 생략된 구간을 잇는 '…' — 대시보드·탐색·결과 화면이 함께 쓴다.
+   버튼이 아니므로 눌리지 않으며, 버튼 줄 안에서 세로로 가운데 정렬된다. */
+.pager-gap {
+  align-self: center;
+  padding: 0 2px;
+  line-height: 1;
+  color: var(--text);
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
 }
 
 /* 클릭 버튼 공통 동작 — 포인터를 올리면 살짝 위로 떠오른다.
@@ -133,6 +349,7 @@ p {
    한데 모아 이동까지 함께 부드럽게 한다. 비활성 버튼은 움직이지 않는다. */
 :where(
     button:not(:disabled),
+    a[href],
     .type-test-analyze,
     .empty-button,
     .empty-cta-button,
@@ -165,9 +382,45 @@ p {
   transform: translateY(-2px);
 }
 
+/* 눌림 피드백 — hover에서 떠오른 요소가 눌리며 가라앉는다. :where를 쓰지 않아
+   hover 이동을 이기고, 개별 :active 규칙(.analyze-button 등)은 페이지 CSS가
+   나중에 로드되므로 그대로 유지된다. a[href]를 함께 눌러 터치 기기(모바일)에서도
+   링크 카드를 눌렀을 때 반응이 보이게 한다(2026-10-13 사용자 지적 — 모바일에는
+   hover가 없어 인터랙션 효과가 나타나지 않았다) */
+button:not(:disabled):active,
+a[href]:active,
+.type-test-analyze:active,
+.empty-button:active,
+.empty-cta-button:active,
+.dash-login-cta:active,
+.data-import-label:active,
+.deadline-more:active,
+.deadline-item:active,
+.upcoming-item:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* 클릭 가능한 요소의 커서 — 개별 규칙이 놓친 버튼·링크를 한꺼번에 챙긴다.
+   :where 명시도 0이라 의도한 cursor: default/wait/not-allowed 규칙이 그대로 이긴다 */
+:where(button:not(:disabled), a[href], summary, select) {
+  cursor: pointer;
+}
+
+:where(button:disabled) {
+  cursor: not-allowed;
+}
+
+/* 키보드 초점 링 — 탭으로 옮겨 온 초점이 어디인지 파랑으로 알린다. 마우스 클릭에는
+   나타나지 않는다(:focus-visible). 입력칸처럼 자체 focus 규칙이 있는 요소는
+   그 규칙이 그대로 이긴다(:where 명시도 0) */
+:where(a[href], button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
 /* 서버 백업 지연 알림 — 우하단 왼쪽에 한 줄로 띄워 데이터가 이 브라우저에만
-   저장돼 있음을 알린다. 백업이 성공하면 App이 스스로 내린다. 챗봇 FAB(우하단
-   오른쪽)와 겹치지 않게 왼쪽에 둔다. */
+   저장돼 있음을 알린다. 백업이 성공하면 App이 스스로 내린다. 팝업 계열이므로
+   포인트 색(파랑)을 쓴다. */
 .sync-notice {
   position: fixed;
   bottom: 16px;
@@ -180,10 +433,10 @@ p {
   padding: 10px 12px 10px 14px;
   font-size: 12.5px;
   color: var(--text);
-  background: var(--hue-amber-bg);
-  border: 1px solid var(--hue-amber-border);
+  background: var(--brand-bg);
+  border: 1px solid var(--brand-border);
   border-radius: 12px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-pop);
   box-sizing: border-box;
 }
 
@@ -205,5 +458,20 @@ p {
 }
 
 .sync-notice button:hover {
-  background: var(--hue-amber-border);
+  background: var(--brand-soft);
+}
+
+/* 움직임 최소화 선호 — uiverse식 인터랙션 효과(광택 스윕·이미지 줌·화살표 슬라이드)를 끈다 */
+@media (prefers-reduced-motion: reduce) {
+  .analyze-button::after,
+  .type-test-start::after,
+  .apply-button::after,
+  .detail-apply-button::after {
+    display: none;
+  }
+
+  .explore-thumb img,
+  .deadline-item::after {
+    transition: none;
+  }
 }

@@ -71,8 +71,8 @@
 
 .login-desc {
   margin: 0;
-  font-size: 13px;
-  line-height: 155%;
+  font-size: 13.5px;
+  line-height: 170%;
   word-break: keep-all;
 }
 
@@ -113,8 +113,8 @@
 
 .login-note {
   margin: 0;
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  color: var(--text-2);
 }
 
 .auth-error {
@@ -187,8 +187,8 @@
 
 .profile-since {
   margin: 2px 0 0;
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  color: var(--text-2);
 }
 
 .logout-button {
@@ -252,7 +252,7 @@
 /* 응모한 공모전 목록 */
 section h2 {
   margin: 0 0 16px;
-  font-size: 18px;
+  font-size: 20px;
   color: var(--text-h);
 }
 
@@ -330,6 +330,12 @@ section h2 {
   padding: 16px 18px;
 }
 
+/* 수정 중인 보관함 항목 — 어느 아이디어를 고치는지 포인트 색으로 알려 준다 */
+.my-contest-item--editing {
+  border-color: var(--brand-border);
+  background: var(--brand-bg);
+}
+
 .my-contest-info {
   flex: 1;
   min-width: 0;
@@ -337,15 +343,15 @@ section h2 {
 
 .my-contest-info h3 {
   margin: 0 0 4px;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-h);
   word-break: keep-all;
 }
 
 .my-contest-meta {
   margin: 0;
-  font-size: 12px;
-  color: var(--text);
+  font-size: 12.5px;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
@@ -382,6 +388,7 @@ section h2 {
 
 .result-chip:hover {
   border-color: var(--accent-border);
+  background: var(--hover-bg);
 }
 
 .result-chip.is-active {
@@ -448,8 +455,8 @@ section h2 {
 
 .empty-state p {
   margin: 0 0 18px;
-  font-size: 13px;
-  line-height: 165%;
+  font-size: 14px;
+  line-height: 175%;
   word-break: keep-all;
 }
 
@@ -461,7 +468,7 @@ section h2 {
   font-weight: 600;
   color: var(--accent-text);
   background: var(--bg);
-  border: 2px solid var(--accent);
+  border: 1px solid var(--accent);
   border-radius: 12px;
   padding: 11px 28px;
   cursor: pointer;
@@ -472,7 +479,7 @@ section h2 {
 
 .empty-button:hover {
   transform: translateY(-2px);
-  background: var(--accent-bg);
+  background: var(--hover-bg);
 }
 
 @media (max-width: 600px) {
@@ -498,27 +505,24 @@ section h2 {
   margin-bottom: 14px;
 }
 
-.notif-toggle {
-  display: inline-flex;
+.notif-toggle-row {
+  display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+}
+
+.notif-toggle-label {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-h);
   cursor: pointer;
 }
 
-.notif-toggle input {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--accent-text);
-}
-
 .notif-hint {
   margin: 6px 0 0;
-  font-size: 12px;
-  line-height: 155%;
-  color: var(--text);
+  font-size: 12.5px;
+  line-height: 165%;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
@@ -564,29 +568,6 @@ section h2 {
   word-break: keep-all;
 }
 
-.notif-preview {
-  font: inherit;
-  font-size: 12px;
-  color: var(--accent-text);
-  background: none;
-  border: none;
-  padding: 6px 0;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.notif-preview:hover {
-  opacity: 0.8;
-}
-
-.notif-preview-ready {
-  margin: 8px 0 0;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--accent-text);
-  word-break: keep-all;
-}
-
 .mypage-inner section + section {
   margin-top: 84px;
 }
@@ -627,7 +608,7 @@ section h2 {
 }
 
 .alert-dismiss:hover {
-  background: var(--accent-bg);
+  background: var(--hover-bg);
 }
 
 /* '모두 읽음' 줄 — 카드 틀 없이 알림 목록 위 오른쪽에 버튼만 둔다.
@@ -682,7 +663,7 @@ section h2 {
 
 .alert-title {
   margin: 0;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-h);
   word-break: keep-all;
@@ -690,8 +671,8 @@ section h2 {
 
 .alert-meta {
   margin: 2px 0 0;
-  font-size: 11px;
-  color: var(--text);
+  font-size: 11.5px;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
@@ -744,7 +725,7 @@ section h2 {
 }
 
 .empty-cta-button:hover {
-  background: var(--accent-bg);
+  background: var(--hover-bg);
 }
 
 /* 관심 목록: 응모 전환 버튼 */
@@ -769,8 +750,70 @@ section h2 {
 }
 
 .wish-login-hint {
-  font-size: 11px;
+  font-size: 11.5px;
+  color: var(--text-2);
+}
+
+/* 관심 목록 응모 2단계 확인 — 상세 화면(.detail-apply-confirm)과 같은 원칙·색을 쓴다.
+   my-contest-item이 flex-wrap이라 flex-basis 100%로 새 줄을 차지한다 */
+.wish-apply-confirm {
+  flex-basis: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--brand-border);
+  border-radius: 12px;
+  background: var(--brand-bg);
+  padding: 14px 16px;
+}
+
+.wish-apply-confirm-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.wish-apply-confirm-steps {
+  margin: 0 0 10px;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.65;
   color: var(--text);
+  word-break: keep-all;
+}
+
+.wish-apply-confirm-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.wish-apply-confirm-site {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--accent-text);
+  text-decoration: none;
+}
+
+.wish-apply-confirm-site:hover {
+  text-decoration: underline;
+}
+
+.wish-apply-confirm-cancel {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+.wish-apply-confirm-cancel:hover {
+  color: var(--text-h);
+  text-decoration: underline;
 }
 
 /* 아이디어 보관함 직접 기록 폼 */
@@ -795,6 +838,15 @@ section h2 {
   font-size: 14px;
   font-weight: 700;
   color: var(--text-h);
+}
+
+/* 수정 모드 안내 — 분석 스냅숏이 지워진다는 점을 미리 알려 준다 */
+.idea-form-hint {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 165%;
+  color: var(--text-2);
+  word-break: keep-all;
 }
 
 .idea-form input[type='text'],
@@ -846,6 +898,25 @@ section h2 {
   opacity: 0.92;
 }
 
+/* 수정 모드의 취소 — 기록 모드로 되돌아가고 폼을 비운다 */
+.idea-form-cancel {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.idea-form-cancel:hover {
+  color: var(--text-h);
+  text-decoration: underline;
+}
+
 .idea-form-message {
   margin: 0;
   font-size: 12px;
@@ -860,9 +931,9 @@ section h2 {
 
 .data-caption {
   margin: 6px 0 14px;
-  font-size: 12.5px;
-  line-height: 160%;
-  color: var(--text);
+  font-size: 13px;
+  line-height: 170%;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
@@ -885,12 +956,12 @@ section h2 {
 }
 
 .data-export-button:hover {
-  background: var(--accent-bg);
+  background: var(--hover-bg);
 }
 
 .data-import-label {
   border: 1px solid var(--border);
-  background: var(--code-bg);
+  background: var(--bg);
   color: var(--text-h);
   font-size: 12.5px;
   font-weight: 700;
@@ -931,9 +1002,9 @@ section h2 {
 
 .profile-edit-hint {
   margin: 6px 0 14px;
-  font-size: 12.5px;
-  line-height: 165%;
-  color: var(--text);
+  font-size: 13px;
+  line-height: 170%;
+  color: var(--text-2);
   word-break: keep-all;
 }
 
@@ -1005,7 +1076,7 @@ section h2 {
 }
 
 .profile-edit-status.tone-ok {
-  color: var(--ok, #000000);
+  color: var(--ok, #333333);
 }
 
 .profile-edit-status.tone-error {
@@ -1013,6 +1084,24 @@ section h2 {
 }
 
 @media (max-width: 640px) {
+  /* 모바일 여백 정리(2026-10-13 사용자 요청) — 내비 하단 구분선 바로 아래
+     '← 홈으로'·헤더까지의 여백과 섹션 사이 간격을 데스크톱 값보다 한 단계 줄인다 */
+  .mypage-inner {
+    padding: 20px 16px 56px;
+  }
+
+  .mypage-header {
+    margin: 12px 0 20px;
+  }
+
+  .mypage-inner section + section {
+    margin-top: 48px;
+  }
+
+  .alert-section {
+    margin-top: 40px;
+  }
+
   .profile-edit-grid {
     grid-template-columns: 1fr;
   }

@@ -6,7 +6,7 @@ import {
   calculateContestType,
   recommendContestsForType,
 } from '../data/contestTypeTest.js'
-import { contests } from '../data/mockData.js'
+import { useContestPool } from '../data/contestPool.js'
 import { deadlineStatus } from '../utils/contestAlerts.js'
 import { STORAGE_KEYS } from '../utils/storageKeys.js'
 import type { TypeIdeaHints } from './IdeaInputPage'
@@ -14,7 +14,7 @@ import './TypeTestPage.css'
 
 const LAST_RESULT_KEY = STORAGE_KEYS.typeTest
 // 진행 중 답변 저장 키 — 30문항 도중에 새로고침해도 이어서 진행할 수 있게 한다.
-const PROGRESS_KEY = 'idea-navigation:type-test-progress'
+const PROGRESS_KEY = 'gongmo-on:type-test-progress'
 
 type LastResult = {
   typeId: string
@@ -121,9 +121,11 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
   const resultTypeId = result?.type.id ?? null
   const synergyType = result ? getTypeById(result.type.synergy.typeId) : null
   const lastType = lastResult ? getTypeById(lastResult.typeId) : null
+  // 유형에 맞춰 추천할 공모전 — 목업 + 자동 등록이 합쳐진 풀
+  const contests = useContestPool()
   const recommendations = useMemo(
     () => (resultTypeId ? recommendContestsForType(resultTypeId, contests, 3) : []),
-    [resultTypeId],
+    [resultTypeId, contests],
   )
 
   const startQuiz = () => {
@@ -178,7 +180,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
 
   const copyResult = async () => {
     if (!resultType) return
-    const text = `나의 공내비 공모전 유형은 ${resultType.emoji} ${resultType.name}!\n"${resultType.tagline}"\n${resultType.description}\n\n나에게 맞는 공모전이 궁금하다면 공내비에서 유형 검사를 해 보세요.`
+    const text = `나의 공모온 공모전 유형은 ${resultType.emoji} ${resultType.name}!\n"${resultType.tagline}"\n${resultType.description}\n\n나에게 맞는 공모전이 궁금하다면 공모온에서 유형 검사를 해 보세요.`
     try {
       await navigator.clipboard.writeText(text)
       setCopyMessage('결과를 복사했어요. 원하는 곳에 붙여 넣어 보세요!')
@@ -197,7 +199,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
 
       {stage === 'intro' && (
         <>
-          <header className="type-test-header">
+          <header className="type-test-header" data-reveal>
             <p className="type-test-badge">공모전 유형 검사</p>
             <h1>나는 어떤 공모전 유형?</h1>
             <p className="type-test-caption">
@@ -214,10 +216,10 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
               지난 결과 보기 · {lastType.emoji} {lastType.name} ({lastResult.savedAt})
             </button>
           )}
-          <section className="type-test-panel type-test-intro">
+          <section className="type-test-panel type-test-intro" data-reveal>
             <ul className="type-test-points">
               <li>총 {TYPE_TEST_QUESTIONS.length}문항 · 약 3분</li>
-              <li>결과는 7가지 공내비 유형 중 하나 + 성향 일치율</li>
+              <li>결과는 7가지 공모온 유형 중 하나 + 성향 일치율</li>
               <li>결과 화면에서 접수 중인 공모전 3곳을 추천</li>
             </ul>
             <button type="button" className="type-test-start" onClick={startQuiz}>
@@ -268,10 +270,10 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
 
       {stage === 'result' && result && (
         <>
-          <header className="type-test-header">
-            <p className="type-test-badge">나의 공내비 유형</p>
+          <header className="type-test-header" data-reveal>
+            <p className="type-test-badge">나의 공모온 유형</p>
           </header>
-          <section className="type-test-result-card">
+          <section className="type-test-result-card" data-reveal>
             <p className="type-test-result-emoji" aria-hidden="true">
               {result.type.emoji}
             </p>
@@ -285,7 +287,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
             <p className="type-test-result-description">{result.type.description}</p>
           </section>
           {result.distribution.length > 0 && (
-            <section className="type-test-panel">
+            <section className="type-test-panel" data-reveal>
               <h2 className="type-test-panel-title">나의 유형 분포</h2>
               <p className="type-test-panel-caption">
                 응답 점수를 100%로 환산한 성향 비율이에요. 점수가 낮게 나와도 응답 중 가장 가까운
@@ -314,7 +316,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
               </div>
             </section>
           )}
-          <section className="type-test-panel">
+          <section className="type-test-panel" data-reveal>
             <h2 className="type-test-panel-title">상세 분석</h2>
             <div className="type-test-analysis">
               <div className="type-test-analysis-block is-strength">
@@ -339,7 +341,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
               </p>
             </div>
           </section>
-          <section className="type-test-panel">
+          <section className="type-test-panel" data-reveal>
             <h2 className="type-test-panel-title">이 유형의 준비 로드맵</h2>
             <p className="type-test-panel-caption">출품 전에 이 순서대로만 따라가 봐요.</p>
             <ol className="type-test-roadmap">
@@ -352,7 +354,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
             </ol>
           </section>
           {synergyType && (
-            <section className="type-test-panel">
+            <section className="type-test-panel" data-reveal>
               <h2 className="type-test-panel-title">잘 맞는 유형</h2>
               <div className="type-test-synergy">
                 <span className="type-test-synergy-emoji" aria-hidden="true">
@@ -365,11 +367,11 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
               </div>
             </section>
           )}
-          <section className="type-test-panel">
+          <section className="type-test-panel" data-reveal>
             <h2 className="type-test-panel-title">공모전 당첨 팁</h2>
             <p className="type-test-tip-text">{result.type.tip}</p>
           </section>
-          <section className="type-test-panel">
+          <section className="type-test-panel" data-reveal>
             <h2 className="type-test-panel-title">이 유형에게 추천하는 공모전</h2>
             <p className="type-test-panel-caption">
               지금 접수 중인 공모전 중에서 골랐어요. 마감일을 확인해 보세요.
@@ -395,7 +397,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
               })}
             </ul>
           </section>
-            <div className="type-test-actions">
+            <div className="type-test-actions" data-reveal>
               <AppLink
                 className="type-test-analyze"
                 href="/input"

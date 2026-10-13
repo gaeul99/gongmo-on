@@ -2,10 +2,10 @@
 // 출품 로드맵
 // 찜·응모한 공모전마다 5단계 출품 경로(주제 분석 → … → 제출)를 만들고,
 // 마감까지 남은 기간을 단계별 비중으로 나눠 권장 완료일을 붙입니다.
-// 단계 체크는 'idea-navigation:roadmaps'에 저장됩니다.
+// 단계 체크는 'gongmo-on:roadmaps'에 저장됩니다.
 // ==========================================================
 
-const ROADMAP_STORAGE_KEY = 'idea-navigation:roadmaps'
+const ROADMAP_STORAGE_KEY = 'gongmo-on:roadmaps'
 const DAY_MS = 24 * 60 * 60 * 1000
 
 // 로드맵 5단계. weight는 마감까지 남은 기간을 나누는 비중(합계 1)으로,

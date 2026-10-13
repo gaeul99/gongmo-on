@@ -49,11 +49,13 @@
   border-radius: 999px;
   padding: 5px 11px;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
 }
 
 .calendar-export:hover:enabled {
-  opacity: 0.85;
+  background: var(--hover-bg);
 }
 
 .calendar-export:disabled {
@@ -91,6 +93,7 @@
 .calendar-nav:hover {
   color: var(--accent-text);
   border-color: var(--accent-border);
+  background: var(--hover-bg);
 }
 
 .calendar-grid {
@@ -128,8 +131,12 @@ button.calendar-day.has-entries {
   cursor: pointer;
 }
 
+button.calendar-day:not(.blank) {
+  transition: background 0.15s;
+}
+
 button.calendar-day:not(.blank):hover {
-  background: var(--accent-bg);
+  background: var(--hover-bg);
 }
 
 .calendar-day.selected {

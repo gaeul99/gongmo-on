@@ -3,8 +3,10 @@
 // 실제 AI 분석 대신 입력(제목·관심 분야)으로 예시 문장을 조립해
 // 결과 화면에 보여 줍니다. 실제 분석 API로 전환할 때 이 파일만 교체하면 됩니다.
 // ==========================================================
-import { categoryProfiles, contests, referenceCases } from '../data/mockData.js'
+import { categoryProfiles, referenceCases } from '../data/mockData.js'
+import { getAllContests } from '../data/contestPool.js'
 import { josa } from '../utils/korean.js'
+import { extractMetrics } from '../utils/metrics.js'
 
 // 입력 제목 기반 해시 — 같은 입력이면 항상 같은 유사도가 나옵니다.
 function seedFrom(text) {
@@ -81,7 +83,7 @@ function buildContests({ title, category }) {
     Boolean(category) &&
     (contest.field === category || contest.field.startsWith(`${category} `))
 
-  return [...contests]
+  return [...getAllContests()]
     .sort((a, b) => Number(fieldMatch(b)) - Number(fieldMatch(a)))
     .map((contest) => {
       const isMatch = fieldMatch(contest)
@@ -153,11 +155,17 @@ function buildDetail({ title, category, description }) {
   const profile = getProfile(category)
   const keywords = keywordsFrom(description)
   const hasKeywords = keywords.length > 0
+  // 입력 설명에 적은 수치 목표(대상 사용자 수·절감 시간 등)는 원문 그대로 인용해
+  // 강점·기대 효과 관련 문구에 반영합니다 — AI 프롬프트의 수치 인용 규칙과 같은 자리를 메깁니다.
+  const metrics = extractMetrics(description)
+  const hasMetrics = metrics.length > 0
 
   return {
-    ideaSummary: `'${title}'${josa(title, '은는')} ${profile.issue} 문제를 다루며, ${profile.approach} 방식으로 해결을 제안하는 아이디어입니다.${
-      hasKeywords ? ` 설명에서 '${keywords.join('·')}'에 무게를 둔 기획으로 읽힙니다.` : ''
-    } 주요 사용자는 ${profile.audience} 등이 될 것으로 보입니다.`,
+    // 한 줄 요약은 배너에서 반드시 한 줄로 끝나야 하므로, 분야별로 길이가 보장된
+    // oneLiner 문장(mockData.categoryProfiles)을 그대로 씁니다 — AI 프롬프트(30자
+    // 이내 초단문)와 같은 자리를 메깁니다. issue·approach를 여기서 조립하면
+    // '…문제 문제를' 겹침·두 줄 감김이 생기기 때문입니다.
+    ideaSummary: `${profile.oneLiner}입니다.`,
     targetUsers: [
       `핵심 사용자 — ${profile.audience}`,
       hasKeywords
@@ -168,13 +176,15 @@ function buildDetail({ title, category, description }) {
     strengths: [
       `'${title}'${josa(title, '은는')} ${profile.approach}라는 명확한 해결 방식을 갖추고 있어 기획 설명이 쉽습니다.${
         hasKeywords ? ` 특히 '${keywords[0]}'${josa(keywords[0], '을를')} 직접 다루는 점이 구체적입니다.` : ''
-      }`,
+      }${hasMetrics ? ` 설명에 담긴 '${metrics[0]}' 같은 수치 목표 덕에 기대 효과를 바로 보여 줄 수 있습니다.` : ''}`,
       `${profile.issue}처럼 많은 사람이 공감하는 문제를 다뤄 주제 공감대가 높습니다.`,
       '입력에 문제 상황과 접근 방식이 함께 담겨 있어 완성형 기획안으로 발전시키기 좋은 구조입니다.',
     ],
     improvements: [
       description && description.length >= 60
-        ? `문제를 직접 겪는 ${profile.audience}의 구체적 사례나 수치를 한 개 이상 덧붙이면 설득력이 올라갑니다.`
+        ? hasMetrics
+          ? `설명에 담긴 '${metrics[0]}' 수치의 출처(설문·통계 등)를 한 줄 덧붙이면 심사 신뢰도가 올라갑니다.`
+          : `문제를 직접 겪는 ${profile.audience}의 구체적 사례나 수치를 한 개 이상 덧붙이면 설득력이 올라갑니다.`
         : '설명이 아직 짧아요 — 문제가 언제·누구에게 발생하는지 상황을 한 문단 더 써 보면 분석이 훨씬 정확해집니다.',
       '아이디어가 동작하는 모습을 와이어프레임·목업 이미지 1장 이상으로 보여 주세요.',
       hasKeywords
@@ -184,9 +194,11 @@ function buildDetail({ title, category, description }) {
     judgePoints: [
       `주제 적합성 — 출품 공모전의 주제 문구와 '${title}'의 문제 정의를 같은 단어로 맞춰 주세요.`,
       '실현 가능성 — 3개월 안에 만들 수 있는 범위로 기능을 좁히고 1단계·2단계 계획을 제시하세요.',
-      hasKeywords
-        ? `기대 효과 — '${keywords[0]}'${josa(keywords[0], '와과')} 관련된 숫자(사용자 수·절감 시간 등)로 효과를 표현하세요.`
-        : '기대 효과 — 사용자 수·절감 시간처럼 측정 가능한 숫자로 효과를 표현하세요.',
+      hasMetrics
+        ? `기대 효과 — 설명에 적은 '${metrics[0]}' 수치를 제안서의 기대 효과 항목에 그대로 제시하세요.`
+        : hasKeywords
+          ? `기대 효과 — '${keywords[0]}'${josa(keywords[0], '와과')} 관련된 숫자(사용자 수·절감 시간 등)로 효과를 표현하세요.`
+          : '기대 효과 — 사용자 수·절감 시간처럼 측정 가능한 숫자로 효과를 표현하세요.',
     ],
     extensionIdeas: [
       `${profile.approach}를 다른 분야(안전·교통·교육 등)에도 적용한 확장판을 옵션으로 제시해 보세요.`,

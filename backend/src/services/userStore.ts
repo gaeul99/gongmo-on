@@ -5,181 +5,213 @@
 // 계정과 내역이 남아, 다시 로그인하면 복원됩니다.
 // ==========================================================
 
-import crypto from 'crypto'
-import fs from 'fs'
-import path from 'path'
+import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 
 export type Account = {
-  nickname: string
-  salt: string
-  passwordHash: string
-  email: string
-  phone?: string | undefined
-  createdAt: string
-}
+  nickname: string;
+  salt: string;
+  passwordHash: string;
+  email: string;
+  phone?: string | undefined;
+  createdAt: string;
+};
 
 // 프론트 dataPortability.js의 내보내기 형식과 같은 구조 — 로그인 복원이
 // 파일 가져오기와 같은 병합 경로를 타게 하기 위해서입니다.
 export type UserData = {
-  myContests: unknown[]
-  wishlist: unknown[]
-  savedIdeas: unknown[]
-  typeTest: unknown
-  checklist: Record<string, boolean>
-  roadmaps: Record<string, unknown>
-  practiceNotes: unknown[]
-}
+  myContests: unknown[];
+  wishlist: unknown[];
+  savedIdeas: unknown[];
+  typeTest: unknown;
+  checklist: Record<string, boolean>;
+  roadmaps: Record<string, unknown>;
+  practiceNotes: unknown[];
+};
 
 export type UserDataRecord = {
-  data: UserData
-  updatedAt: string
-}
+  data: UserData;
+  updatedAt: string;
+};
 
-const DATA_DIR = path.resolve(__dirname, '..', 'data')
-const ACCOUNTS_FILE = path.join(DATA_DIR, 'accounts.json')
-const USERDATA_FILE = path.join(DATA_DIR, 'userdata.json')
-const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json')
-const SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30 // 30일
+const DATA_DIR = path.resolve(__dirname, "..", "data");
+const ACCOUNTS_FILE = path.join(DATA_DIR, "accounts.json");
+const USERDATA_FILE = path.join(DATA_DIR, "userdata.json");
+const SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
+const SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30; // 30일
+const SESSION_MAX_PER_USER = 5;
 
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true })
+    fs.mkdirSync(DATA_DIR, { recursive: true });
   }
 }
 
 function readJson<T>(file: string, fallback: T): T {
-  let raw: string
+  let raw: string;
   try {
-    raw = fs.readFileSync(file, 'utf-8')
+    raw = fs.readFileSync(file, "utf-8");
   } catch {
     // 파일이 아직 없는 초기 상태뿐이다 — fallback이 정답.
-    return fallback
+    return fallback;
   }
   try {
-    return JSON.parse(raw) as T
+    return JSON.parse(raw) as T;
   } catch (error) {
-    if (raw.trim() === '') return fallback
+    if (raw.trim() === "") return fallback;
     // 내용이 있는데 JSON이 아니면 파일 손상. 조용히 fallback을 반환하면 이후
     // 저장이 빈 값 기반으로 파일 전체를 다시 써 계정·데이터가 소실된다.
     // 원본을 보관해 두고 실패로 멈춘다(해당 API는 500).
-    const quarantine = `${file}.corrupt-${Date.now()}`
+    const quarantine = `${file}.corrupt-${Date.now()}`;
     try {
-      fs.copyFileSync(file, quarantine)
+      fs.copyFileSync(file, quarantine);
       console.error(
         `[userStore] 데이터 파일 손상: ${file} — 원본을 ${quarantine}에 보관했습니다. 복구 전까지 관련 기능은 실패합니다.`,
         error,
-      )
+      );
     } catch {
-      console.error(`[userStore] 데이터 파일 손상: ${file} — 보관 실패, 원본은 그대로 있습니다.`, error)
+      console.error(
+        `[userStore] 데이터 파일 손상: ${file} — 보관 실패, 원본은 그대로 있습니다.`,
+        error,
+      );
     }
-    throw new Error(`Corrupted data file: ${file}`)
+    throw new Error(`Corrupted data file: ${file}`);
   }
 }
 
 function writeJson(file: string, value: unknown) {
-  ensureDataDir()
+  ensureDataDir();
   // temp에 쓰고 rename으로 갈아끼운다 — 쓰다가 죽어도 기존 파일은 온전하다.
-  const tmp = `${file}.tmp`
-  fs.writeFileSync(tmp, JSON.stringify(value, null, 2), 'utf-8')
-  fs.renameSync(tmp, file)
+  const tmp = `${file}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(value, null, 2), "utf-8");
+  fs.renameSync(tmp, file);
 }
 
 // ---------- 비밀번호 해시 (salt + scrypt, 평문 저장 없음) ----------
 
 export function hashPassword(password: string, salt: string): string {
-  return crypto.scryptSync(password, salt, 64).toString('hex')
+  return crypto.scryptSync(password, salt, 64).toString("hex");
 }
 
 export function makeSalt(): string {
-  return crypto.randomBytes(16).toString('hex')
+  return crypto.randomBytes(16).toString("hex");
 }
 
 export function verifyPassword(account: Account, password: string): boolean {
-  const candidate = hashPassword(password, account.salt)
-  const a = Buffer.from(candidate, 'hex')
-  const b = Buffer.from(account.passwordHash, 'hex')
-  return a.length === b.length && crypto.timingSafeEqual(a, b)
+  const candidate = hashPassword(password, account.salt);
+  const a = Buffer.from(candidate, "hex");
+  const b = Buffer.from(account.passwordHash, "hex");
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 // ---------- 계정 ----------
 
 export function listAccounts(): Account[] {
-  return readJson<Account[]>(ACCOUNTS_FILE, [])
+  return readJson<Account[]>(ACCOUNTS_FILE, []);
 }
 
 export function findAccount(nickname: string): Account | undefined {
-  return listAccounts().find((item) => item.nickname === nickname)
+  return listAccounts().find((item) => item.nickname === nickname);
 }
 
 export function saveAccount(account: Account) {
-  const accounts = listAccounts()
+  const accounts = listAccounts();
   const updated = accounts.some((item) => item.nickname === account.nickname)
-    ? accounts.map((item) => (item.nickname === account.nickname ? account : item))
-    : [...accounts, account]
-  writeJson(ACCOUNTS_FILE, updated)
+    ? accounts.map((item) =>
+        item.nickname === account.nickname ? account : item,
+      )
+    : [...accounts, account];
+  writeJson(ACCOUNTS_FILE, updated);
 }
 
 export function deleteAccount(nickname: string) {
-  writeJson(ACCOUNTS_FILE, listAccounts().filter((item) => item.nickname !== nickname))
+  writeJson(
+    ACCOUNTS_FILE,
+    listAccounts().filter((item) => item.nickname !== nickname),
+  );
 }
 
 // ---------- 세션 ----------
 
-function readSessions(): Record<string, { nickname: string; createdAt: string }> {
-  return readJson(SESSIONS_FILE, {})
+function readSessions(): Record<
+  string,
+  { nickname: string; createdAt: string }
+> {
+  return readJson(SESSIONS_FILE, {});
+}
+
+export function listSessionsForUser(nickname: string): string[] {
+  const sessions = readSessions();
+  return Object.entries(sessions)
+    .filter(([, session]) => session.nickname === nickname)
+    .sort(
+      ([, a], [, b]) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    )
+    .map(([token]) => token);
 }
 
 export function createSession(nickname: string): string {
-  const token = crypto.randomBytes(32).toString('hex')
-  const sessions = readSessions()
-  sessions[token] = { nickname, createdAt: new Date().toISOString() }
-  writeJson(SESSIONS_FILE, sessions)
-  return token
+  const token = crypto.randomBytes(32).toString("hex");
+  const sessions = readSessions();
+
+  const userSessions = listSessionsForUser(nickname);
+  if (userSessions.length >= SESSION_MAX_PER_USER) {
+    const oldestToken = userSessions[0];
+    if (oldestToken && sessions[oldestToken]) {
+      delete sessions[oldestToken];
+    }
+  }
+
+  sessions[token] = { nickname, createdAt: new Date().toISOString() };
+  writeJson(SESSIONS_FILE, sessions);
+  return token;
 }
 
 export function getSessionUser(token: string): string | undefined {
-  const session = readSessions()[token]
-  if (!session) return undefined
+  const session = readSessions()[token];
+  if (!session) return undefined;
   if (Date.now() - new Date(session.createdAt).getTime() > SESSION_MAX_AGE_MS) {
-    deleteSession(token)
-    return undefined
+    deleteSession(token);
+    return undefined;
   }
-  return session.nickname
+  return session.nickname;
 }
 
 export function deleteSession(token: string) {
-  const sessions = readSessions()
+  const sessions = readSessions();
   if (token in sessions) {
-    delete sessions[token]
-    writeJson(SESSIONS_FILE, sessions)
+    delete sessions[token];
+    writeJson(SESSIONS_FILE, sessions);
   }
 }
 
 // 아이디 변경 — 이 아이디의 모든 세션을 새 아이디로 옮겨 로그인 상태를 유지합니다.
 export function renameSessions(oldNickname: string, newNickname: string) {
-  const sessions = readSessions()
-  let changed = false
+  const sessions = readSessions();
+  let changed = false;
   for (const session of Object.values(sessions)) {
     if (session.nickname === oldNickname) {
-      session.nickname = newNickname
-      changed = true
+      session.nickname = newNickname;
+      changed = true;
     }
   }
-  if (changed) writeJson(SESSIONS_FILE, sessions)
+  if (changed) writeJson(SESSIONS_FILE, sessions);
 }
 
 // 서버 시작 때 만료된 세션을 한 번 정리합니다.
 export function pruneExpiredSessions() {
-  const sessions = readSessions()
-  const now = Date.now()
-  let changed = false
+  const sessions = readSessions();
+  const now = Date.now();
+  let changed = false;
   for (const [token, session] of Object.entries(sessions)) {
     if (now - new Date(session.createdAt).getTime() > SESSION_MAX_AGE_MS) {
-      delete sessions[token]
-      changed = true
+      delete sessions[token];
+      changed = true;
     }
   }
-  if (changed) writeJson(SESSIONS_FILE, sessions)
+  if (changed) writeJson(SESSIONS_FILE, sessions);
 }
 
 // ---------- 사용자 데이터 ----------
@@ -193,28 +225,28 @@ function emptyUserData(): UserData {
     checklist: {},
     roadmaps: {},
     practiceNotes: [],
-  }
+  };
 }
 
 export function getUserData(nickname: string): UserData {
-  const store = readJson<Record<string, UserDataRecord>>(USERDATA_FILE, {})
-  return store[nickname]?.data ?? emptyUserData()
+  const store = readJson<Record<string, UserDataRecord>>(USERDATA_FILE, {});
+  return store[nickname]?.data ?? emptyUserData();
 }
 
 export function saveUserData(nickname: string, data: UserData): UserDataRecord {
-  const store = readJson<Record<string, UserDataRecord>>(USERDATA_FILE, {})
-  const record: UserDataRecord = { data, updatedAt: new Date().toISOString() }
-  store[nickname] = record
-  writeJson(USERDATA_FILE, store)
-  return record
+  const store = readJson<Record<string, UserDataRecord>>(USERDATA_FILE, {});
+  const record: UserDataRecord = { data, updatedAt: new Date().toISOString() };
+  store[nickname] = record;
+  writeJson(USERDATA_FILE, store);
+  return record;
 }
 
 // 아이디 변경 — 사용자 데이터 백업 키도 새 아이디로 옮깁니다.
 export function renameUserdata(oldNickname: string, newNickname: string) {
-  const store = readJson<Record<string, UserDataRecord>>(USERDATA_FILE, {})
-  const record = store[oldNickname]
-  if (!record) return
-  store[newNickname] = record
-  delete store[oldNickname]
-  writeJson(USERDATA_FILE, store)
+  const store = readJson<Record<string, UserDataRecord>>(USERDATA_FILE, {});
+  const record = store[oldNickname];
+  if (!record) return;
+  store[newNickname] = record;
+  delete store[oldNickname];
+  writeJson(USERDATA_FILE, store);
 }

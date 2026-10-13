@@ -40,7 +40,7 @@ function buildCalendarSheet(workbook, entries, now) {
 
   let rowIndex = 1
   const titleCell = sheet.getRow(rowIndex).getCell(1)
-  titleCell.value = '공내비 달력 (응모·관심 전체)'
+  titleCell.value = '공모온 달력 (응모·관심 전체)'
   titleCell.font = { bold: true, size: 14 }
   sheet.getRow(rowIndex).height = 22
   sheet.mergeCells(rowIndex, 1, rowIndex, 7)
@@ -155,7 +155,7 @@ function buildListSheet(workbook, entries, now) {
 export async function buildCalendarWorkbook(entries, now = new Date()) {
   const ExcelJS = (await import('exceljs')).default
   const workbook = new ExcelJS.Workbook()
-  workbook.creator = '공내비'
+  workbook.creator = '공모온'
   buildCalendarSheet(workbook, entries, now)
   buildListSheet(workbook, entries, now)
   return workbook
@@ -175,7 +175,7 @@ export async function downloadCalendarXlsx(entries) {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = 'gongnabi-calendar.xlsx'
+  link.download = 'gongmo-on-calendar.xlsx'
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)

@@ -1,0 +1,195 @@
+/* 문의 접수 모달 — 푸터 '문의하기'를 눌렀을 때 뜬다.
+   색은 index.css 토큰을 그대로 쓴다(메인 검정 액센트 + 파란 팝업 톤). */
+
+.contact-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(16, 18, 22, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.contact-panel {
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-pop);
+  padding: 26px 26px 24px;
+}
+
+.contact-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.contact-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--text-h);
+}
+
+.contact-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contact-close:hover {
+  color: var(--text-h);
+  border-color: var(--accent-border);
+}
+
+.contact-lead {
+  margin: 6px 0 18px;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+.contact-mail {
+  color: var(--brand-text);
+  font-weight: 700;
+}
+
+.contact-field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.contact-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.contact-optional {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--text);
+  opacity: 0.75;
+}
+
+/* width: 100% + padding + border 조합이라 box-sizing을 꼭 명시한다(전역 규칙 없음) */
+.contact-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.contact-input::placeholder {
+  color: var(--text);
+  opacity: 0.55;
+}
+
+select.contact-input {
+  cursor: pointer;
+}
+
+textarea.contact-input {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.6;
+}
+
+.contact-count {
+  display: block;
+  margin-top: 4px;
+  text-align: right;
+  font-size: 10.5px;
+  color: var(--text);
+  opacity: 0.7;
+}
+
+.contact-error {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--error);
+  background: var(--brand-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.contact-submit {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 13.5px;
+  font-weight: 900;
+}
+
+.contact-submit:hover {
+  background: var(--accent-border);
+}
+
+.contact-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 접수 완료 화면 */
+.contact-done {
+  text-align: center;
+  padding: 18px 4px 6px;
+}
+
+.contact-done-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border-radius: 999px;
+  background: var(--brand-bg);
+  border: 1.5px solid var(--brand-border);
+  color: var(--brand-text);
+  font-size: 24px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contact-done-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--text-h);
+}
+
+.contact-done-lead {
+  margin: 0 0 20px;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--text);
+}

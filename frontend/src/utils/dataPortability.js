@@ -8,18 +8,18 @@
 import { STORAGE_KEYS } from './storageKeys.js'
 
 const KEYS = {
-  myContests: 'idea-navigation:my-contests',
-  wishlist: 'idea-navigation:wishlist',
-  savedIdeas: 'idea-navigation:saved-ideas',
+  myContests: 'gongmo-on:my-contests',
+  wishlist: 'gongmo-on:wishlist',
+  savedIdeas: 'gongmo-on:saved-ideas',
   typeTest: STORAGE_KEYS.typeTest,
-  checklist: 'idea-navigation:submission-checklist',
-  roadmaps: 'idea-navigation:roadmaps',
-  practiceNotes: 'idea-navigation:practice-notes',
+  checklist: 'gongmo-on:submission-checklist',
+  roadmaps: 'gongmo-on:roadmaps',
+  practiceNotes: 'gongmo-on:practice-notes',
 }
 
 // 내보내기 형식 식별자 — 로그인 복원(서버에서 받은 데이터)도 같은 형식으로
 // 병합하기 위해 밖에서 씁니다.
-export const EXPORT_KIND = 'idea-navigation:export'
+export const EXPORT_KIND = 'gongmo-on:export'
 export const EXPORT_VERSION = 1
 
 function readJson(key, fallback) {
@@ -68,7 +68,7 @@ export function downloadUserData() {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `gongnabi-data-${new Date().toISOString().slice(0, 10)}.json`
+  a.download = `gongmo-on-data-${new Date().toISOString().slice(0, 10)}.json`
   document.body.appendChild(a)
   a.click()
   a.remove()
@@ -81,7 +81,8 @@ export function downloadUserData() {
  * @returns {any} 병합 결과. 파일 형식이 올바르지 않으면 null.
  */
 export function mergeImportedData(raw) {
-  if (!isRecord(raw) || raw.kind !== EXPORT_KIND) return null
+  // 구버전 내보내기(kind 'idea-navigation:export')도 받아들인다 — 이름 변경 전 파일 호환.
+  if (!isRecord(raw) || (raw.kind !== EXPORT_KIND && raw.kind !== 'idea-navigation:export')) return null
   const data = isRecord(raw.data) ? raw.data : {}
 
   const validContests = (list) =>
