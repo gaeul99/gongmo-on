@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { buildMockAnalysis } from '../services/mockAnalysis.js'
 import { requestAiAnalysis } from '../services/aiAnalysis.js'
-import { buildProposalDraft, proposalToText } from '../services/proposalDraft.js'
+import { buildProposalDraft, proposalFileName, proposalToText } from '../services/proposalDraft.js'
 import AppLink from '../components/AppLink'
 import InlineAuthPanel from '../components/InlineAuthPanel'
 import { referenceCases, winnerArchives } from '../data/mockData.js'
@@ -12,7 +12,7 @@ import type { Analysis, AiAnalysisPayload, AnalysisDetail } from '../types/analy
 import './ResultPage.css'
 
 const DEMO_NOTICE =
-  '데모 결과는 중복 가능성을 수치로 계산하지 않아요. 아래 유사 사례들과 겹치는 부분이 많은지 직접 확인해 보세요.\nAI 분석에 성공하면 입력한 아이디어에 맞춘 중복 가능성을 알려 드려요.'
+  '데모 결과는 중복 가능성을 계산하지 않아요.\nAI 분석에 성공하면 아이디어에 맞춘 중복 가능성을 알려 드려요.'
 const DEMO_TIP =
   '아래 유사 사례 카드의 \'다른 점\'이 차별화 포인트의 재료예요.\n그중 하나를 골라 "비슷한 서비스가 있지만, 유일하게 ○○인 점은 우리만 있습니다" 형태의 한 문장으로 옮겨 보세요. 바로 아래 \'예시로 따라해 보기\'를 펼치면 실제 예시가 나옵니다.'
 
@@ -230,7 +230,7 @@ function ResultPage({
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `${proposalDraft.title}-제안서-초안.txt`
+    link.download = proposalFileName(proposalDraft)
     link.click()
     URL.revokeObjectURL(url)
   }
@@ -534,38 +534,23 @@ function ResultPage({
         <button type="button" className="note-cta-button" onClick={handleCreateNote}>
           🗒️ 이 아이디어로 연습 노트 만들기 →
         </button>
-        <p className="note-cta-hint">
-          기획 의도가 채워진 채로 시작돼요. 차별점과 예상 질문은 노트에서 직접
-          다듬어 보세요.
-        </p>
+        <p className="note-cta-hint">기획 의도가 채워진 채로 시작돼요.</p>
       </div>
 
       <section className="result-section proposal-section" aria-labelledby="proposal-title" data-reveal>
         <h2 id="proposal-title">제안서 초안 만들기</h2>
         <p className="proposal-intro">
-          <strong>💡 공모전에 낼 기획서를 빈 페이지에서 쓰기 막막할 때를 위한 기능이에요.</strong>{' '}
-          여기까지의 분석 결과를 출품용 기획서 목차에 맞춰 초안으로 뽑아 드려요.
+          <strong>💡 기획서 쓰기가 막막할 때의 초안이에요.</strong> 분석 결과를
+          출품용 기획서 목차에 맞춰 뽑아 드려요.
         </p>
         {analysis === null || proposalDraft === null ? (
           <p className="proposal-waiting">분석이 끝나는 대로 분석 내용을 기획서 초안으로 정리해 드릴게요.</p>
         ) : (
           <>
             <p className="proposal-intro">
-              문제 정의 → 해결 방안 → 차별점 → 기대 효과 → 실현 계획 → 심사 대응 순서의 목차로
-              분석 내용을 옮겨 담았어요.
+              미리보기로 확인하고 복사·TXT 내려받기로 가져가, 공고의 양식과
+              분량에 맞게 다듬어 제출하세요.
             </p>
-            <ol className="proposal-howto">
-              <li>
-                <strong>미리보기</strong>를 펼쳐 초안 내용을 확인해요.
-              </li>
-              <li>
-                <strong>초안 복사하기</strong> 또는 <strong>TXT 내려받기</strong>로 내 컴퓨터로
-                가져와요.
-              </li>
-              <li>
-                워드·메모장에 붙여 넣고, 공모전 공고의 기획서 양식과 분량에 맞게 다듬어 제출해요.
-              </li>
-            </ol>
             <div className="proposal-actions">
               <button type="button" className="proposal-copy" onClick={handleCopyProposal}>
                 {proposalCopied ? '복사 완료!' : '초안 복사하기'}
@@ -880,7 +865,7 @@ function ResultPage({
       <section className="result-section checklist-section" aria-labelledby="checklist-title" data-reveal>
         <h2 id="checklist-title">제출 전 자가 점검</h2>
         <p className="checklist-caption">
-          응모 버튼을 누르기 전에 하나씩 확인해 보세요. 체크 기록은 이 브라우저에 저장돼요.
+          제출 전 하나씩 확인해 보세요. 기록은 이 브라우저에만 저장돼요.
         </p>
         <div
           className="checklist-progress"

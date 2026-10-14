@@ -41,45 +41,41 @@ function HeroDeadlines({ onOpenExplore, onOpenContest }: Props) {
     .slice(0, SHOW_LIMIT)
 
   return (
-    <aside className="hero-deadlines" aria-label="곧 마감되는 공모전">
+    <div className="hero-panel-col">
+      {/* 제목 행은 카드 밖 위에 둔다 — 마키 '접수 중인 공모전'과 같은 섹션 제목
+          언어(2026-10-14 사용자 요청 '카드 위에 제목') */}
       <div className="deadline-head">
         <h2>곧 마감되는 공모전</h2>
-        <span className="deadline-emoji" aria-hidden="true">
-          ⏰
-        </span>
         <AppLink className="deadline-more" href="/contest" onNavigate={onOpenExplore}>
           전체 보기
         </AppLink>
       </div>
-
-      <ul className="deadline-list">
-        {rows.map(({ contest, status }) => (
-          <li key={contest.id}>
-            <AppLink
-              className="deadline-item"
-              href={`/contest/${contest.id}`}
-              title="공모전 상세 보기"
-              onNavigate={() => onOpenContest(contest.id)}
-            >
-              <span className={`deadline-badge tone-${status.tone}`}>{status.label}</span>
-              <span className="deadline-info">
-                <span className="deadline-title">
-                  {contest.title}
-                  {newIds.has(contest.id) && <i className="deadline-new">NEW</i>}
+      <aside className="hero-deadlines" aria-label="곧 마감되는 공모전">
+        <ul className="deadline-list">
+          {rows.map(({ contest, status }) => (
+            <li key={contest.id}>
+              <AppLink
+                className="deadline-item"
+                href={`/contest/${contest.id}`}
+                title="공모전 상세 보기"
+                onNavigate={() => onOpenContest(contest.id)}
+              >
+                <span className={`deadline-badge tone-${status.tone}`}>{status.label}</span>
+                <span className="deadline-info">
+                  <span className="deadline-title">
+                    {contest.title}
+                    {newIds.has(contest.id) && <i className="deadline-new">NEW</i>}
+                  </span>
+                  <span className="deadline-meta">
+                    {contest.organizer} · {contest.field}
+                  </span>
                 </span>
-                <span className="deadline-meta">
-                  {contest.organizer} · {contest.field}
-                </span>
-              </span>
-            </AppLink>
-          </li>
-        ))}
-      </ul>
-
-      <p className="deadline-note">
-        지금 접수 중인 공모전 · 항목을 누르면 상세 정보를 볼 수 있어요.
-      </p>
-    </aside>
+              </AppLink>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    </div>
   )
 }
 

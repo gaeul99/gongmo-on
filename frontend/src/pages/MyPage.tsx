@@ -314,6 +314,7 @@ function MyPage({
           title: contest.title,
           field: String(contest.field ?? ""),
           deadline: contest.deadline,
+          startDate: contest.startDate,
           url: contest.url,
         })),
       });
@@ -708,16 +709,14 @@ function MyPage({
               <>
                 <p className="login-title">로그인</p>
                 <p className="login-desc">
-                  가입한 계정으로 로그인하면 공모전에 응모하고 내 목록을 저장할
-                  수 있어요.
+                  로그인하면 응모 기록과 내 목록이 저장돼요.
                 </p>
               </>
             ) : (
               <>
                 <p className="login-title">회원가입</p>
                 <p className="login-desc">
-                  아이디와 비밀번호로 가입하고, 이메일로 공모전 마감 알림을 받아
-                  보세요.
+                  아이디·비밀번호로 가입하고 이메일로 마감 알림을 받아 보세요.
                 </p>
               </>
             )}
@@ -804,51 +803,8 @@ function MyPage({
           data-reveal
         >
           <h2 id="alert-title">공모전 알림</h2>
-          {user && (
-            <div className="notif-setting">
-              <div className="notif-toggle-row">
-                <ToggleSwitch
-                  id="notif-email-opt-in"
-                  checked={notifOptIn}
-                  onChange={onToggleNotifOptIn}
-                />
-                <label
-                  className="notif-toggle-label"
-                  htmlFor="notif-email-opt-in"
-                >
-                  이메일로도 마감 알림 받기
-                </label>
-              </div>
-              <p className="notif-hint">
-                {user.email
-                  ? "응모·관심 공모전 마감 7일 전·3일 전·당일에 이메일로 알려 드려요."
-                  : "마감 알림을 받으려면 회원가입 때 이메일을 입력해 주세요."}
-              </p>
-            </div>
-          )}
-          {user?.email && (
-            <div className="notif-setting">
-              <p className="weekly-title">주간 새 공모전 이메일</p>
-              <p className="notif-hint">
-                이번 주 접수 중이거나 마감이 다가오는 공모전을 응모·관심 기록의
-                분야 기준으로 모아 메일로 보내 드려요. 기록이 없으면 전체 분야
-                기준이에요.
-              </p>
-              <button
-                type="button"
-                className="weekly-send-button"
-                onClick={handleSendWeeklyDigest}
-                disabled={weeklyPending}
-              >
-                {weeklyPending ? "보내는 중…" : "이번 주 소식 메일로 받기"}
-              </button>
-              {weeklyStatus && (
-                <p className="weekly-status" role="status">
-                  {weeklyStatus}
-                </p>
-              )}
-            </div>
-          )}
+          {/* 알림 목록(모두 읽음·모두 읽지 않음 버튼 + 항목)을 설정 블록보다
+              위로 옮겼다(2026-10-14 사용자 요청 '버튼과 글씨 위로') */}
           {alerts.length === 0 ? (
             <div className="wishlist-empty">
               응모·관심 공모전의 마감일이 가까워지면 이곳에 알려 드려요.
@@ -909,6 +865,50 @@ function MyPage({
                 );
               })}
             </ul>
+          )}
+          {user && (
+            <div className="notif-setting">
+              <div className="notif-toggle-row">
+                <ToggleSwitch
+                  id="notif-email-opt-in"
+                  checked={notifOptIn}
+                  onChange={onToggleNotifOptIn}
+                />
+                <label
+                  className="notif-toggle-label"
+                  htmlFor="notif-email-opt-in"
+                >
+                  이메일로도 마감 알림 받기
+                </label>
+              </div>
+              <p className="notif-hint">
+                {user.email
+                  ? "마감 7일 전·3일 전·당일에 이메일로 알려 드려요."
+                  : "마감 알림을 받으려면 회원가입 때 이메일을 입력해 주세요."}
+              </p>
+            </div>
+          )}
+          {user?.email && (
+            <div className="notif-setting">
+              <p className="weekly-title">주간 새 공모전 이메일</p>
+              <p className="notif-hint">
+                이번 주 새 공모전을 응모·관심 기록의 분야 기준으로 모아 보내
+                드려요.
+              </p>
+              <button
+                type="button"
+                className="weekly-send-button"
+                onClick={handleSendWeeklyDigest}
+                disabled={weeklyPending}
+              >
+                {weeklyPending ? "보내는 중…" : "이번 주 소식 메일로 받기"}
+              </button>
+              {weeklyStatus && (
+                <p className="weekly-status" role="status">
+                  {weeklyStatus}
+                </p>
+              )}
+            </div>
           )}
         </section>
 
@@ -1148,8 +1148,8 @@ function MyPage({
           </form>
           {savedIdeas.length === 0 ? (
             <p className="wishlist-empty">
-              저장된 아이디어가 없어요. 분석 결과 화면에서 '보관함에 저장'을
-              누르거나 제목 옆 + 버튼을 눌러 직접 기록해 보세요.
+              저장된 아이디어가 없어요. 분석 결과 화면의 '보관함에 저장'이나
+              제목 옆 + 버튼으로 기록해 보세요.
             </p>
           ) : (
             <ul className="my-contest-list">

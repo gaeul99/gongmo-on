@@ -120,7 +120,10 @@
   --sp-10: 40px;
   --sp-12: 48px;
 
-  font: 16px/1.6 var(--sans);
+  /* 굵기 700 — 2026-10-14 사용자 요청 '웹사이트 내 글자 전부 굵은체'. weight는 font
+     축약 안에 넣어야 한다(축약은 빠진 속성을 normal로 리셋). 워드마크(.hero-title)는
+     단일 SemiBold 파일만 로드해 600을 유지한다 */
+  font: 700 16px/1.6 var(--sans);
   letter-spacing: 0.01em;
   color-scheme: light;
   /* 한글 본문 기본 — 어미 중간 줄바꿈을 막는 keep-all을 앱 전체 기본으로.
@@ -132,8 +135,20 @@
      콘텐츠 폭이 스크롤바 폭만큼 흔들려 보인다(2026-10-12 공모전 탐색
      '마감'/'전체' 보기 폭 불일치). 커스텀 스크롤바 트랙은 투명해 남는 자리가 없다. */
   overflow-y: scroll;
+  /* 가로 스크롤 금지 — body zoom(0.9)과 position: fixed 전체 폭 요소(하단 고정 바
+     .nav-bottom-bar·홈 배경 레이어 .home-bg)의 조합에서 브라우저가 문서를
+     뷰포트보다 넓게 계산해 화면 맨 아래에 가로 스크롤바가 생긴다(2026-10-14
+     사용자 지적). hidden 대신 clip — 스크롤 컨테이너를 만들지 않아 sticky인
+     상단바가 그대로 동작하고, 화면 밖으로 나간 부분만 잘라낸다 */
+  overflow-x: clip;
   color: var(--text);
-  background: var(--page);
+  /* 캔버스 그라데이션 — 모든 화면에서 푸터를 향해 점차 밝아진다(2026-10-14
+     사용자 요청 '다른 페이지도 전부 푸터로 내려가는 사이 배경색을 그라데이션으로
+     점차 흰색으로'). 루트 배경은 문서 캔버스 전체에 깔리므로 내용 폭이 좁은
+     입력·결과 화면 주변까지 화면 전체 폭이 함께 밝아진다. 홈은 .home-bg(고정,
+     불투명 회색)가 캔버스를 통째로 가리므로 홈만 자체 배경 전환을 그대로 쓴다 */
+  background-color: var(--page);
+  background-image: linear-gradient(to bottom, var(--page) 0%, var(--bg) 100%);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -150,6 +165,9 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  /* 화면 하단 고정 바(.nav-bottom-bar)가 푸터를 가리지 않게 하는 여백은
+     #root 패딩 대신 푸터 padding-bottom이 담당한다(2026-10-14) — #root 패딩
+     자리에는 회색 캔버스가 드러나 푸터 아래 배경 전환(흰→회색)이 보였다 */
 }
 
 body {
@@ -166,6 +184,15 @@ body {
   @media (max-width: 768px) {
     zoom: 0.8;
   }
+}
+
+/* 폼 컨트롤(input·textarea·select·button)은 UA 기본 굵기(400)를 쓰므로
+   :root의 700을 상속시킨다(전역 굵은체). 요소별 명시 규칙이 있으면 그게 이긴다 */
+input,
+textarea,
+select,
+button {
+  font-weight: inherit;
 }
 
 h1,
@@ -298,15 +325,14 @@ p {
 }
 
 /* 카드 뉴스 그림자 — 캔버스 위의 흰 카드들이 항상 살짝 떠 있어야 화면 구획이
-   한눈에 잡힌다(2026-10-12). 표면 색·테두리는 각 파일이 그대로 가지고,
-   여기서는 '카드'에 해당하는 클래스만 골라 잠깐 상태의 그림자를 한꺼번에 부여한다.
-   손을 올릴 때의 추가 상승은 각 hover 규칙의 --shadow-hover가 담당하고, 화면을
-   덮는 패널(notif-panel·search-dropdown·category-panel)은
-   각 컴포넌트 CSS에서 더 강한 --shadow-pop을 쓴다.
+   한눈에 잡힌다(2026-10-12, 같은 해 14일 배경전환으로 복원). 표면 색·테두리는
+   각 파일이 그대로 가지고, 여기서는 '카드'에 해당하는 클래스만 골라 잠깐 상태의
+   그림자를 한꺼번에 부여한다. 손을 올릴 때의 추가 상승은 각 hover 규칙의
+   --shadow-hover가 담당하고, 화면을 덮는 패널(notif-panel·search-dropdown·
+   category-panel)은 각 컴포넌트 CSS에서 더 강한 --shadow-pop을 쓴다.
    :where 명시도 0이라 자체 box-shadow를 선언한 카드(marquee-card 등)는 그 값이 이긴다. */
 :where(
     .service-tab,
-    .feature-card,
     .explore-card,
     .explore-toolbar,
     .idea-card,
@@ -423,7 +449,9 @@ a[href]:active,
    포인트 색(파랑)을 쓴다. */
 .sync-notice {
   position: fixed;
-  bottom: 16px;
+  /* 화면 하단 고정 바(.nav-bottom-bar) 위에 뜨게 바닥에서 64px —
+     16px로 두면 바와 겹쳐 보인다(2026-10-14) */
+  bottom: 64px;
   left: 16px;
   z-index: 60;
   display: flex;

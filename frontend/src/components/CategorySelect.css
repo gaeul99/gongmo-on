@@ -79,6 +79,7 @@
   left: 0;
   right: 0;
   z-index: 20;
+  /* 화면 위를 덮는 팝업 — 불투명한 흰 패널(2026-10-14 배경전환 복원) */
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -140,7 +141,7 @@
 
 .category-option.selected {
   color: var(--accent-text);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .category-empty {

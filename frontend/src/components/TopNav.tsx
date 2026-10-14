@@ -23,9 +23,10 @@ type Props = {
   onGoHome: () => void;
   onGoMyPage: () => void;
   onOpenContest: (id: number) => void;
-  // 검색 팝업 하단의 '공모전 전체 탐색' 입구. 메뉴바의 '공모전 탐색' 링크도 같은 핸들러를 쓴다.
+  // 검색 팝업 하단의 '공모전 전체 탐색' 입구. 바로가기 5개의 입구는 2026-10-14
+  // 사용자 요청으로 하단 바 메뉴 팝업(홈버튼 옆 아이콘) 하나로 정리됐다.
   onOpenExplore: () => void;
-  // 메뉴바 바로가기 링크(홈 화면 탭이 메뉴바로 흡수됐다) — 각 화면으로 보낸다.
+  // 하단 바 메뉴 팝업(홈버튼 옆 아이콘)이 여는 바로가기 5개다.
   onStart: () => void;
   onTypeTest: () => void;
   onDashboard: () => void;
@@ -124,12 +125,16 @@ function TopNav({
 }: Props) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const searchBoxRef = useRef<HTMLDivElement | null>(null);
   // 종 아이콘 + 알림 패널을 함께 감싸는 래퍼 — 패널을 아이콘 바로 밑에 붙이고,
   // 바깥 클릭 판정(아이콘·패널 둘 다 밖이면 닫기)의 기준이 된다.
   const bellBoxRef = useRef<HTMLDivElement | null>(null);
+  // 메뉴 아이콘 + 바로가기 팝업을 함께 감싸는 래퍼 — 팝업을 아이콘 바로 위에
+  // 붙이고, 바깥 클릭 판정의 기준이 된다.
+  const menuBoxRef = useRef<HTMLDivElement | null>(null);
   // 검색 대상 공모전 — 목업 + 자동 등록이 합쳐진 풀
   const contests = useContestPool();
   const searchItems = useMemo(() => buildSearchItems(contests), [contests]);
@@ -158,18 +163,31 @@ function TopNav({
     return () => document.removeEventListener("mousedown", handlePointer);
   }, [notifOpen]);
 
-  // 검색·알림 패널은 Escape로도 닫습니다.
+  // 메뉴 팝업은 아이콘·팝업 바깥을 누르면 닫습니다(검색·알림과 같은 방식).
   useEffect(() => {
-    if (!searchOpen && !notifOpen) return;
+    if (!menuOpen) return;
+    const handlePointer = (event: MouseEvent) => {
+      if (menuBoxRef.current && !menuBoxRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handlePointer);
+    return () => document.removeEventListener("mousedown", handlePointer);
+  }, [menuOpen]);
+
+  // 검색·알림·메뉴 팝업은 Escape로도 닫습니다.
+  useEffect(() => {
+    if (!searchOpen && !notifOpen && !menuOpen) return;
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setSearchOpen(false);
         setNotifOpen(false);
+        setMenuOpen(false);
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [searchOpen, notifOpen]);
+  }, [searchOpen, notifOpen, menuOpen]);
 
   const trimmed = query.trim();
   const results = trimmed
@@ -187,27 +205,10 @@ function TopNav({
   return (
     <nav className="top-nav-bar" aria-label="공통 메뉴">
       <div className="nav-menu-row">
-        {/* 메뉴바 바로가기 — 홈 화면의 서비스 탭이 메뉴바로 흡수됐다(2026-10-13).
-            아이디어 분석이 첫 메뉴다. */}
-        <div className="nav-links">
-          <AppLink className="nav-link" href="/input" onNavigate={onStart}>
-            아이디어 분석
-          </AppLink>
-          <AppLink className="nav-link" href="/test" onNavigate={onTypeTest}>
-            유형 검사
-          </AppLink>
-          <AppLink className="nav-link" href="/dashboard" onNavigate={onDashboard}>
-            대시보드
-          </AppLink>
-          <AppLink className="nav-link" href="/notes" onNavigate={onNotes}>
-            연습 노트<span className="nav-link-new">NEW</span>
-          </AppLink>
-          <AppLink className="nav-link" href="/contest" onNavigate={onOpenExplore}>
-            공모전 탐색
-          </AppLink>
-        </div>
-        <div className="nav-actions">
-        {/* 메뉴바 인라인 검색 — 돋보기 버튼 대신 입력 박스가 놓이고,
+        {/* 바로가기 링크 줄(아이디어 분석·유형 검사·대시보드·연습 노트·공모전 탐색)은
+            2026-10-14 사용자 요청으로 하단 바 메뉴 팝업(홈버튼 옆 아이콘)으로
+            옮겼다. 상단바 1행은 검색 박스 하나만 남아 화면 가운데에 놓인다. */}
+        {/* 메뉴바 인라인 검색 — 행 가운데에 놓이고,
             입력하면 박스 아래로 검색 결과 드롭다운이 펼쳐진다. */}
         <div className="nav-search" ref={searchBoxRef}>
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -279,8 +280,7 @@ function TopNav({
               <div className="search-dropdown-scroll">
               {trimmed === "" ? (
                 <p className="search-hint">
-                  앱 속 자료부터 국내 공모전 전체(20년 아카이브 포함)까지 검색해
-                  보세요.
+                  앱 속 자료와 국내 공모전 전체를 검색해 보세요.
                 </p>
               ) : (
                 <>
@@ -369,8 +369,7 @@ function TopNav({
                     </>
                   ) : (
                     <p className="search-hint">
-                      앱 내 자료에는 '{trimmed}' 결과가 없어요. 아래 전체 검색을
-                      이용해 보세요.
+                      '{trimmed}' 결과가 없어요. 아래 전체 검색을 이용해 보세요.
                     </p>
                   )}
                   <p className="search-section-label">국내 공모전 전체 검색</p>
@@ -400,12 +399,18 @@ function TopNav({
                   onOpenExplore();
                 }}
               >
-                앱에 등록된 공모전을 검색·필터로 찾고 싶다면 → 공모전 탐색
+                필터로 찾고 싶다면 → 공모전 탐색
               </AppLink>
               </div>
             </div>
           )}
         </div>
+      </div>
+      {/* 화면 하단 고정 바 — 홈·알림·마이 아이콘이 여기로 내려 왔다
+          (2026-10-14 사용자 요청 '아이콘 화면 하단으로'). position: fixed라
+          상단바(sticky)와 달리 화면 맨 아래에 항상 붙어 있다.
+          1행(상단바)은 검색창 하나(가운데)다 */}
+      <div className="nav-bottom-bar">
         <AppLink
           className="nav-icon-button"
           href="/"
@@ -432,6 +437,103 @@ function TopNav({
             />
           </svg>
         </AppLink>
+        {/* 홈버튼 옆 메뉴 아이콘 — 누르면 아이콘 위로 바로가기 5개 팝업이 펼친다
+            (2026-10-14 사용자 요청 '홈바에 홈버튼 옆에 메뉴아이콘'). 바로가기의
+            유일한 입구다(같은 날 페이지 맨 아래 메뉴는 사용자 요청으로 삭제) */}
+        <div className="nav-menu-box" ref={menuBoxRef}>
+          <button
+            type="button"
+            className={
+              menuOpen ? "nav-icon-button menu-open" : "nav-icon-button"
+            }
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label="메뉴"
+            aria-expanded={menuOpen}
+            title="메뉴"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path
+                d="M4 7h16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+              <path
+                d="M4 12h16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+              <path
+                d="M4 17h16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
+          </button>
+          {menuOpen && (
+            <div
+              className="nav-menu-pop"
+              role="dialog"
+              aria-label="바로가기 메뉴"
+            >
+              <AppLink
+                className="nav-menu-item"
+                href="/input"
+                onNavigate={() => {
+                  setMenuOpen(false);
+                  onStart();
+                }}
+              >
+                아이디어 분석
+              </AppLink>
+              <AppLink
+                className="nav-menu-item"
+                href="/test"
+                onNavigate={() => {
+                  setMenuOpen(false);
+                  onTypeTest();
+                }}
+              >
+                유형 검사
+              </AppLink>
+              <AppLink
+                className="nav-menu-item"
+                href="/dashboard"
+                onNavigate={() => {
+                  setMenuOpen(false);
+                  onDashboard();
+                }}
+              >
+                대시보드
+              </AppLink>
+              <AppLink
+                className="nav-menu-item"
+                href="/notes"
+                onNavigate={() => {
+                  setMenuOpen(false);
+                  onNotes();
+                }}
+              >
+                연습 노트<span className="nav-link-new">NEW</span>
+              </AppLink>
+              <AppLink
+                className="nav-menu-item"
+                href="/contest"
+                onNavigate={() => {
+                  setMenuOpen(false);
+                  onOpenExplore();
+                }}
+              >
+                공모전 탐색
+              </AppLink>
+            </div>
+          )}
+        </div>
         <div className="nav-bell" ref={bellBoxRef}>
         <button
           type="button"
@@ -597,7 +699,6 @@ function TopNav({
             </span>
           )}
         </AppLink>
-        </div>
       </div>
     </nav>
   );

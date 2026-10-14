@@ -73,7 +73,7 @@
 }
 
 .optional {
-  font-weight: 400;
+  font-weight: 700;
   font-size: 12.5px;
   color: var(--text-2);
 }
@@ -81,7 +81,7 @@
 /* 입력 글자수 카운터 — 라벨 줄 오른쪽 끝에 붙인다 */
 .char-count {
   float: right;
-  font-weight: 400;
+  font-weight: 700;
   font-size: 12.5px;
   color: var(--text-2);
   opacity: 0.9;
@@ -196,7 +196,7 @@
   overflow: hidden;
   font: inherit;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--brand-ink);
   background: var(--brand);
   border: none;
@@ -258,7 +258,7 @@
 
 .input-archive-count {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
   margin-left: 6px;
 }
@@ -333,7 +333,7 @@
 .input-archive-open {
   font: inherit;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-ink);
   background: var(--accent);
   border: none;
@@ -427,7 +427,7 @@
   margin-top: 8px;
   font: inherit;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   background: none;
   border: none;

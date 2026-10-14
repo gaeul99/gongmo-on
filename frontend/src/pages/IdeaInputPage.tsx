@@ -259,7 +259,7 @@ function IdeaInputPage({
           내 아이디어 보관함 <span className="input-archive-count">{savedIdeas.length}개</span>
         </h2>
         <p className="input-archive-caption">
-          '다시 보기'를 누르면 저장된 분석 결과를 그대로 보여 드려요.
+          '다시 보기'로 저장된 분석 결과를 그대로 볼 수 있어요.
         </p>
         {savedIdeas.length === 0 ? (
           <p className="input-archive-empty">

@@ -16,7 +16,7 @@
 .result-badge {
   display: inline-block;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
@@ -111,48 +111,6 @@
   color: var(--text-h);
 }
 
-/* 초안 이용법 3단계 — 버튼 이름을 그대로 언급해 무엇을 누를지 바로 보이게 한다.
-   번호는 검정 원 배지로 강조(흑백 테마, 컬러 없음) */
-.proposal-howto {
-  margin: 0 0 14px;
-  padding-left: 0;
-  list-style: none;
-  font-size: 13.5px;
-  line-height: 175%;
-  color: var(--text);
-  word-break: keep-all;
-  counter-reset: howto;
-}
-
-.proposal-howto li {
-  margin: 6px 0;
-  padding-left: 27px;
-  position: relative;
-  counter-increment: howto;
-}
-
-.proposal-howto li::before {
-  content: counter(howto);
-  position: absolute;
-  left: 0;
-  top: 1px;
-  width: 18px;
-  height: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent-ink);
-  background: var(--accent);
-  border-radius: 50%;
-}
-
-.proposal-howto strong {
-  font-weight: 700;
-  color: var(--text-h);
-}
-
 .proposal-waiting {
   margin: 0;
   font-size: 14.5px;
@@ -172,11 +130,11 @@
 .proposal-toggle {
   font: inherit;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   padding: 9px 16px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--panel);
   color: var(--text-h);
   cursor: pointer;
   transition:
@@ -208,13 +166,10 @@
 }
 
 .proposal-preview {
-  /* 결과 화면의 다른 카드(idea-card 등)와 같은 흰 카드 층위 — 초안 문서라는 뜻의
-     회색 인셋이 아니라 '만들어진 결과물' 카드로 보이게 한다 */
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 24px 26px;
-  box-shadow: var(--shadow);
 }
 
 .proposal-title-line {
@@ -269,13 +224,13 @@
   word-break: keep-all;
 }
 
-/* 제출 전 주의 문구 — 점선 구분선 + ⚠️로 '여기서 끝이 아니라 다듬어야 한다'를 강조 */
+/* 제출 전 주의 문구 — ⚠️로 '여기서 끝이 아니라 다듬어야 한다'를 강조.
+   위 점선 구분선은 2026-10-14 '전체 구분선은 지워줘' 요청으로 뺐다 */
 .proposal-note {
   margin: 16px 0 0;
   padding-top: 12px;
-  border-top: 1px dashed var(--border);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-h);
   word-break: keep-all;
 }
@@ -373,7 +328,7 @@
 }
 
 .case-card {
-  background: var(--bg);
+  background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 24px;
@@ -441,7 +396,7 @@
 
 .similarity-label {
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
 }
 
@@ -665,20 +620,19 @@
 .diff-example-compare .diff-bad {
   background: #ffffff;
   color: var(--error);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .diff-example-compare .diff-good {
   background: #ffffff;
   color: var(--accent-text);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .diff-example-note {
   margin: 14px 0 0;
   font-size: 13px;
   color: var(--text-2);
-  border-top: 1px dashed var(--border);
   padding-top: 12px;
   word-break: keep-all;
 }
@@ -714,7 +668,7 @@
   display: inline-block;
   margin-top: 16px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
   text-decoration: none;
 }
@@ -733,7 +687,7 @@
 .detail-link.detail-link-button {
   font: inherit;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
   background: none;
   border: none;
@@ -775,7 +729,6 @@
   flex-shrink: 0;
   margin-top: 0;
   padding-left: 20px;
-  border-left: 1px solid var(--border);
 }
 
 .archive-side h2 {
@@ -796,7 +749,7 @@
 .archive-links a {
   display: block;
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
   text-decoration: none;
   word-break: keep-all;
@@ -810,7 +763,7 @@
   display: block;
   margin-top: 2px;
   font-size: 11.5px;
-  font-weight: 400;
+  font-weight: 700;
   color: var(--text-3);
 }
 
@@ -822,10 +775,7 @@
 
   .archive-side {
     width: auto;
-    border-left: none;
     padding-left: 0;
-    border-top: 1px solid var(--border);
-    padding-top: 24px;
   }
 }
 
@@ -837,7 +787,7 @@
   overflow: hidden;
   font: inherit;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-ink);
   background: var(--accent);
   border: none;
@@ -889,7 +839,7 @@
   background: var(--accent-bg);
   padding: 10px 14px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-h);
 }
 
@@ -899,7 +849,7 @@
 .apply-done a.app-link {
   font: inherit;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
   background: none;
   border: none;
@@ -925,9 +875,9 @@
 .save-button {
   font: inherit;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
-  background: var(--bg);
+  background: var(--panel);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
   padding: 8px 16px;
@@ -944,7 +894,7 @@
 
 .save-done {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
 }
 
@@ -958,7 +908,7 @@
 .wish-button {
   font: inherit;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
   background: var(--bg);
   border: 1px solid var(--accent-border);
@@ -1052,7 +1002,7 @@
 .checklist-progress-label {
   flex: none;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-h);
   font-variant-numeric: tabular-nums;
 }
@@ -1140,7 +1090,7 @@
   box-sizing: border-box;
   font: inherit;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
   background: var(--bg);
   border: 1px solid var(--accent);
@@ -1171,9 +1121,9 @@
   display: inline-block;
   font: inherit;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
-  background: var(--bg);
+  background: var(--panel);
   border: 1px solid var(--accent-border);
   border-radius: 999px;
   padding: 8px 18px;
@@ -1275,7 +1225,7 @@
 /* 공모전 사이트로 이동 — 확인 박스 안의 기본 동작이라 파랑으로 채운다 */
 .apply-confirm-site {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--brand-ink);
   text-align: center;
   background: var(--brand);
@@ -1296,7 +1246,7 @@
 .apply-confirm-cancel {
   font: inherit;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   background: none;
   border: none;
@@ -1456,11 +1406,11 @@
 .contest-pagination-buttons button {
   font: inherit;
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
   min-width: 34px;
   padding: 7px 10px;
   color: var(--accent-text);
-  background: var(--bg);
+  background: var(--panel);
   border: 1px solid var(--accent-border);
   border-radius: 8px;
   cursor: pointer;

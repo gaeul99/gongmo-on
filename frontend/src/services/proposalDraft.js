@@ -85,3 +85,18 @@ export function proposalToText(draft) {
   lines.push(draft.note)
   return lines.join('\n')
 }
+
+// TXT 내려받기 파일명 — 아이디어 제목은 사용자 입력이라 파일 이름으로 쓸 수 없는
+// 문자(\ / : * ? " < > |)가 섞일 수 있다. 그 문자들은 공백으로 바꾸고, 지나치게
+// 긴 제목은 40자로 자르며, 정리 결과가 비면 기본 이름을 쓴다.
+export function proposalFileName(draft) {
+  const safe = String(draft?.title ?? '')
+    .replace(/[\\/:*?"<>|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 40)
+    .trim()
+    .replace(/[. ]+$/, '')
+    .trim()
+  return `${safe || '아이디어'}-제안서-초안.txt`
+}

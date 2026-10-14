@@ -1,8 +1,15 @@
-/* 모든 화면 맨 아래에 붙는 공통 푸터. 색은 index.css의 토큰을 그대로 씁니다. */
+/* 모든 화면 맨 아래에 붙는 공통 푸터. 색은 index.css의 토큰을 그대로 씁니다.
+   흰 배경 — 카드와 같은 흰 표면(2026-10-14 배경전환 복원). 윗 구분선은 같은 날
+   '전체 구분선은 지워줘' 요청으로 뺐다.
+   padding-top 240px — 위 내용에서 푸터 글줄을 넉넉히 아래로 내린다
+   (2026-10-14 사용자 요청 '푸터 아래로 더'로 150px, 같은 날 '더 아래로'로 240px.
+   바로가기 메뉴가 푸터 아래로 내려가면서 되돌림 포함 재확정).
+   padding-bottom 108px — 푸터 글줄 아래 페이지 맨 아래 여백(2026-10-14 사용자
+   요청). 페이지의 마지막 요소가 푸터로 돌아왔으므로 모바일 하단 고정 바(약 51px)가
+   푸터 내용을 가리지 않는 여유이기도 하다 */
 .site-footer {
-  margin-top: 56px;
-  padding: 36px 24px 44px;
-  border-top: 1px solid var(--border);
+  margin-top: 0;
+  padding: 240px 24px 108px;
   background: var(--bg);
   display: flex;
   flex-direction: column;

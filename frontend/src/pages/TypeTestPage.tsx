@@ -374,7 +374,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
           <section className="type-test-panel" data-reveal>
             <h2 className="type-test-panel-title">이 유형에게 추천하는 공모전</h2>
             <p className="type-test-panel-caption">
-              지금 접수 중인 공모전 중에서 골랐어요. 마감일을 확인해 보세요.
+              접수 중인 공모전 중에서 골랐어요.
             </p>
             <ul className="type-test-contest-list">
               {recommendations.map((contest) => {

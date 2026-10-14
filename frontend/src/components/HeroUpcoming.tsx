@@ -42,20 +42,18 @@ function HeroUpcoming({ onOpenContest, onOpenExplore }: Props) {
     [contests],
   )
 
-  // 박스 높이를 '곧 마감' 박스와 맞추려 최근 시작 순 일부만 보여 주고, 총 건수는 안내 문구에 표시한다.
+  // 박스 높이를 '곧 마감' 박스와 맞추려 최근 시작 순 일부만 보여 준다.
   const rows = all.slice(0, SHOW_LIMIT)
-  const total = all.length
 
   // 보여 줄 접수 예정 공모전이 없으면 박스를 통째로 숨긴다.
   if (rows.length === 0) return null
 
   return (
-    <aside className="hero-upcoming" aria-label="곧 시작되는 공모전">
+    <div className="hero-panel-col">
+      {/* 제목 행은 카드 밖 위에 둔다 — 마키 '접수 중인 공모전'과 같은 섹션 제목
+          언어(2026-10-14 사용자 요청 '카드 위에 제목') */}
       <div className="upcoming-head">
         <h2>곧 시작되는 공모전</h2>
-        <span className="upcoming-emoji" aria-hidden="true">
-          🚀
-        </span>
         <AppLink
           className="deadline-more"
           href="/contest?status=upcoming"
@@ -64,34 +62,31 @@ function HeroUpcoming({ onOpenContest, onOpenExplore }: Props) {
           전체 보기
         </AppLink>
       </div>
-
-      <ul className="upcoming-list">
-        {rows.map(({ contest, untilStart }) => (
-          <li key={contest.id}>
-            <AppLink
-              className="upcoming-item"
-              href={`/contest/${contest.id}`}
-              title="공모전 상세 보기"
-              onNavigate={() => onOpenContest(contest.id)}
-            >
-              <span className={`upcoming-badge tone-${untilStart === 0 ? 'today' : 'soon'}`}>
-                {untilStart === 0 ? '오늘 시작' : `D-${untilStart} 시작`}
-              </span>
-              <span className="upcoming-info">
-                <span className="upcoming-title">{contest.title}</span>
-                <span className="upcoming-meta">
-                  {contest.organizer} · {contest.field}
+      <aside className="hero-upcoming" aria-label="곧 시작되는 공모전">
+        <ul className="upcoming-list">
+          {rows.map(({ contest, untilStart }) => (
+            <li key={contest.id}>
+              <AppLink
+                className="upcoming-item"
+                href={`/contest/${contest.id}`}
+                title="공모전 상세 보기"
+                onNavigate={() => onOpenContest(contest.id)}
+              >
+                <span className={`upcoming-badge tone-${untilStart === 0 ? 'today' : 'soon'}`}>
+                  {untilStart === 0 ? '오늘 시작' : `D-${untilStart} 시작`}
                 </span>
-              </span>
-            </AppLink>
-          </li>
-        ))}
-      </ul>
-
-      <p className="upcoming-note">
-        접수 예정 {total}건 · 곧 시작하는 순으로 {rows.length}건을 보여드려요.
-      </p>
-    </aside>
+                <span className="upcoming-info">
+                  <span className="upcoming-title">{contest.title}</span>
+                  <span className="upcoming-meta">
+                    {contest.organizer} · {contest.field}
+                  </span>
+                </span>
+              </AppLink>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    </div>
   )
 }
 

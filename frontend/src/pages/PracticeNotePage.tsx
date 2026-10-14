@@ -306,7 +306,7 @@ function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, on
           + 새 노트 만들기
         </button>
         <AppLink className="notes-to-input" href="/input" onNavigate={onGoInput}>
-          연습할 아이디어를 AI 분석해 보고 싶다면 →
+          아이디어를 AI 분석해 보고 싶다면 →
         </AppLink>
       </div>
 
@@ -314,7 +314,7 @@ function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, on
         <div className="notes-empty" data-reveal>
           <p>아직 연습 노트가 없어요.</p>
           <p className="notes-empty-sub">
-            도전하고 싶은 공모전을 하나 정하고, 새 노트로 심사 관점을 미리 연습해 보세요.
+            공모전을 하나 정하고 심사 관점을 미리 연습해 보세요.
           </p>
           <button type="button" className="notes-empty-button" onClick={openNew}>
             첫 노트 만들기

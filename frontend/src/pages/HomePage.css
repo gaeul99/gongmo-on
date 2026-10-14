@@ -11,8 +11,16 @@
   --home-section-gap: 85px;
 }
 
-/* 화면 뒤 배경 — 첫화면이 비어 보이지 않게 그라데이션 + 광원 무늬.
-   본문 뒤(z-index -1)에 고정되어 스크롤 내내 은은하게 깔린다. */
+/* 홈 배경은 히어로만 흰 표면(.hero가 자체 배경) — 그 아래 섹션은 배경을 칠하지
+   않아 .home-bg의 회색 캔버스가 그대로 드러난다(2026-10-14 사용자 요청
+   '히어로 화면만 제외하고 나머지 섹션은 배경전환'). 첫 화면(내비+히어로)은
+   흰색이고, 스크롤하면 캔버스로 전환되며 푸터(흰)에서 다시 전환된다.
+   같은 날 잠시 .home에 흰 배경을 깔아 전환을 없앴다가 되돌렸다 */
+
+/* 화면 뒤 배경 — 본문이 비어 보이지 않게 그라데이션 + 광원 무늬.
+   본문 뒤(z-index -1)에 고정돼 있다. 히어로는 자체 흰 배경으로 가리고, 그 아래
+   섹션은 배경을 칠하지 않아 캔버스가 드러난다(2026-10-14 사용자 요청
+   '히어로 화면만 제외하고 나머지 섹션은 배경전환'). */
 .home-bg {
   position: fixed;
   inset: 0;
@@ -82,56 +90,64 @@
    뺀 남은 높이를 최소 높이로 삼고 내용을 세로 중앙에 놓아, 바로가기 탭과
    접수 중인 공모전 슬라이드가 첫 화면에 들어오지 않게 한다. width: 100% +
    box-sizing은 .page가 세로 플렉스라 margin: auto만 두면 내용 폭으로 수축하는
-   것을 막는다(프로젝트 규칙) */
+   것을 막는다(프로젝트 규칙). 아래 패딩 96px — 중앙 정렬 기준점을 위로 밀어
+   내용을 화면 중앙보다 살짝 위에 떡 하게 놓는다(2026-10-14 사용자 요청
+   '히어로 위로'). hero-copy에 data-reveal이 있어 translate로는 옮기지 못한다.
+   배경은 흰 표면 — 내비(흰)와 이어져 첫 화면 전체가 흰색이고, 히어로가 끝나는
+   지점에서 .home-bg 회색 캔버스로 전환된다(2026-10-14 사용자 요청 '히어로
+   화면만 제외하고 나머지 섹션은 배경전환').
+   max-width·margin은 .hero-copy로 옮겨 배경이 화면 전체 폭을 쓰게 한다 */
 .hero {
   width: 100%;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  max-width: var(--content-width);
-  margin: 0 auto;
-  padding: 48px 24px 0;
+  background: var(--bg);
+  /* 아래 96px — 기능 소개 섹션(.features)과의 간격. 섹션 위 패딩 150px와 합쳐
+     246px(2026-10-14: 96→150으로 늘렸다가 '좁혀줘' 요청으로 96px 복원).
+     min-height로 첫 화면을 채우므로 평소에는 첫 화면 안 여유분이 된다 */
+  padding: 48px 24px 96px;
   min-height: calc(100svh - 40px);
 }
 
-/* 배지부터 예시까지 세로로 쌓아 가운데 정렬 */
+/* 워드마크부터 예시까지 세로로 쌓아 가운데 정렬. max-width — 흰 배경은 화면
+   전체 폭(.hero), 내용만 콘텐츠 폭으로 묶는다(.hero에서 옮겨온 제약) */
 .hero-copy {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  /* 배지와 문구 사이 여백 — 첫 화면 안에 기능 섹션까지 보이게 압축 */
+  /* 요소 사이 기본 여백 — 태그라인이 위쪽 간격(margin 56px)을 따로 벌린다 */
   gap: 16px;
 }
 
-/* 'AI 아이디어 분석 서비스' 알약 배지 — 검색 박스·아이콘 버튼과 같은
-   인셋 회색+구조선 회색 칩(2026-10-13 흑백 요소 통일). 검정은 강조에만 쓴다 */
-.badge {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-h);
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 4px 12px;
-}
+/* 'AI 아이디어 분석 서비스' 알약 배지는 2026-10-14 사용자 요청으로 뺐다(.badge 규칙 삭제) */
 
 /* 서비스 워드마크 — 홈 대표 글자. Noto Sans KR SemiBold */
 .hero-title {
   margin: 0;
   font-family: 'Noto Sans KR', var(--sans);
   font-weight: 600;
-  font-size: 56px;
+  /* 56→72→68px(2026-10-14 사용자 지정 '공모온' 크기) */
+  font-size: 68px;
   line-height: 1.1;
   /* 전체 글씨 진회색 통일(2026-10-13) — 워드마크는 가장 중요한 글씨라 제목 톤(--text-h #333)을 쓴다 */
   color: var(--text-h);
 }
 
 .tagline {
-  margin: 4px 0 0;
+  /* 위쪽 56px — '공모온' 워드마크+배지 덩어리와 문구·예시 덩어리 사이를
+     벌리는 간격(2026-10-14 사용자 요청 '글+예시 아이디어를 아래로 더 내려서
+     사이 간격'). flex gap 16px와 합쳐 실효 72px. 히어로는 transform 이동이
+     불가하므로 margin으로 벌린다 */
+  margin: 56px 0 0;
   font-size: 15px;
+  /* 굵은체(2026-10-14 사용자 요청) */
+  font-weight: 700;
   line-height: 165%;
   color: var(--text-h);
   word-break: keep-all;
@@ -193,7 +209,7 @@
 
 @media (max-width: 1024px) {
   .hero-title {
-    font-size: 40px;
+    font-size: 52px;
   }
 }
 
@@ -212,8 +228,18 @@
   }
 }
 
+/* '접수 중인 공모전' 마키 밴드 — 위 여백(원래 .contest-marquee margin-top 120px)을
+   여기 padding-top으로 옮겼다. 위 120px는 흰 표면(--bg)→회색 캔버스(--page)
+   그라데이션 — 2026-10-14 사용자 요청 '히어로와 이렇게 도와드립니다 사이
+   그라데이션은 좀 더 아래로 내려줘'로 기능 소개 섹션 전체가 흰색이 되고, 흰→회색
+   전환은 마키 카드 바로 위에서 끝난다. 그 아래는 캔버스에 마키 카드(흰)가 뜬다 */
+.home-marquee-band {
+  padding-top: 120px;
+  background: linear-gradient(to bottom, var(--bg) 0, var(--page) 120px);
+}
+
 /* 공모전 마키 아래 두 패널 — '곧 마감되는 공모전' + '곧 시작되는 공모전' 2단.
-    기능 소개(.features) 앞에 오며, 아래 간격은 .features의 margin-top이 담당한다. */
+    기능 소개(.features)가 위에 있고, 아래 간격은 .strengths의 margin-top이 담당한다. */
 .home-deadlines {
   display: grid;
   /* minmax(0, 1fr): 긴 제목(keep-all)이 트랙을 밀어내 두 박스가 겹치지 않게 폭을 묶는다 */
@@ -221,15 +247,29 @@
   gap: 20px;
   align-items: stretch;
   max-width: var(--content-width);
-  /* 위 여백 — '접수 중인 공모전' 마키와 두 패널 사이 간격.
-     사용자 요청으로 마키(--home-section-gap)보다 넉넉히 따로 둔다 */
-  margin: 140px auto 0;
-  padding-inline: 24px;
+  /* 위 간격 — '접수 중인 공모전' 마키와 두 패널 사이 여백(2026-10-14 사용자
+     요청). 처음에는 여기에 구분선을 그렸으나 '두 패널 위 구분선 삭제' 요청으로
+     선은 빼고 여백만 남겼다. 마키 섹션을 넉넉히 거두고 패널 단을 아래에 연다 */
+  margin: 128px auto 0;
+  padding: 150px 24px 0;
 }
 
 /* 접수 예정 공모전이 없어 오른쪽 패널이 렌더링되지 않으면 왼쪽 패널이 전체 폭을 쓴다 */
 .home-deadlines > :only-child {
   grid-column: 1 / -1;
+}
+
+/* 두 패널의 열 래퍼 — 제목 행(카드 밖 위, 2026-10-14 사용자 요청)과 카드(aside)를
+   세로로 쌓는다. min-width: 0 — keep-all 긴 제목이 그리드 트랙을 밀어내지 않게.
+   카드에 flex: 1 — 두 열의 내용 높이가 달라도 카드 아래 끝이 나란히 맞는다 */
+.hero-panel-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hero-panel-col > aside {
+  flex: 1;
 }
 
 /* 좁은 화면에서는 두 패널을 위아래로 쌓는다 */
@@ -297,61 +337,32 @@
   }
 }
 
-/* 페이지 맨 아래 기능 소개 배너(푸터 바로 위) — 연보라 배경 밴드. 위아래 패딩이 곧 밴드 높이라
-   간격을 줄이면 밴드도 함께 낮아집니다. 배경은 브랜드 연보라(--accent-bg, 다크 대응).
-   margin-top은 밴드 높이를 늘리지 않고 섹션 전체를 아래로 내리는 간격입니다(2026-10-10 사용자 요청으로 60→90px, 2026-10-13 90→220px로 확대). */
+/* '이렇게 도와드립니다' — 2026-10-14 사용자 요청으로 히어로 바로 다음 섹션이 됐다.
+   배경은 푸터와 같은 흰 표면(--bg) — 히어로(흰)와 이어진다. 흰→회색 전환은
+   같은 날 '그라데이션은 좀 더 아래로 내려줘' 요청으로 이 섹션이 아니라 아래
+   마키 밴드 상단에서 일어난다. 섹션 제목은 같은 날 '글자 지워주고' 요청으로
+   마크업째 빠지고 aria-label로만 남았다(.strengths와 같은 처리) — 제목의 높이와
+   아래 여백(약 85px)이 사라진 만큼 padding-top을 64→150px로 키워 항목 위치를
+   지킨다. 위 간격은 히어로 padding-bottom 96px + 여기 padding-top이 담당한다.
+   아래 padding-bottom 180px — 마키 밴드 padding-top 120px와 합쳐 문장 3개와
+   '접수 중인 공모전' 사이 300px(2026-10-14 사용자 지정 값, 220→300px로 늘림).
+   흰→회색 전환 120px는 밴드 쪽에 그대로 둬 전환 시작점이 위로 올라가지 않게 한다 */
 .features {
-  margin-top: 220px;
-  padding: 64px 24px 56px;
-  /* 보라·청록·호박이 스미는 그라데이션 밴드 — 단일 메인컬러 대신 */
-  background: linear-gradient(
-    115deg,
-    var(--accent-bg) 0%,
-    var(--hue-teal-bg) 48%,
-    var(--hue-amber-bg) 100%
-  );
+  /* 위 124px — 히어로(padding-bottom 96px)와의 간격(2026-10-14 사용자 요청
+     220px로 조정). 원래는 섹션 제목이 차지하던 자리로, 제목을 빼고 여백만 남았다.
+     아래 180px — 마키 밴드와의 간격(밴드 위 120px와 합쳐 300px) */
+  padding: 124px 24px 180px;
+  background: var(--bg);
 }
 
 /* 서비스 바로가기 탭은 메뉴바로 흡수됐다(2026-10-13) — 스타일은 TopNav.css의 .nav-link가 잇는다 */
 
-
-/* 제목 글꼴은 전역 h2(시스템 글꼴·500·text-h)를 그대로 쓴다 —
-   '📢 접수 중인 공모전'·'곧 마감되는 공모전' 제목과 같은 계열 */
-.features h2 {
-  /* 아래 여백 — 제목과 카드 사이 간격(2026-10-10 사용자 요청으로 28→60px, 카드가 아래로 내려간다) */
-  margin: 0 0 60px;
-  /* 박스를 글자 폭에 맞춰야 아래 점 장식이 글자 폭 중앙에 온다 */
-  width: fit-content;
-  margin-inline: auto;
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -0.24px;
-  color: var(--text-h);
-
-  @media (max-width: 1024px) {
-    font-size: 18px;
-  }
-}
-
-/* 제목 아래 3점 장식 — 흑백 테마로 전 점 검정.
-   박스(44×10px)가 원+반투명 끝(지름 9px)을 온전히 담아야 원형이 잘리지 않는다 —
-   중심 y=5px, x=6·22·38px, 반경 4px(페이드 4.5px)로 여유를 두고 배치했다 */
-.features h2::after {
-  content: '';
-  display: block;
-  width: 44px;
-  height: 10px;
-  margin: 20px auto 0;
-  background:
-    radial-gradient(circle at 6px 5px, #333333 4px, transparent 4.5px),
-    radial-gradient(circle at 22px 5px, #333333 4px, transparent 4.5px),
-    radial-gradient(circle at 38px 5px, #333333 4px, transparent 4.5px);
-}
-
 .feature-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  /* 2026-10-14 '유사 사례 비교' 항목 삭제 후 3개 — 3열로 맞춰 마지막 칸이 비지 않게 */
+  grid-template-columns: repeat(3, 1fr);
+  /* 박스가 없는 문장 항목 사이 — 세로 32px(900px 이하 1열에서 줄 간격), 가로 20px */
+  gap: 32px 20px;
   /* 마키·마감 패널 등 다른 섹션과 같은 내용 폭(1120px − 좌우 패딩 24px) —
      한 화면의 모든 섹션 좌우 폭이 동일하게 보이도록 맞춘다 */
   max-width: calc(var(--content-width) - 48px);
@@ -369,43 +380,106 @@
 }
 
 .feature-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 22px 24px;
+  /* 2026-10-14 사용자 요청 '박스 4개·숫자 지워주고 내용만 남겨주고 글자 크기
+     대비 효과를 더 극대화' — 카드 배경·테두리·번호 칩을 빼고 문장만 남겼다.
+     제목(28px·800)과 설명(13px)의 크기 차이를 강점 섹션(.strength-item)과 같은
+     단계로 벌려 크기 대비만으로 구획을 읽게 한다 */
   text-align: left;
-}
-
-/* 기능 번호 칩 — 검색 박스·배지와 같은 인셋 회색 칩(2026-10-13 흑백 요소 통일).
-   과거에는 카드마다 --hue-* 팔레트를 돌려 썼으나 지금은 전부 흑백 별칭이라
-   하나의 기본 규칙으로 통일했다 */
-.feature-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-h);
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-  margin-bottom: 12px;
 }
 
 .feature-card h3 {
   margin: 0 0 10px;
-  font-size: 15px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 134%;
   color: var(--text-h);
 }
 
 .feature-card p {
-  font-size: 13.5px;
-  line-height: 172%;
+  font-size: 13px;
+  line-height: 170%;
   color: var(--text-2);
   word-break: keep-all;
 }
 
 /* (과거 카드별 --hue-* 번호 칩 규칙은 2026-10-13 흑백 통일로 삭제 —
    모든 hue 변수가 흑백 별칭이라 기본 규칙 하나로 같은 모양이었다) */
+
+/* 공모온 강점 섹션 — 푸터 바로 위(2026-10-14 사용자 요청). 큰 문장+한 줄 설명의
+   2열 목록. 배경은 푸터를 향해 점차 밝아지는 화면 전환 — 평소엔 투명해 회색
+   캔버스가 보이고, 섹션이 뷰포트에 들어오면(is-screen-on — HomePage의
+   IntersectionObserver가 진입/이탈 때마다 토글) ::before가 스르륵 깔린다.
+   ::before는 캔버스색→흰 그라데이션이 섹션 전체에 걸쳐 점차 밝아진다(같은 날
+   사용자 요청 '푸터로 내려가는 사이 점차 흰색으로') — 상단은 위 캔버스와,
+   하단은 푸터(흰)와 맞닿아 어디에도 색상 띠가 생기지 않는다 */
+.strengths {
+  position: relative;
+  margin-top: 200px;
+  padding: 64px 24px 96px;
+}
+
+.strengths::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* 섹션 내용 뒤 — .home-bg 캔버스(같은 z-index -1)보다 문서 순서가 나중이라 그 위에 칠해진다 */
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--page) 0%, var(--bg) 100%);
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.strengths.is-screen-on::before {
+  opacity: 1;
+}
+
+/* 움직임을 줄이겠다고 설정한 사용자에겐 전환 없이 곧바로 바꾼다(Reveal.css와 같은 원리) */
+@media (prefers-reduced-motion: reduce) {
+  .strengths::before {
+    transition: none;
+  }
+}
+
+.strengths-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* 항목 사이를 크게 벌린다(2026-10-14 사용자 요청 '간격 띄워줘 넓게 넓게 각각') —
+     세로 96px·가로 140px. 폭도 1040px로 넓혀 두 열이 멀어진다 */
+  gap: 96px 140px;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+@media (max-width: 760px) {
+  .strengths-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+}
+
+.strength-item {
+  text-align: left;
+}
+
+.strength-item h3 {
+  margin: 0 0 12px;
+  /* 섹션 제목이 없어 이 문장이 항목의 얼굴 — 2026-10-14 사용자 요청
+     '글자 크기 대비 효과를 더 극대화'로 15px→28px·800으로 키워 설명(13px)과
+     대비를 벌린다 */
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 134%;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.strength-item p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 170%;
+  color: var(--text-2);
+  word-break: keep-all;
+}

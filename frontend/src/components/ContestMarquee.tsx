@@ -3,8 +3,10 @@
 // 흐르는 마키(strip). 카드를 누르면 앱 안의 공모전 상세 페이지로
 // 이동하고(실제 사이트는 상세 화면의 버튼으로 접속), 포인터를
 // 올리면 잠시 멈춘다. 좌우 화살표를 누르면 자동 흐름을 멈추고
-// 한 장씩 옮겨 가며 고를 수 있다. D-x 라벨은 utils/contestAlerts.js의
-// deadlineStatus 기준을 그대로 쓴다.
+// 카드를 직접 넘겨 보는 수동 모드로 바뀌는데, 이때 창은 가로
+// 스크롤 컨테이너가 돼 트랙패드·터치 스와이프도 된다. Scroll Snap으로
+// 어느 쪽으로 움직여도 카드 단위로 딱 맞아떨어진다(2026-10-14 사용자 요청).
+// D-x 라벨은 utils/contestAlerts.js의 deadlineStatus 기준을 그대로 쓴다.
 // ==========================================================
 import { useEffect, useRef, useState } from 'react'
 import AppLink from './AppLink'
@@ -13,8 +15,8 @@ import { deadlineStatus, isApplicationOpen } from '../utils/contestAlerts.js'
 import './ContestMarquee.css'
 
 // 카드 폭 280px + 오른쪽 여백 16px(ContestMarquee.css의 .marquee-card) —
-// 화살표 한 번에 이동하는 픽셀 기준. 카드 실제 폭과 맞아야 수동 모드에서
-// 카드가 정확히 한 장씩 정렬된다.
+// 화살표 한 번에 스크롤하는 픽셀 기준. 정렬은 Scroll Snap이 보장하고,
+// 이 값은 '한 번에 한 카드' 이동량으로만 쓴다.
 const CARD_STEP = 296
 
 // 마감 상태별 배지 이모지 (tone은 deadlineStatus 기준)
@@ -43,50 +45,75 @@ function ContestMarquee({ onOpenContest }: Props) {
     )
 
   // 화살표를 누르기 전엔 끊김 없는 무한 흐름(같은 목록을 두 번 이어 붙임),
-  // 누른 뒤엔 한 장씩 옮기는 수동 모드로 바뀐다.
+  // 누른 뒤엔 스와이프·화살표로 넘겨 보는 수동 모드(가로 스크롤+스냅)로 바뀐다.
   const [manual, setManual] = useState(false)
-  // 원본 이동 위치. 창이 좁아져 이동 여유(maxIndex)가 줄면 남는 값은 아래 index에서 그냥 버린다.
-  const [rawIndex, setIndex] = useState(0)
-  const windowRef = useRef<HTMLDivElement | null>(null)
   const [visible, setVisible] = useState(1)
+  // 현재 스크롤 위치와 끝 — 맨 앞/맨 뒤에서 화살표를 막는 판정에 쓴다
+  const [scrollAt, setScrollAt] = useState({ left: 0, max: 0 })
+  // 수동 모드로 막 진입한 첫 클릭도 한 장 이동으로 이어지게 — DOM이 커밋된 뒤
+  // 실행해야 스크롤 컨테이너가 준비되므로 이동 요청을 상태(큐)로 넘긴다
+  const [pendingSteps, setPendingSteps] = useState(0)
+  const windowRef = useRef<HTMLDivElement | null>(null)
 
-  // 창 폭에 한 번에 보이는 카드 수를 재서 화살표 이동 범위를 정한다.
+  // 창 폭에 한 번에 보이는 카드 수를 재고(자동 모드 화살표 판정), 스크롤 범위도 함께 갱신한다.
   useEffect(() => {
     const el = windowRef.current
     if (!el) return
-    const measure = () =>
+    const measure = () => {
       setVisible(Math.max(1, Math.floor(el.clientWidth / CARD_STEP)))
+      setScrollAt({ left: el.scrollLeft, max: el.scrollWidth - el.clientWidth })
+    }
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
 
+  // 수동 모드에서는 스크롤을 따라가 화살표 활성화를 갱신한다
+  useEffect(() => {
+    if (!manual) return
+    const el = windowRef.current
+    if (!el) return
+    const onScroll = () =>
+      setScrollAt({ left: el.scrollLeft, max: el.scrollWidth - el.clientWidth })
+    onScroll()
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [manual])
+
+  // 큐에 쌓인 이동 요청(한 카드 단위)을 실제 스크롤로 실행한다 —
+  // 정렬은 Scroll Snap이 맞추니 정확히 한 장씩 넘어간다
+  useEffect(() => {
+    if (!manual || pendingSteps === 0) return
+    const el = windowRef.current
+    if (!el) return
+    el.scrollBy({ left: pendingSteps * CARD_STEP, behavior: 'smooth' })
+    setPendingSteps(0)
+  }, [manual, pendingSteps])
+
   const maxIndex = Math.max(0, rows.length - visible)
-  // 창이 넓어져 이동 여유가 사라져도 원본 값은 그대로 두고 표시값만 범위 안으로 되돌린다.
-  const index = Math.min(rawIndex, maxIndex)
 
   const goPrev = () => {
     setManual(true)
-    setIndex(Math.max(0, index - 1))
+    setPendingSteps((steps) => steps - 1)
   }
 
   const goNext = () => {
     setManual(true)
-    setIndex(Math.min(maxIndex, index + 1))
+    setPendingSteps((steps) => steps + 1)
   }
 
   const cards = manual ? rows : [...rows, ...rows]
 
   return (
-    <section className="contest-marquee" aria-label="접수 중인 공모전 배너">
-      <p className="marquee-sub">포스터를 누르면 상세 정보로 이동해요</p>
+    <section className="contest-marquee" aria-label="접수 중인 공모전">
+      <h2 className="marquee-title">접수 중인 공모전</h2>
       <div className="marquee-slider">
         <button
           type="button"
           className="marquee-arrow marquee-arrow-prev"
           onClick={goPrev}
-          disabled={manual ? index === 0 : true}
+          disabled={manual ? scrollAt.left <= 0 : true}
           aria-label="이전 공모전 보기"
         >
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -106,11 +133,6 @@ function ContestMarquee({ onOpenContest }: Props) {
         >
           <ul
             className={manual ? 'marquee-track manual' : 'marquee-track'}
-            style={
-              manual
-                ? { transform: `translateX(-${index * CARD_STEP}px)` }
-                : undefined
-            }
           >
             {cards.map(({ contest, status }, i) => {
               // 자동 흐름일 때 뒤쪽 절반(복제본)은 화면 낭독·탭 이동에서 제외
@@ -158,7 +180,7 @@ function ContestMarquee({ onOpenContest }: Props) {
           type="button"
           className="marquee-arrow marquee-arrow-next"
           onClick={goNext}
-          disabled={manual ? index >= maxIndex : maxIndex === 0}
+          disabled={manual ? scrollAt.left >= scrollAt.max - 1 : maxIndex === 0}
           aria-label="다음 공모전 보기"
         >
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">

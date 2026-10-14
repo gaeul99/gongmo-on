@@ -83,7 +83,7 @@
 .explore-chip {
   font: inherit;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   background: var(--bg);
   border: 1px solid var(--border);
@@ -136,7 +136,7 @@
 
 .explore-count {
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-h);
 }
 
@@ -214,7 +214,6 @@
   aspect-ratio: 4 / 3;
   object-fit: cover;
   object-position: top;
-  border-bottom: 1px solid var(--border);
   /* 카드 hover 시 포스터가 살짝 확대된다(uiverse 카드 스타일) — 카드의
      overflow: hidden이 줌을 클리핑한다 */
   transition: transform 0.4s ease;
@@ -308,7 +307,7 @@
 
 .explore-fit-guide a {
   color: var(--accent-text);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .explore-fit-guide a:hover {
@@ -368,7 +367,7 @@
 .explore-reset {
   font: inherit;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);

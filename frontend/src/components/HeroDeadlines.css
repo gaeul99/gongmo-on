@@ -6,33 +6,35 @@
   min-width: 0;
   /* padding·border를 폭에 포함 — content-box면 트랙보다 커져 옆 박스와 겹친다 */
   box-sizing: border-box;
+  /* 2026-10-14 배경 평탄화에서 예외 — '곧 마감/곧 시작' 두 패널만 흰 카드로
+     배경 전환을 되살린다(사용자 요청). 흰 표면이 있으니 카드 그림자도 유지 */
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: var(--shadow);
-  padding: 18px 20px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
+/* 제목 행 — 카드(aside) 밖 위에 떼어 놓았다(2026-10-14 사용자 요청 '카드 위에
+   제목'). 마키의 '접수 중인 공모전'과 같은 섹션 제목 언어 — 18px 왼쪽 정렬 */
 .deadline-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 10px;
+  margin: 0 0 10px;
 }
 
 /* '곧 시작되는 공모전' 패널(upcoming-head h2)과 같은 크기 — 나란히 놓인 두 제목이 통일되게 */
 .deadline-head h2 {
-  font-size: 16px;
+  font-size: var(--fs-lg);
+  font-weight: 800;
   margin: 0;
 }
 
 .deadline-more {
   font: inherit;
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
   background: none;
   border: none;
@@ -43,20 +45,14 @@
   cursor: pointer;
 }
 
-/* 제목 옆 마감 이모지 — 장식(aria-hidden)이라 낭독기에는 제목만 읽힌다 */
-.deadline-emoji {
-  align-self: center;
-  font-size: 18px;
-  line-height: 1;
-}
-
 .deadline-more:hover {
   text-decoration: underline;
 }
 
 .deadline-list {
   list-style: none;
-  margin: 10px 0 0;
+  /* 제목 행이 카드 밖으로 나가 목록이 카드의 첫 자식이 됐다 — 위 여백 없이 꼭대기부터 */
+  margin: 0;
   padding: 0;
   display: grid;
   /* minmax(0, 1fr): 줄바꿈 금지 meta('.deadline-meta')의 한 줄 전체 폭이 트랙 최소폭이
@@ -197,12 +193,4 @@
   font-style: normal;
   font-weight: 800;
   line-height: 1.2;
-}
-
-.deadline-note {
-  font-size: 12px;
-  color: var(--text);
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
-  margin: 12px 0 0;
 }

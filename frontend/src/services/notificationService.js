@@ -33,7 +33,9 @@ export async function syncNotificationSubscription(payload) {
 
 /**
  * 주간 새 공모전 다이제스트를 이메일로 발송합니다(POST /api/notifications/weekly).
- * @param {{ nickname?: string, email: string, fields: string[], contests: Array<{ id: number, title: string, field: string, deadline: string, url?: string }> }} payload
+ * startDate(접수 시작일)를 함께 보내면 아직 접수가 시작되지 않은 공모전에
+ * 메일 본문에서 '접수 시작' 날짜가 표시됩니다.
+ * @param {{ nickname?: string, email: string, fields: string[], contests: Array<{ id: number, title: string, field: string, deadline: string, startDate?: string, url?: string }> }} payload
  */
 export async function sendWeeklyDigest(payload) {
   const response = await fetch(`${API_BASE}/api/notifications/weekly`, {

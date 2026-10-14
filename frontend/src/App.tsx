@@ -843,14 +843,6 @@ function App() {
           markAllAlertsRead()
           navigate('mypage')
         }}
-        onOpenContest={openContest}
-        onOpenExplore={() => {
-          setExploreFilter('all')
-          navigate('contests')
-        }}
-        onToggleWish={handleToggleWish}
-        wishlistedContestIds={wishlist.map((contest) => contest.id)}
-        // 메뉴바 바로가기 링크 — 홈 화면 탭이 메뉴바로 흡수됐다(2026-10-13)
         onStart={() => {
           setPrefill(null)
           setTypeHints(null)
@@ -862,6 +854,13 @@ function App() {
           setNotePrefill(null)
           navigate('notes')
         }}
+        onOpenContest={openContest}
+        onOpenExplore={() => {
+          setExploreFilter('all')
+          navigate('contests')
+        }}
+        onToggleWish={handleToggleWish}
+        wishlistedContestIds={wishlist.map((contest) => contest.id)}
       />
       {screen === 'home' && (
         <>

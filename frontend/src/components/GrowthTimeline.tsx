@@ -72,7 +72,7 @@ function GrowthTimeline({ myContests, savedIdeas }: Props) {
       status:
         myContests.length > 0
           ? `응모 ${myContests.length}개${latest ? ` · 최근 ${latest.appliedAt}` : ''}`
-          : '분석 결과나 추천에서 마음에 드는 공모전에 응모해 보세요',
+          : '마음에 드는 공모전에 응모해 보세요',
     },
     {
       id: 'result',
@@ -100,7 +100,7 @@ function GrowthTimeline({ myContests, savedIdeas }: Props) {
     <section className="growth-timeline" aria-label="성장 타임라인">
       <div className="panel-head">
         <h2>성장 타임라인</h2>
-        <span className="panel-hint">공모전 준비 5걸음 · 지금 어디쯤 왔는지 체크해 보세요</span>
+        <span className="panel-hint">공모전 준비 5걸음 · 지금 어디쯤 왔는지 체크</span>
       </div>
       <ol className="growth-steps">
         {steps.map((step, index) => (

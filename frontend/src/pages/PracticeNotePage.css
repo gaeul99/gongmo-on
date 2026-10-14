@@ -74,7 +74,7 @@
 .notes-to-input {
   font: inherit;
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-text);
   background: none;
   border: none;
@@ -103,7 +103,7 @@
 
 .notes-empty-sub {
   margin-top: 6px;
-  font-weight: 400 !important;
+  font-weight: 700 !important;
   font-size: 13.5px;
   color: var(--text-2);
   word-break: keep-all;
@@ -186,7 +186,7 @@
   align-self: center;
   font: inherit;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   background: none;
   border: 1px solid var(--border);
@@ -239,7 +239,7 @@
 }
 
 .note-optional {
-  font-weight: 400;
+  font-weight: 700;
   font-size: 12px;
   color: var(--text);
   margin-left: 6px;
@@ -293,7 +293,7 @@
   color: var(--error);
 }
 
-/* 예상 질문·답변 묶음 — 캔버스 위의 묶음 카드. 안쪽 행(--bg 흰색)이 테두리로 파여 보인다 */
+/* 예상 질문·답변 묶음 — 묶음 카드. 안쪽 행(--bg 흰색)이 테두리로 파여 보인다 */
 .note-qa {
   margin: 0;
   padding: 16px;
@@ -332,7 +332,7 @@
   align-self: flex-start;
   font: inherit;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   background: none;
   border: none;
@@ -390,7 +390,7 @@
 .note-cancel-button {
   font: inherit;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   background: none;
   border: none;

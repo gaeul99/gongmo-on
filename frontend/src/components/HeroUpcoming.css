@@ -6,40 +6,35 @@
   min-width: 0;
   /* padding·border를 폭에 포함 — content-box면 트랙보다 커져 옆 박스와 겹친다 */
   box-sizing: border-box;
+  /* 2026-10-14 배경 평탄화에서 예외 — '곧 마감/곧 시작' 두 패널만 흰 카드로
+     배경 전환을 되살린다(사용자 요청). 흰 표면이 있으니 카드 그림자도 유지 */
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: var(--shadow);
-  padding: 18px 20px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
+/* 제목 행 — 카드(aside) 밖 위에 떼어 놓았다(2026-10-14 사용자 요청 '카드 위에
+   제목'). 마감 패널의 deadline-head와 같은 크기·여백 */
 .upcoming-head {
   display: flex;
   align-items: baseline;
   gap: 10px;
+  margin: 0 0 10px;
 }
 
 .upcoming-head h2 {
-  font-size: 16px;
+  font-size: var(--fs-lg);
+  font-weight: 800;
   margin: 0;
 }
 
 /* 더보기 버튼은 양쪽 패널이 같은 .deadline-more 스타일(패딩 포함)을 쓴다 */
 
-/* 제목 옆 시작 이모지 — 장식(aria-hidden)이라 낭독기에는 제목만 읽힌다.
-   h2 바로 옆에 붙여 두고 버튼만 오른쪽 끝으로 민다. */
-.upcoming-emoji {
-  align-self: center;
-  font-size: 18px;
-  line-height: 1;
-}
-
 .upcoming-list {
   list-style: none;
-  margin: 10px 0 0;
+  /* 제목 행이 카드 밖으로 나가 목록이 카드의 첫 자식이 됐다 — 위 여백 없이 꼭대기부터 */
+  margin: 0;
   padding: 0;
   display: grid;
   /* minmax(0, 1fr): 줄바꿈 금지 meta('.upcoming-meta')의 한 줄 전체 폭이 트랙 최소폭이
@@ -123,12 +118,4 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.upcoming-note {
-  font-size: 12px;
-  color: var(--text);
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
-  margin: 12px 0 0;
 }

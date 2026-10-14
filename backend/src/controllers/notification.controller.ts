@@ -99,9 +99,11 @@ export async function postWeeklyDigest(req: Request, res: Response) {
     title: string
     field: string
     deadline: string
-    startDate?: string
+    startDate?: string | undefined
     url?: string
   }
+
+  const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
   const contests: WeeklyContest[] = Array.isArray(req.body?.contests)
     ? (req.body.contests as unknown[])
@@ -112,8 +114,16 @@ export async function postWeeklyDigest(req: Request, res: Response) {
             typeof (item as WeeklyContest).id === 'number' &&
             typeof (item as WeeklyContest).title === 'string' &&
             typeof (item as WeeklyContest).field === 'string' &&
-            /^\d{4}-\d{2}-\d{2}$/.test(String((item as WeeklyContest).deadline ?? '')),
+            DATE_PATTERN.test(String((item as WeeklyContest).deadline ?? '')),
         )
+        // startDate는 선택 값 — 형식이 틀리면 항목을 버리지 않고 값만 뺀다.
+        .map((item) => ({
+          ...item,
+          startDate:
+            typeof item.startDate === 'string' && DATE_PATTERN.test(item.startDate)
+              ? item.startDate
+              : undefined,
+        }))
         .slice(0, 100)
     : []
 
@@ -149,9 +159,13 @@ export async function postWeeklyDigest(req: Request, res: Response) {
     `${nickname || '공모온 이용자'}님, 이번 주 공모온 새 공모전 소식이에요.`,
     '',
   ]
+  // 아직 접수가 시작되지 않은 공모전은 접수 시작일을 함께 알려 준다.
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const todayStamp = `${todayMidnight.getFullYear()}-${pad(todayMidnight.getMonth() + 1)}-${pad(todayMidnight.getDate())}`
   for (const item of matched) {
     lines.push(`· ${item.title} (${item.field})`)
-    lines.push(`  마감 ${item.deadline}${item.url ? ` · ${item.url}` : ''}`)
+    const opening = item.startDate && item.startDate > todayStamp ? ` · 접수 시작 ${item.startDate}` : ''
+    lines.push(`  마감 ${item.deadline}${opening}${item.url ? ` · ${item.url}` : ''}`)
   }
   lines.push('')
   lines.push(
