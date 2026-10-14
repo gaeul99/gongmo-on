@@ -46,7 +46,6 @@ function SiteFooter() {
 
   return (
     <footer className="site-footer" data-reveal>
-      <p className="site-footer-lead">공모온에 문의할 일이 있나요?</p>
       <div className="site-footer-actions">
         <button type="button" className="site-footer-mail-button" onClick={() => setContactOpen(true)}>
           문의하기

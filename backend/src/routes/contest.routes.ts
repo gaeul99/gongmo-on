@@ -1,6 +1,7 @@
 // ==========================================================
 // 공모전 자동 등록 라우트
-// GET /api/contests        — 자동 수집된 공모전 목록(마감 지난 것 제외)
+// GET /api/contests        — 자동 수집된 공모전 목록(마감 지난 것도 기록으로 포함 —
+//                            마감 60일 경과분만 동기화 때 제거된다)
 // POST /api/contests/sync  — 즉시 동기화 실행(수동 점검용)
 // ==========================================================
 
@@ -12,8 +13,7 @@ import { getContests, syncContests, type SyncedContest } from '../services/conte
 export const contestRouter = Router()
 
 contestRouter.get('/', (_req: Request, res: Response) => {
-  const today = new Date().toISOString().slice(0, 10)
-  const contests: SyncedContest[] = getContests().filter((contest) => contest.deadline >= today)
+  const contests: SyncedContest[] = getContests()
   res.json({ success: true, count: contests.length, contests })
 })
 

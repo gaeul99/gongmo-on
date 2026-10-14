@@ -92,7 +92,7 @@ const USER_AGENT =
 const REQUEST_DELAY_MS = 400
 const DETAIL_FETCH_LIMIT = 200 // 동기화 1회당 상세 페이지 최대 요청 수(초기 수집이 몇 패스에 걸쳐 끝난다)
 const MAX_PAGES = 15
-const KEEP_PRUNED_DAYS = 30 // 마감 후 이 기간이 지나면 목록에서 제거한다
+const KEEP_PRUNED_DAYS = 60 // 마감 후에도 이 기간은 기록으로 남겨 조회되게 하고, 지나면 다음 동기화 때 제거한다(2026-10-14 30일에서 변경)
 const SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000 // 6시간
 const SYNC_MIN_GAP_MS = 60 * 60 * 1000 // 재시작 직후 중복 실행 방지용 최소 간격
 

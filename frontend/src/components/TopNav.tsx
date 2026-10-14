@@ -437,9 +437,10 @@ function TopNav({
             />
           </svg>
         </AppLink>
-        {/* 홈버튼 옆 메뉴 아이콘 — 누르면 아이콘 위로 바로가기 5개 팝업이 펼친다
-            (2026-10-14 사용자 요청 '홈바에 홈버튼 옆에 메뉴아이콘'). 바로가기의
-            유일한 입구다(같은 날 페이지 맨 아래 메뉴는 사용자 요청으로 삭제) */}
+        {/* 홈버튼 옆 메뉴 아이콘 — 누르면 홈 바 위 화면 가운데로 바로가기 5개 팝업이
+            펼친다(2026-10-14 사용자 요청 '홈바에 홈버튼 옆에 메뉴아이콘', 같은 날
+            '팝업 화면 중앙 정렬·유형 검사를 맨 위로'). 바로가기의 유일한 입구다
+            (같은 날 페이지 맨 아래 메뉴는 사용자 요청으로 삭제) */}
         <div className="nav-menu-box" ref={menuBoxRef}>
           <button
             type="button"
@@ -483,16 +484,6 @@ function TopNav({
             >
               <AppLink
                 className="nav-menu-item"
-                href="/input"
-                onNavigate={() => {
-                  setMenuOpen(false);
-                  onStart();
-                }}
-              >
-                아이디어 분석
-              </AppLink>
-              <AppLink
-                className="nav-menu-item"
                 href="/test"
                 onNavigate={() => {
                   setMenuOpen(false);
@@ -500,6 +491,16 @@ function TopNav({
                 }}
               >
                 유형 검사
+              </AppLink>
+              <AppLink
+                className="nav-menu-item"
+                href="/input"
+                onNavigate={() => {
+                  setMenuOpen(false);
+                  onStart();
+                }}
+              >
+                아이디어 분석
               </AppLink>
               <AppLink
                 className="nav-menu-item"
