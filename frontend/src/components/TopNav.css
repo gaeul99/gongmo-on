@@ -147,7 +147,6 @@
   align-items: center;
   justify-content: center;
   font-size: 11.5px;
-  font-weight: 700;
   line-height: 1;
   color: #fff;
   background: #e5484d;
@@ -270,7 +269,7 @@
 .notif-head-title {
   margin: 0;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-h);
 }
 
@@ -341,7 +340,6 @@
 .notif-tone {
   flex-shrink: 0;
   font-size: 11px;
-  font-weight: 700;
   border-radius: 999px;
   padding: 2px 8px;
   margin-top: 1px;
@@ -376,7 +374,6 @@
 .notif-item-title {
   margin: 0;
   font-size: 13px;
-  font-weight: 700;
   color: var(--text-h);
   word-break: keep-all;
 }
@@ -402,7 +399,6 @@
 
 .notif-item-read .notif-item-title {
   color: var(--text);
-  font-weight: 700;
 }
 
 .notif-goto-mypage {
@@ -450,8 +446,9 @@
   background: var(--hover-bg);
 }
 
-/* 메뉴바 인라인 검색 박스 — 돋보기 버튼 자리에 놓인다.
-   입력 박스 안의 돋보기 svg는 장식이고, 포커스면 테두리가 메인컬러로 바뀐다 */
+/* 메뉴바 인라인 검색 박스 — 행(=화면) 가운데에 놓인다.
+   돋보기 svg는 입력창 오른쪽 끝의 장식(2026-10-14 사용자 요청)이고,
+   포커스면 테두리가 메인컬러로 바뀐다 */
 .nav-search {
   position: relative;
   display: flex;
@@ -496,6 +493,9 @@
 .nav-search input {
   flex: 1;
   min-width: 0;
+  /* 자리 표시자·입력 글자는 왼쪽 정렬 — 2026-10-14 사용자 요청 '창 안에 글자
+     왼쪽으로'로 가운데 정렬을 되돌렸다 */
+  text-align: left;
   font: inherit;
   font-size: 13.5px;
   color: var(--text-h);
@@ -638,7 +638,6 @@
 .search-result-title {
   display: block;
   font-size: 14px;
-  font-weight: 700;
   color: var(--text-h);
   word-break: keep-all;
 }

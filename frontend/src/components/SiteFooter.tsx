@@ -46,24 +46,31 @@ function SiteFooter() {
 
   return (
     <footer className="site-footer" data-reveal>
-      <div className="site-footer-actions">
-        <button type="button" className="site-footer-mail-button" onClick={() => setContactOpen(true)}>
-          문의하기
-        </button>
-        <button
-          type="button"
-          className="site-footer-email"
-          onClick={handleCopyEmail}
-          title="누르면 이메일 주소가 복사돼요"
-        >
-          {CONTACT_EMAIL}
-        </button>
-        {/* 복사 확인 토스트 — 이메일 버튼 위에 잠깐 떠오른다(role="status"로 스크린리더에도 알림) */}
-        <span className={`site-footer-toast${copied ? ' is-visible' : ''}`} role="status">
-          {copied ? '이메일 주소가 복사됐어요 ✓' : ''}
-        </span>
+      {/* 2026-10-14 사용자 요청 — 푸터 내용은 가운데에 모은다(같은 날
+          '화면 중앙에 배치'). 잠깐 넣었던 인스타그램·블로그 표시는 같은 날
+          '표시 지워줘' 요청으로 뺐다 */}
+      <div className="site-footer-inner">
+        <div className="site-footer-info">
+          <div className="site-footer-actions">
+            <button type="button" className="site-footer-mail-button" onClick={() => setContactOpen(true)}>
+              문의하기
+            </button>
+            <button
+              type="button"
+              className="site-footer-email"
+              onClick={handleCopyEmail}
+              title="누르면 이메일 주소가 복사돼요"
+            >
+              {CONTACT_EMAIL}
+            </button>
+            {/* 복사 확인 토스트 — 이메일 버튼 위에 잠깐 떠오른다(role="status"로 스크린리더에도 알림) */}
+            <span className={`site-footer-toast${copied ? ' is-visible' : ''}`} role="status">
+              {copied ? '이메일 주소가 복사됐어요 ✓' : ''}
+            </span>
+          </div>
+          <p className="site-footer-copy">© 2026 공모온 · 아이디어 분석과 공모전 추천</p>
+        </div>
       </div>
-      <p className="site-footer-copy">© 2026 공모온 · 아이디어 분석과 공모전 추천</p>
       {/* 열림 여부로 조건부 마운트 — 열 때마다 폼이 새로 시작된다 */}
       {contactOpen && <ContactModal onClose={() => setContactOpen(false)} contactEmail={CONTACT_EMAIL} />}
     </footer>

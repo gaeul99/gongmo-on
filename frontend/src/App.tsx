@@ -876,6 +876,18 @@ function App() {
               navigate('contests', '?status=upcoming')
             }}
             onOpenContest={openContest}
+            // 기능 소개 5개 메뉴탭 — 하단 바 메뉴 팝업(TopNav)과 같은 핸들러
+            onTypeTest={() => navigate('test')}
+            onStart={() => {
+              setPrefill(null)
+              setTypeHints(null)
+              navigate('input')
+            }}
+            onNotes={() => {
+              setNotePrefill(null)
+              navigate('notes')
+            }}
+            onDashboard={() => navigate('dashboard')}
           />
         </>
       )}

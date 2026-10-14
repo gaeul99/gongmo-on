@@ -221,8 +221,9 @@ function DashboardPage({ onOpenContest, user, onGoLogin, onOpenExplore, onGoInpu
 
   return (
     <div className="dashboard-page">
-      <header className={`dashboard-header${user ? ' is-personal' : ''}`}>
-        <p className="dashboard-badge">{user ? `${user.nickname}님 계정 현황` : '현황 대시보드'}</p>
+      {/* 2026-10-14 사용자 요청으로 'OO님 계정 현황' 배지는 아예 뺐다 — 제목이
+          개인 화면임을 이미 말해 준다 */}
+      <header className="dashboard-header">
         <h1>{user ? `${user.nickname}님의 공모온` : '한눈에 보는 공모온'}</h1>
         {user ? (
           <p className="dashboard-caption">

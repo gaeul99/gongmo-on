@@ -6,7 +6,7 @@
   margin: 0 auto;
   padding: 48px 24px 88px;
   box-sizing: border-box;
-  font-size: 15px;
+  font-size: 14px;
 
   @media (max-width: 768px) {
     padding: 32px 20px 64px;
@@ -16,7 +16,6 @@
 .result-badge {
   display: inline-block;
   font-size: 12px;
-  font-weight: 700;
   color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
@@ -53,7 +52,7 @@
 
 .analysis-loading p {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 175%;
   color: var(--text);
   word-break: keep-all;
@@ -79,7 +78,7 @@
 
 .result-header h1 {
   margin: 12px 0 8px;
-  font-size: clamp(24px, 4.5vw, 30px);
+  font-size: clamp(19px, 4.5vw, 24px);
   font-weight: 700;
 }
 
@@ -95,13 +94,13 @@
 
 .result-section h2 {
   margin: 0 0 18px;
-  font-size: 20px;
+  font-size: 15px;
 }
 
 /* --- 제안서 초안 만들기 --- */
 .proposal-intro {
   margin: 0 0 14px;
-  font-size: 14.5px;
+  font-size: 13.5px;
   line-height: 170%;
   word-break: keep-all;
 }
@@ -113,7 +112,7 @@
 
 .proposal-waiting {
   margin: 0;
-  font-size: 14.5px;
+  font-size: 13.5px;
   line-height: 170%;
   color: var(--text);
 }
@@ -129,7 +128,7 @@
 .proposal-download,
 .proposal-toggle {
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   padding: 9px 16px;
   border-radius: 10px;
@@ -174,7 +173,7 @@
 
 .proposal-title-line {
   margin: 0 0 6px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-h);
   word-break: keep-all;
@@ -182,7 +181,7 @@
 
 .proposal-meta-line {
   margin: 0 0 16px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-2);
   word-break: keep-all;
 }
@@ -193,7 +192,7 @@
 
 .proposal-block h4 {
   margin: 0 0 8px;
-  font-size: 14.5px;
+  font-size: 13.5px;
   color: var(--text-h);
   display: flex;
   align-items: center;
@@ -219,7 +218,7 @@
 }
 
 .proposal-block li {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 175%;
   word-break: keep-all;
 }
@@ -229,8 +228,7 @@
 .proposal-note {
   margin: 16px 0 0;
   padding-top: 12px;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
   color: var(--text-h);
   word-break: keep-all;
 }
@@ -249,13 +247,13 @@
 
 .idea-card h3 {
   margin: 0 0 10px;
-  font-size: 17px;
+  font-size: 15px;
   color: var(--text-h);
   word-break: keep-all;
 }
 
 .idea-description {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 180%;
   word-break: keep-all;
   white-space: pre-line;
@@ -321,7 +319,7 @@
 
 .similar-empty p {
   margin: 8px 0 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 170%;
   color: var(--text);
   word-break: keep-all;
@@ -344,7 +342,7 @@
 
 .case-top h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   color: var(--text-h);
   word-break: keep-all;
 }
@@ -374,7 +372,7 @@
 
 .contest-subtitle {
   margin: 0 0 16px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 165%;
   color: var(--text-2);
   word-break: keep-all;
@@ -396,7 +394,6 @@
 
 .similarity-label {
   font-size: 12.5px;
-  font-weight: 700;
   color: var(--accent-text);
 }
 
@@ -433,7 +430,7 @@
 
 .case-block h4 {
   margin: 0 0 8px;
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-h);
   display: flex;
@@ -484,7 +481,7 @@
 .diff-example-toggle {
   margin: 12px 0 0;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--accent-text);
   background: var(--accent-bg);
@@ -522,7 +519,7 @@
 
 .note-cta-button {
   font: inherit;
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--accent-ink);
   background: var(--accent);
@@ -583,20 +580,20 @@
   border-radius: 999px;
   background: var(--accent-bg);
   color: var(--accent-text);
-  font-size: 12px;
-  font-weight: 800;
+   font-size: 12px;
+  font-weight: 700;
 }
 
 .diff-example-steps strong {
   display: block;
-  font-size: 14.5px;
-  font-weight: 800;
+  font-size: 13.5px;
+  font-weight: 700;
   color: var(--text-h);
 }
 
 .diff-example-steps p {
   margin: 3px 0 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.7;
   color: var(--text);
   word-break: keep-all;
@@ -616,7 +613,7 @@
 
 .diff-example-compare p {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.7;
   padding: 10px 12px;
   border-radius: 10px;
@@ -626,18 +623,16 @@
 .diff-example-compare .diff-bad {
   background: #ffffff;
   color: var(--error);
-  font-weight: 700;
 }
 
 .diff-example-compare .diff-good {
   background: #ffffff;
   color: var(--accent-text);
-  font-weight: 700;
 }
 
 .diff-example-note {
   margin: 14px 0 0;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-2);
   padding-top: 12px;
   word-break: keep-all;
@@ -664,7 +659,7 @@
 
 .contest-info dd {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-h);
   word-break: keep-all;
 }
@@ -673,7 +668,7 @@
 .detail-link {
   display: inline-block;
   margin-top: 16px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--accent-text);
   text-decoration: none;
@@ -692,7 +687,7 @@
 /* 버튼 형태의 상세 링크 — 추천 공모전 카드의 앱 내 상세 이동 */
 .detail-link.detail-link-button {
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--accent-text);
   background: none;
@@ -738,7 +733,7 @@
 }
 
 .archive-side h2 {
-  font-size: 15px;
+  font-size: 14px;
   margin-bottom: 12px;
   word-break: keep-all;
 }
@@ -755,7 +750,6 @@
 .archive-links a {
   display: block;
   font-size: 12.5px;
-  font-weight: 700;
   color: var(--accent-text);
   text-decoration: none;
   word-break: keep-all;
@@ -769,7 +763,6 @@
   display: block;
   margin-top: 2px;
   font-size: 11.5px;
-  font-weight: 700;
   color: var(--text-3);
 }
 
@@ -792,7 +785,7 @@
   position: relative;
   overflow: hidden;
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--accent-ink);
   background: var(--accent);
@@ -844,8 +837,7 @@
   border-radius: 10px;
   background: var(--accent-bg);
   padding: 10px 14px;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
   color: var(--text-h);
 }
 
@@ -880,7 +872,7 @@
 
 .save-button {
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--accent-text);
   background: var(--panel);
@@ -899,8 +891,7 @@
 }
 
 .save-done {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12px;
   color: var(--accent-text);
 }
 
@@ -913,7 +904,7 @@
 
 .wish-button {
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--accent-text);
   background: var(--bg);
@@ -975,7 +966,7 @@
 /* --- 제출 전 자가 점검 --- */
 .checklist-caption {
   margin: 4px 0 14px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 175%;
   color: var(--text);
   word-break: keep-all;
@@ -1015,8 +1006,7 @@
 
 .checklist-complete {
   margin: 0 0 12px;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
   color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
@@ -1041,7 +1031,7 @@
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 165%;
   color: var(--text);
   cursor: pointer;
@@ -1095,7 +1085,7 @@
   /* width + padding/border 조합 — 전역 border-box 규칙이 없어 명시 필요 */
   box-sizing: border-box;
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--accent-text);
   background: var(--bg);
@@ -1109,7 +1099,7 @@
 }
 
 .restart-button:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   background: var(--hover-bg);
 }
 
@@ -1126,7 +1116,7 @@
 .retry-analysis-button {
   display: inline-block;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--accent-text);
   background: var(--panel);
@@ -1147,7 +1137,7 @@
 /* 로딩 중 AI 분석 지연 안내 */
 .result-loading-hint {
   margin: 12px 0 0;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 170%;
   color: var(--text-2);
   word-break: keep-all;
@@ -1165,14 +1155,14 @@
 
 .analysis-retry-title {
   margin: 0 0 4px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--accent-text);
 }
 
 .analysis-retry-desc {
   margin: 0 0 12px;
-  font-size: 13.5px;
+  font-size: 12.5px;
   line-height: 170%;
   color: var(--text);
   word-break: keep-all;
@@ -1200,7 +1190,7 @@
 }
 
 .apply-confirm-text {
-  font-size: 13.5px;
+  font-size: 12.5px;
   line-height: 1.6;
   color: var(--text-h);
   margin: 0 0 10px;
@@ -1208,7 +1198,7 @@
 
 .apply-confirm-title {
   margin: 0 0 6px;
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--text-h);
 }
@@ -1216,7 +1206,7 @@
 .apply-confirm-steps {
   margin: 0 0 10px;
   padding-left: 18px;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.65;
   color: var(--text);
   word-break: keep-all;
@@ -1230,7 +1220,7 @@
 
 /* 공모전 사이트로 이동 — 확인 박스 안의 기본 동작이라 파랑으로 채운다 */
 .apply-confirm-site {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--brand-ink);
   text-align: center;
@@ -1273,14 +1263,15 @@
   padding: 24px;
 }
 
-/* 한 줄 요약 — 상세 분석의 결론 한 문장. 검정 배너에 흰 글자로 페이지에서
-   가장 먼저 읽히는 덩어리로 만든다(흑백 테마) */
+/* 한 줄 요약 — 상세 분석의 결론 한 문장. 배너에 흰 글자로 페이지에서
+   가장 먼저 읽히는 덩어리로 만든다. 결론 배너는 정보 덩어리라 2026-10-14
+   '파란색이 너무 많다' 요청으로 진회색(--accent-dark) — 파랑은 행동 요소에 남긴다 */
 .detail-summary {
   margin: 0;
   padding: 14px 18px;
-  background: var(--accent);
+  background: var(--accent-dark);
   border-radius: 12px;
-  font-size: 16.5px;
+  font-size: 15.5px;
   font-weight: 700;
   line-height: 175%;
   color: var(--accent-ink);
@@ -1311,7 +1302,7 @@
 .detail-block h4 {
   /* 제목 아래 첫 항목 틈새 — 간격 스케일의 문단 단위(12px)를 쓴다 */
   margin: 0 0 var(--sp-3);
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-h);
   display: flex;
@@ -1339,7 +1330,7 @@
 }
 
 .target-chips li {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
@@ -1370,7 +1361,7 @@
 }
 
 .detail-block li {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 175%;
   word-break: keep-all;
 }

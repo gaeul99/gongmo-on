@@ -4,7 +4,7 @@
 
 import type { Request, Response } from 'express'
 import type { Subscriber, SubscriberContest } from '../services/notificationStore'
-import { getNotificationStats, upsertSubscriber } from '../services/notificationStore'
+import { upsertSubscriber } from '../services/notificationStore'
 import { sendEmail, type SendResult } from '../services/notificationSenders'
 import { runDeadlineCheck } from '../services/notificationScheduler'
 
@@ -68,11 +68,6 @@ export async function postSubscribe(req: Request, res: Response) {
   }
 
   res.json({ success: true, data: { subscriber: subscriber.nickname, delivery } })
-}
-
-// 챗봇 근거용: 구독자 수와 채널별 발송 현황을 한 번에 돌려줍니다.
-export function getStats(_req: Request, res: Response) {
-  res.json({ success: true, data: getNotificationStats() })
 }
 
 // 데모·테스트용: 스케줄러 확인을 수동으로 1회 실행합니다.

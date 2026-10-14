@@ -211,25 +211,6 @@ function TopNav({
         {/* 메뉴바 인라인 검색 — 행 가운데에 놓이고,
             입력하면 박스 아래로 검색 결과 드롭다운이 펼쳐진다. */}
         <div className="nav-search" ref={searchBoxRef}>
-          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-            <circle
-              cx="10.5"
-              cy="10.5"
-              r="6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            />
-            <line
-              x1="15"
-              y1="15"
-              x2="20"
-              y2="20"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            />
-          </svg>
           <input
             ref={searchInputRef}
             type="text"
@@ -271,6 +252,27 @@ function TopNav({
               ×
             </button>
           )}
+          {/* 돋보기 — 2026-10-14 사용자 요청으로 입력창 오른쪽 끝에 놓는다.
+              장식 아이콘이라 입력·포커스 동작은 없다 */}
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <circle
+              cx="10.5"
+              cy="10.5"
+              r="6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            />
+            <line
+              x1="15"
+              y1="15"
+              x2="20"
+              y2="20"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
           {searchOpen && (
             <div
               className="search-dropdown"
@@ -504,16 +506,6 @@ function TopNav({
               </AppLink>
               <AppLink
                 className="nav-menu-item"
-                href="/dashboard"
-                onNavigate={() => {
-                  setMenuOpen(false);
-                  onDashboard();
-                }}
-              >
-                대시보드
-              </AppLink>
-              <AppLink
-                className="nav-menu-item"
                 href="/notes"
                 onNavigate={() => {
                   setMenuOpen(false);
@@ -521,6 +513,16 @@ function TopNav({
                 }}
               >
                 연습 노트<span className="nav-link-new">NEW</span>
+              </AppLink>
+              <AppLink
+                className="nav-menu-item"
+                href="/dashboard"
+                onNavigate={() => {
+                  setMenuOpen(false);
+                  onDashboard();
+                }}
+              >
+                대시보드
               </AppLink>
               <AppLink
                 className="nav-menu-item"

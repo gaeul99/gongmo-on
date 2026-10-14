@@ -146,8 +146,7 @@
      불가하므로 margin으로 벌린다 */
   margin: 56px 0 0;
   font-size: 15px;
-  /* 굵은체(2026-10-14 사용자 요청) */
-  font-weight: 700;
+  /* 피로도 정비(2026-10-14) — 굵은체 요청은 같은 날 피로도 요청으로 되돌렸다 */
   line-height: 165%;
   color: var(--text-h);
   word-break: keep-all;
@@ -187,7 +186,6 @@
 .idea-example-label {
   display: inline-block;
   font-size: 12px;
-  font-weight: 700;
   color: var(--accent-text);
   background: var(--accent-bg);
   border-radius: 999px;
@@ -229,13 +227,11 @@
 }
 
 /* '접수 중인 공모전' 마키 밴드 — 위 여백(원래 .contest-marquee margin-top 120px)을
-   여기 padding-top으로 옮겼다. 위 120px는 흰 표면(--bg)→회색 캔버스(--page)
-   그라데이션 — 2026-10-14 사용자 요청 '히어로와 이렇게 도와드립니다 사이
-   그라데이션은 좀 더 아래로 내려줘'로 기능 소개 섹션 전체가 흰색이 되고, 흰→회색
-   전환은 마키 카드 바로 위에서 끝난다. 그 아래는 캔버스에 마키 카드(흰)가 뜬다 */
+   여기 padding-top으로 옮겼다. 2026-10-14 사용자 요청 '그라데이션 공모전 유형
+   검사에서부터 시작되게'로 흰→회색 전환을 위 기능 소개 섹션(.features) 상단으로
+   옮겼다 — 밴드는 처음부터 회색 캔버스 위에 마키 카드(흰)가 뜬다 */
 .home-marquee-band {
   padding-top: 120px;
-  background: linear-gradient(to bottom, var(--bg) 0, var(--page) 120px);
 }
 
 /* 공모전 마키 아래 두 패널 — '곧 마감되는 공모전' + '곧 시작되는 공모전' 2단.
@@ -288,109 +284,116 @@
   box-sizing: border-box;
 }
 
-/* 나비가 경로 위를 살랑 부유 */
-.nabi-flyer {
-  animation: nabi-bob 3.4s ease-in-out infinite;
-}
-
-/* 점선 경로가 트로피 쪽으로 흐름 */
-.nabi-route {
-  animation: nabi-march 1.5s linear infinite;
-}
-
-/* 반짝이 별 깜빡임 */
-.nabi-sparkle {
-  animation: nabi-twinkle 2.8s ease-in-out infinite;
-}
-
-.nabi-sparkle.s2 {
-  animation-delay: 0.9s;
-}
-
-.nabi-sparkle.s3 {
-  animation-delay: 1.7s;
-}
-
-@keyframes nabi-bob {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes nabi-march {
-  to {
-    stroke-dashoffset: -14.1;
-  }
-}
-
-@keyframes nabi-twinkle {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-
 /* '이렇게 도와드립니다' — 2026-10-14 사용자 요청으로 히어로 바로 다음 섹션이 됐다.
-   배경은 푸터와 같은 흰 표면(--bg) — 히어로(흰)와 이어진다. 흰→회색 전환은
-   같은 날 '그라데이션은 좀 더 아래로 내려줘' 요청으로 이 섹션이 아니라 아래
-   마키 밴드 상단에서 일어난다. 섹션 제목은 같은 날 '글자 지워주고' 요청으로
+   배경은 흰 표면(--bg)으로 시작해 세 번째 메뉴탭 '연습 노트'가 시작하는 지점(약
+   560px = padding-top 124 + 항목 2개·간격 150×2)에서 캔버스 회색(--page)으로
+   밝아지는 그라데이션 — 같은 날 '그라데이션 공모전 유형 검사에서부터 시작되게'
+   요청으로 마키 밴드에서 이 섹션 상단(120px)으로 옮겼다가, 이어 '그라데이션
+   연습노트에서부터 시작되게' 요청으로 종료 지점을 120→560px로 내려 유형 검사·
+   아이디어 분석 항목을 흰 배경 위에 남겼다. 화면 폭에 따라 글줄 줄바꿈이 달라지면
+   시작점이 수십 px 어긋날 수 있으나 그라데이션이라 자연스럽다. 섹션 제목은 같은
+   날 '글자 지워주고' 요청으로
    마크업째 빠지고 aria-label로만 남았다(.strengths와 같은 처리) — 제목의 높이와
    아래 여백(약 85px)이 사라진 만큼 padding-top을 64→150px로 키워 항목 위치를
    지킨다. 위 간격은 히어로 padding-bottom 96px + 여기 padding-top이 담당한다.
    아래 padding-bottom 180px — 마키 밴드 padding-top 120px와 합쳐 문장 3개와
-   '접수 중인 공모전' 사이 300px(2026-10-14 사용자 지정 값, 220→300px로 늘림).
-   흰→회색 전환 120px는 밴드 쪽에 그대로 둬 전환 시작점이 위로 올라가지 않게 한다 */
+   '접수 중인 공모전' 사이 300px(2026-10-14 사용자 지정 값, 220→300px로 늘림) */
 .features {
   /* 위 124px — 히어로(padding-bottom 96px)와의 간격(2026-10-14 사용자 요청
      220px로 조정). 원래는 섹션 제목이 차지하던 자리로, 제목을 빼고 여백만 남았다.
      아래 180px — 마키 밴드와의 간격(밴드 위 120px와 합쳐 300px) */
   padding: 124px 24px 180px;
-  background: var(--bg);
+  background: linear-gradient(to bottom, var(--bg) 0, var(--page) 560px);
 }
 
 /* 서비스 바로가기 탭은 메뉴바로 흡수됐다(2026-10-13) — 스타일은 TopNav.css의 .nav-link가 잇는다 */
 
 .feature-grid {
-  display: grid;
-  /* 2026-10-14 '유사 사례 비교' 항목 삭제 후 3개 — 3열로 맞춰 마지막 칸이 비지 않게 */
-  grid-template-columns: repeat(3, 1fr);
-  /* 박스가 없는 문장 항목 사이 — 세로 32px(900px 이하 1열에서 줄 간격), 가로 20px */
-  gap: 32px 20px;
+  /* 2026-10-14 사용자 요청 '세로 지그재그로 배치' — 항목을 세로로 쌓고 홀수 항목은
+     왼쪽, 짝수 항목은 오른쪽에 놓아 시선이 Z자로 내려오게 한다. 오른쪽 항목의
+     글자도 오른쪽에 붙여 지그재그 실루엣을 읽게 한다 */
+  display: flex;
+  flex-direction: column;
+  /* 항목 사이 세로 간격 — 2026-10-14 사용자 요청 '각각 간격 벌려주고'로
+     120→150px. 5개 메뉴탭이 늘어난 만큼 여백도 넉넉히 */
+  gap: 150px;
   /* 마키·마감 패널 등 다른 섹션과 같은 내용 폭(1120px − 좌우 패딩 24px) —
      한 화면의 모든 섹션 좌우 폭이 동일하게 보이도록 맞춘다 */
   max-width: calc(var(--content-width) - 48px);
   margin: 0 auto;
+}
 
-  @media (max-width: 1100px) {
-    grid-template-columns: repeat(2, 1fr);
-    max-width: 760px;
-  }
+.feature-item {
+  /* 지그재그의 낙차를 만들 폭 — 전체 폭의 절반 남짓만 차지해야
+     좌·우 번갈아 놓을 때 이동이 눈에 보인다 */
+  width: min(560px, 100%);
+}
 
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-    max-width: 480px;
-  }
+.feature-item:nth-child(even) {
+  align-self: flex-end;
 }
 
 .feature-card {
-  /* 2026-10-14 사용자 요청 '박스 4개·숫자 지워주고 내용만 남겨주고 글자 크기
-     대비 효과를 더 극대화' — 카드 배경·테두리·번호 칩을 빼고 문장만 남겼다.
-     제목(28px·800)과 설명(13px)의 크기 차이를 강점 섹션(.strength-item)과 같은
-     단계로 벌려 크기 대비만으로 구획을 읽게 한다 */
+  /* 2026-10-14 사용자 요청 '메뉴탭으로 이용해서 클릭하면 바로 갈 수 있게' —
+     항목이 AppLink(<a>)라 클릭·새 탭 열기가 모두 동작한다. 링크라는 힌트는
+     hover 밑줄로만 준다. 카드 배경·테두리는 같은 날 이른 요청으로 뺀 상태 */
+  display: block;
+  text-decoration: none;
   text-align: left;
+}
+
+.feature-item:nth-child(even) .feature-card {
+  text-align: right;
+}
+
+.feature-card:hover h3,
+.feature-card:focus-visible h3 {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 8px;
+  text-decoration-color: var(--accent);
+}
+
+.feature-card:focus-visible {
+  /* 키보드 탐산 시에도 링크임을 보이게 — hover와 같은 밑줄 + 외곽선 */
+  outline: 2px solid var(--accent);
+  outline-offset: 8px;
+  border-radius: 6px;
+}
+
+.feature-card-new {
+  /* 연습 노트 NEW 표시 — 하단 바 메뉴 팝업의 .nav-link-new와 같은 역할·모양.
+     파랑(--accent)은 강조 전용이라 NEW 알약에 쓴다 */
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-radius: 999px;
+  padding: 3px 6px;
+  margin-left: 8px;
+  vertical-align: 4px;
+}
+
+@media (max-width: 760px) {
+  /* 좁은 화면에서는 지그재그 낙차를 낼 폭이 없다 — 한 줄 왼쪽 정렬로 돌아간다 */
+  .feature-item,
+  .feature-item:nth-child(even) {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .feature-card,
+  .feature-item:nth-child(even) .feature-card {
+    text-align: left;
+  }
 }
 
 .feature-card h3 {
   margin: 0 0 10px;
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.5px;
   line-height: 134%;
   color: var(--text-h);
@@ -413,41 +416,22 @@
    ::before는 캔버스색→흰 그라데이션이 섹션 전체에 걸쳐 점차 밝아진다(같은 날
    사용자 요청 '푸터로 내려가는 사이 점차 흰색으로') — 상단은 위 캔버스와,
    하단은 푸터(흰)와 맞닿아 어디에도 색상 띠가 생기지 않는다 */
+/* '공모온이 특별한 이유' — 스크롤 전환 레이어(::before·is-screen-on)는 2026-10-14
+   사용자 요청 '연하늘빛 그레이 그라데이션이 푸터까지 내려오게'로 지웠다. 섹션이
+   배경을 칠하지 않아 .home-bg 회색 캔버스가 그대로 푸터까지 이어지고, 흰색 전환은
+   푸터(SiteFooter.css .site-footer의 회색→흰 그라데이션)가 담당한다 */
 .strengths {
-  position: relative;
   margin-top: 200px;
   padding: 64px 24px 96px;
-}
-
-.strengths::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* 섹션 내용 뒤 — .home-bg 캔버스(같은 z-index -1)보다 문서 순서가 나중이라 그 위에 칠해진다 */
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(to bottom, var(--page) 0%, var(--bg) 100%);
-  opacity: 0;
-  transition: opacity 0.8s ease;
-}
-
-.strengths.is-screen-on::before {
-  opacity: 1;
-}
-
-/* 움직임을 줄이겠다고 설정한 사용자에겐 전환 없이 곧바로 바꾼다(Reveal.css와 같은 원리) */
-@media (prefers-reduced-motion: reduce) {
-  .strengths::before {
-    transition: none;
-  }
 }
 
 .strengths-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  /* 항목 사이를 크게 벌린다(2026-10-14 사용자 요청 '간격 띄워줘 넓게 넓게 각각') —
-     세로 96px·가로 140px. 폭도 1040px로 넓혀 두 열이 멀어진다 */
-  gap: 96px 140px;
+  /* 항목 사이를 크게 벌린다(2026-10-14 사용자 요청 '간격 띄워줘 넓게 넓게 각각',
+     같은 날 '아이디어가 전략으로랑 도전이 기록으로·기록이 자신감으로 사이를
+     벌려달라'로 세로 96→144px) — 가로 140px. 폭도 1040px로 넓혀 두 열이 멀어진다 */
+  gap: 144px 140px;
   max-width: 1040px;
   margin: 0 auto;
 }
@@ -455,21 +439,33 @@
 @media (max-width: 760px) {
   .strengths-grid {
     grid-template-columns: 1fr;
-    gap: 48px;
+    gap: 72px;
   }
 }
 
+/* 항목을 지워 홀수 개(3개)가 되면 마지막 항목이 둘째 줄 왼쪽에 붙는다 —
+   전체 가로폭을 써 중앙 정렬 텍스트와 함께 화면 중앙에 놓인다 */
+.strength-item:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
 .strength-item {
-  text-align: left;
+  /* 2026-10-14 사용자 요청 '이 섹션 화면 중앙에 배치' — 그리드 자체는 이미 중앙
+     (max-width 1040px·margin auto)인데 항목 글자가 왼쪽 정렬이라 짧은 문장이
+     칸의 왼쪽에 붙어 섹션 전체가 좌측으로 쏠려 보였다. 항목 안 글자를 가운데
+     정렬해 두 열이 화면 중앙을 기준으로 대칭을 이루게 한다 */
+  text-align: center;
 }
 
 .strength-item h3 {
+  /* 2026-10-14 '글 사이 세로간격' 요청은 항목 '사이' 간격이었음이 밝혀져
+     원래 12px로 되돌렸다(36px까지 늘렸던 것을 취소). 섹션 제목이 없어
+     이 문장이 항목의 얼굴 — 같은 날 사용자 요청
+     '글자 크기 대비 효과를 더 극대화'로 15px→28px로 키워 설명(13px)과
+     대비를 벌린다(피로도 정비로 800→700) */
   margin: 0 0 12px;
-  /* 섹션 제목이 없어 이 문장이 항목의 얼굴 — 2026-10-14 사용자 요청
-     '글자 크기 대비 효과를 더 극대화'로 15px→28px·800으로 키워 설명(13px)과
-     대비를 벌린다 */
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -0.5px;
   line-height: 134%;
   color: var(--text-h);

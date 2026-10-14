@@ -36,7 +36,6 @@
 
 .detail-field {
   font-size: 12px;
-  font-weight: 700;
   color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
@@ -46,24 +45,25 @@
 
 .detail-dday {
   font-size: 12px;
-  font-weight: 700;
   border-radius: 999px;
   padding: 3px 10px;
   border: 1px solid var(--border);
   color: var(--text-h);
 }
 
-/* 오늘·임박만 검정 채움 강조 — 여유는 인셋 회색(2026-10-13 톤 통일) */
+/* 오늘·임박만 강조 채움 — 여유는 인셋 회색(2026-10-13 톤 통일).
+   2026-10-14 '파란색이 너무 많다' 요청으로 정보성 D-day는 진회색(--accent-dark) 채움.
+   --error가 아니라 마커 톤을 쓴다: D-day 칩은 오류가 아니라 정보 마커다 */
 .detail-dday.tone-today {
-  color: #fff;
-  background: var(--error);
-  border-color: var(--error);
+  color: var(--accent-ink);
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
 }
 
 .detail-dday.tone-urgent {
-  color: #fff;
-  background: var(--error);
-  border-color: var(--error);
+  color: var(--accent-ink);
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
 }
 
 .detail-dday.tone-upcoming {
@@ -104,7 +104,6 @@
 
 .detail-facts dt {
   font-size: 11.5px;
-  font-weight: 700;
   color: var(--text-2);
   margin-bottom: 4px;
 }
@@ -340,7 +339,6 @@
   align-items: center;
   gap: 10px;
   font-size: 14px;
-  font-weight: 700;
   color: var(--accent-text);
 }
 
@@ -367,7 +365,6 @@
   flex-basis: 100%;
   margin: 0;
   font-size: 14px;
-  font-weight: 700;
   color: var(--text-2);
 }
 

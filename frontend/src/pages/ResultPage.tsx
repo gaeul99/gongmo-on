@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { buildMockAnalysis } from '../services/mockAnalysis.js'
 import { requestAiAnalysis } from '../services/aiAnalysis.js'
 import { buildProposalDraft, proposalFileName, proposalToText } from '../services/proposalDraft.js'
+import { deadlineStatus } from '../utils/contestAlerts.js'
 import AppLink from '../components/AppLink'
 import InlineAuthPanel from '../components/InlineAuthPanel'
 import { referenceCases, winnerArchives } from '../data/mockData.js'
@@ -196,8 +197,16 @@ function ResultPage({
     settledRef.current = onAnalysisSettled
   })
   const checkedCount = SUBMISSION_CHECKLIST.filter((item) => checklist[item]).length
-  // 추천 공모전 — 점수순으로 정렬된 목록에서 가장 잘 맞는 상위 RECOMMEND_LIMIT개만 노출합니다.
-  const recommendedContests = analysis ? analysis.contests.slice(0, RECOMMEND_LIMIT) : []
+  // 추천 공모전 — 점수순으로 정렬된 목록에서 마감이 지난 것을 뺀 뒤(2026-10-14 사용자 지시)
+  // 가장 잘 맞는 상위 RECOMMEND_LIMIT개만 노출합니다.
+  const recommendedContests = analysis
+    ? analysis.contests
+        .filter((contest) => {
+          const { left } = deadlineStatus(contest.deadline)
+          return left === null || left >= 0
+        })
+        .slice(0, RECOMMEND_LIMIT)
+    : []
 
   // 제안서 초안 — 분석이 끝나면 출품용 기획서 양식(문제 정의·기대 효과·실현 계획…)으로 변환
   // proposalDraft.js는 JS 모듈이라 화면 쪽에서 표시용 형태를 타입으로 고정합니다.

@@ -151,7 +151,6 @@ app.get("/", (_req, res) => {
       <div class="row"><span class="method get">GET</span><code>/api/health</code><span class="desc">서버 상태 확인</span></div>
       <div class="row"><span class="method post">POST</span><code>/api/ideas/analyze</code><span class="desc">아이디어 분석 (AI)</span></div>
       <div class="row"><span class="method post">POST</span><code>/api/notifications/subscribe</code><span class="desc">알림 구독 등록</span></div>
-      <div class="row"><span class="method get">GET</span><code>/api/notifications/stats</code><span class="desc">알림 발송 통계</span></div>
       <div class="row"><span class="method post">POST</span><code>/api/notifications/run</code><span class="desc">알림 수동 점검</span></div>
       <div class="row"><span class="method post">POST</span><code>/api/auth/signup</code><span class="desc">회원가입 (계정 서버 저장)</span></div>
       <div class="row"><span class="method post">POST</span><code>/api/auth/login</code><span class="desc">로그인</span></div>
@@ -233,7 +232,7 @@ app.listen(PORT, () => {
   console.log(
     `[알림] 이메일: ${emailConfigured() ? "SMTP 발송" : "로그 모드(SMTP 미설정)"}`,
   );
-  // 게이트웨이 토큰(JWT)은 유효기간이 있어 만료되면 분석·챗봇이 함께 멈춘다.
+  // 게이트웨이 토큰(JWT)은 유효기간이 있어 만료되면 AI 분석이 함께 멈춘다.
   // 시작 시 남은 기간을 보여 관리자가 미리 갱신하도록 한다.
   const tokenNotice = getAiTokenNotice();
   if (tokenNotice) console.log(tokenNotice);

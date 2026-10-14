@@ -15,7 +15,7 @@
 }
 
 .explore-caption {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 165%;
   color: var(--text);
   word-break: keep-all;
@@ -49,7 +49,7 @@
   flex: 1;
   min-width: 0;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--text-h);
   background: none;
   border: none;
@@ -59,7 +59,7 @@
 
 .explore-search-clear {
   font: inherit;
-  font-size: 18px;
+  font-size: 15px;
   line-height: 1;
   color: var(--text);
   background: none;
@@ -82,7 +82,7 @@
 
 .explore-chip {
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text);
   background: var(--bg);
@@ -135,8 +135,7 @@
 }
 
 .explore-count {
-  font-size: 13.5px;
-  font-weight: 700;
+  font-size: 12.5px;
   color: var(--text-h);
 }
 
@@ -144,13 +143,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-2);
 }
 
 .explore-sort select {
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-h);
   background: var(--bg);
   border: 1px solid var(--border);
@@ -181,7 +180,7 @@
 }
 
 .explore-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-hover);
 }
 
@@ -225,7 +224,7 @@
 
 /* 누를 때도 카드 반응 — 모바일은 hover가 없어 터치 눌림에서 이미지 줌까지 재생한다(2026-10-13) */
 .explore-card:active {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-hover);
 }
 
@@ -240,7 +239,6 @@
   box-sizing: border-box;
   max-width: calc(100% - 16px);
   font-size: 11.5px;
-  font-weight: 700;
   color: var(--text-h);
   background: var(--bg);
   border: 1px solid var(--border);
@@ -266,7 +264,7 @@
 }
 
 .explore-name {
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-h);
   line-height: 150%;
@@ -289,7 +287,6 @@
   align-self: flex-start;
   box-sizing: border-box;
   font-size: 11.5px;
-  font-weight: 700;
   color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
@@ -301,13 +298,12 @@
 /* 아직 분석 전일 때 보이는 안내 한 줄 — 아이디어 입력 화면으로 이어준다 */
 .explore-fit-guide {
   margin: 0 0 16px;
-  font-size: 13.5px;
+  font-size: 12.5px;
   color: var(--text);
 }
 
 .explore-fit-guide a {
   color: var(--accent-text);
-  font-weight: 700;
 }
 
 .explore-fit-guide a:hover {
@@ -324,7 +320,7 @@
   box-sizing: border-box;
   display: grid;
   place-items: center;
-  font-size: 19px;
+  font-size: 15px;
   line-height: 1;
   color: var(--text);
   background: var(--bg);
@@ -359,14 +355,14 @@
   background: var(--panel);
   border: 1px dashed var(--border);
   border-radius: 14px;
-  font-size: 14.5px;
+  font-size: 13.5px;
   color: var(--text);
   word-break: keep-all;
 }
 
 .explore-reset {
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--accent-text);
   background: var(--accent-bg);
@@ -379,7 +375,7 @@
 .explore-reset:hover {
   /* 회색 틴트 대신 반전으로 hover 피드백 */
   background: var(--accent);
-  color: #ffffff;
+  color: var(--accent-ink);
 }
 
 @media (max-width: 640px) {

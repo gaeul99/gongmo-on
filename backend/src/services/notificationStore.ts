@@ -120,28 +120,3 @@ export function appendOutbox(entry: Omit<OutboxEntry, 'id' | 'at'>): OutboxEntry
   writeJson(OUTBOX_FILE, next)
   return record
 }
-
-export type NotificationStats = {
-  subscribers: number
-  byChannel: {
-    email: { total: number; real: number }
-  }
-  recent: OutboxEntry[]
-}
-
-// 대시보드용 집계 — 구독자 수, 채널별 발송 건수(log/실발송 구분), 최근 기록 3건.
-export function getNotificationStats(): NotificationStats {
-  const outbox = readJson<OutboxEntry[]>(OUTBOX_FILE, [])
-  const tally = (channel: OutboxEntry['channel']) => {
-    const rows = outbox.filter((entry) => entry.channel === channel)
-    return {
-      total: rows.length,
-      real: rows.filter((entry) => entry.via === 'smtp').length,
-    }
-  }
-  return {
-    subscribers: listSubscribers().length,
-    byChannel: { email: tally('email') },
-    recent: outbox.slice(-3).reverse(),
-  }
-}

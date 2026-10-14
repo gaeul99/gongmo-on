@@ -6,7 +6,7 @@
   margin: 0 auto;
   padding: 48px 24px 88px;
   box-sizing: border-box;
-  font-size: 15px;
+  font-size: 14px;
 
   @media (max-width: 768px) {
     padding: 32px 20px 64px;
@@ -17,20 +17,19 @@
   display: inline-block;
   margin: 0 0 16px;
   font-size: 12px;
-  font-weight: 700;
   color: var(--accent-text);
 }
 
 .type-test-header h1 {
   margin: 12px 0 8px;
-  font-size: clamp(24px, 4.5vw, 30px);
+  font-size: clamp(19px, 4.5vw, 24px);
   font-weight: 700;
   color: var(--text-h);
 }
 
 .type-test-caption {
   margin: 0 0 24px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 175%;
   color: var(--text-2);
   word-break: keep-all;
@@ -50,7 +49,7 @@
 
 .type-test-panel-title {
   margin: 0 0 8px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-h);
 }
@@ -74,7 +73,7 @@
 .type-test-points li {
   position: relative;
   padding-left: 20px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 170%;
   color: var(--text);
 }
@@ -84,7 +83,6 @@
   position: absolute;
   left: 2px;
   color: var(--accent-text);
-  font-weight: 700;
 }
 
 .type-test-last-result {
@@ -92,7 +90,7 @@
   width: 100%;
   margin: 0 0 12px;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--accent-text);
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
@@ -115,7 +113,7 @@
   position: relative;
   overflow: hidden;
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--accent-ink);
   background: var(--accent);
@@ -143,7 +141,7 @@
 }
 
 .type-test-start:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .type-test-start:hover::after {
@@ -197,7 +195,7 @@
 
 .type-test-question-text {
   margin: 0 0 18px;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 155%;
   color: var(--text-h);
@@ -217,7 +215,7 @@
   width: 100%;
   text-align: left;
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 165%;
   color: var(--text-h);
   background: var(--panel);
@@ -279,21 +277,20 @@
 
 .type-test-result-emoji {
   margin: 0 0 6px;
-  font-size: 40px;
+  font-size: 34px;
   line-height: 1;
 }
 
 .type-test-result-name {
   margin: 0 0 6px;
-  font-size: clamp(22px, 4vw, 26px);
+  font-size: clamp(17px, 4vw, 20px);
   font-weight: 700;
   color: var(--text-h);
 }
 
 .type-test-result-tagline {
   margin: 0 0 10px;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
   color: var(--accent-text);
   word-break: keep-all;
 }
@@ -310,7 +307,7 @@
 }
 
 .type-test-result-percent b {
-  font-size: 16px;
+  font-size: 15px;
   color: var(--accent-text);
   margin-left: 4px;
   font-variant-numeric: tabular-nums;
@@ -331,7 +328,7 @@
 }
 
 .type-test-score-name {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-2);
   white-space: nowrap;
   overflow: hidden;
@@ -358,7 +355,6 @@
 
 .type-test-score-row.is-top .type-test-score-name {
   color: var(--text-h);
-  font-weight: 700;
 }
 
 .type-test-score-row.is-top .type-test-score-track span {
@@ -374,7 +370,6 @@
 
 .type-test-score-row.is-top .type-test-score-pct {
   color: var(--accent-text);
-  font-weight: 700;
 }
 
 @media (max-width: 480px) {
@@ -386,7 +381,7 @@
 .type-test-result-description {
   margin: 0 auto;
   max-width: 480px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 180%;
   color: var(--text);
   word-break: keep-all;
@@ -394,41 +389,55 @@
 
 .type-test-tip-text {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 175%;
   color: var(--text);
   word-break: keep-all;
 }
 
 /* --- 상세 분석 --- */
+/* 블록을 회색 인셋으로 파고, 블록 제목을 검정 알약 배지로 세운다(2026-10-14
+   사용자 지시 '상세 분석 글이 눈에 잘 안 들어와' — 흰 패널 위 회색 글씨 나열이라
+   시선이 머물 자리가 없었다). 항목 본문도 15px로 키워 읽어갈 글자를 크게. */
 .type-test-analysis {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+}
+
+.type-test-analysis-block {
+  padding: 16px 18px 17px;
+  background: var(--code-bg);
+  border-radius: 12px;
 }
 
 .type-test-analysis-block h3 {
+  display: inline-flex;
+  align-items: center;
   margin: 0;
-  font-size: 13px;
+  padding: 5px 12px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--text-2);
+  letter-spacing: 0.02em;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-radius: 999px;
 }
 
 .type-test-analysis-block ul {
   list-style: none;
-  margin: 8px 0 0;
+  margin: 14px 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 12px;
 }
 
 .type-test-analysis-block li {
   position: relative;
   padding-left: 22px;
-  font-size: 14px;
-  line-height: 175%;
+  font-size: 13px;
+  line-height: 185%;
   color: var(--text);
   word-break: keep-all;
 }
@@ -436,7 +445,7 @@
 .type-test-analysis-block li::before {
   position: absolute;
   left: 0;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .type-test-analysis-block.is-strength li::before {
@@ -454,11 +463,10 @@
   flex-direction: column;
   gap: 4px;
   margin: 0;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border: 1px dashed var(--accent-border);
   border-radius: 10px;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
   color: var(--text-h);
   word-break: keep-all;
 }
@@ -484,7 +492,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 170%;
   color: var(--text);
   word-break: keep-all;
@@ -518,20 +526,20 @@
 }
 
 .type-test-synergy-emoji {
-  font-size: 26px;
+  font-size: 20px;
   line-height: 1.1;
 }
 
 .type-test-synergy b {
   display: block;
   margin-bottom: 4px;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-h);
 }
 
 .type-test-synergy p {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 175%;
   color: var(--text);
   word-break: keep-all;
@@ -559,7 +567,6 @@
 .type-test-deadline {
   flex: none;
   font-size: 11px;
-  font-weight: 700;
   border-radius: 999px;
   padding: 4px 10px;
   white-space: nowrap;
@@ -591,8 +598,7 @@
 }
 
 .type-test-contest-info a {
-  font-size: 13.5px;
-  font-weight: 700;
+  font-size: 12.5px;
   color: var(--text-h);
   text-decoration: none;
   line-height: 150%;
@@ -649,7 +655,7 @@
 .type-test-copy {
   flex: 1;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--accent-text);
   background: var(--accent-bg);

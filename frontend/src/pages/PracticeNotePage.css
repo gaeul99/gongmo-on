@@ -9,7 +9,7 @@
   margin: 0 auto;
   padding: 48px 24px 88px;
   box-sizing: border-box;
-  font-size: 15px;
+  font-size: 14px;
 
   @media (max-width: 768px) {
     padding: 32px 20px 64px;
@@ -19,7 +19,7 @@
 .back-button {
   align-self: flex-start;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--accent-text);
   background: none;
   border: none;
@@ -34,7 +34,7 @@
 /* 헤더 — 제목 + 무엇을 준비하는 노트인지 안내 */
 .notes-header h1 {
   margin: 12px 0 8px;
-  font-size: clamp(24px, 4.5vw, 30px);
+  font-size: clamp(19px, 4.5vw, 24px);
   font-weight: 700;
 }
 
@@ -55,7 +55,7 @@
 
 .notes-new-button {
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--accent-ink);
   background: var(--accent);
@@ -97,21 +97,19 @@
 }
 
 .notes-empty p {
-  font-weight: 700;
   color: var(--text-h);
 }
 
 .notes-empty-sub {
   margin-top: 6px;
-  font-weight: 700 !important;
-  font-size: 13.5px;
+  font-size: 12.5px;
   color: var(--text-2);
   word-break: keep-all;
 }
 
 .notes-empty-button {
   font: inherit;
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--accent-text);
   background: var(--accent-bg);
@@ -167,8 +165,7 @@
 }
 
 .note-card-title {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
   color: var(--text-h);
   word-break: keep-all;
 }
@@ -211,7 +208,7 @@
 
 .note-editor h1 {
   margin: 12px 0 0;
-  font-size: clamp(22px, 4vw, 28px);
+  font-size: clamp(17px, 4vw, 22px);
   font-weight: 700;
 }
 
@@ -230,7 +227,7 @@
 
 .note-field label {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-h);
 }
 
@@ -239,7 +236,6 @@
 }
 
 .note-optional {
-  font-weight: 700;
   font-size: 12px;
   color: var(--text);
   margin-left: 6px;
@@ -251,7 +247,7 @@
 .note-qa input[type='text'],
 .note-qa textarea {
   font: inherit;
-  font-size: 13.5px;
+  font-size: 12.5px;
   color: var(--text-h);
   background: var(--bg);
   border: 1px solid var(--border);
@@ -307,13 +303,13 @@
 
 .note-qa legend {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-h);
   padding: 0 4px;
 }
 
 .note-qa-lead {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-2);
   word-break: keep-all;
 }
@@ -348,7 +344,7 @@
 .note-qa-add {
   align-self: flex-start;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--accent-text);
   background: var(--bg);
@@ -371,7 +367,7 @@
 
 .note-save-button {
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--accent-ink);
   background: var(--accent);
@@ -389,7 +385,7 @@
 
 .note-cancel-button {
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text);
   background: none;
@@ -414,7 +410,7 @@
 
 .notes-tips h2 {
   margin: 0 0 var(--sp-3);
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .notes-tips ul {
@@ -429,7 +425,7 @@
 .notes-tips li {
   position: relative;
   padding-left: 16px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 175%;
   color: var(--text);
   word-break: keep-all;

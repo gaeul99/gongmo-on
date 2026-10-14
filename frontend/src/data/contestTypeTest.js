@@ -1,5 +1,6 @@
 // 공모전에서 빛나는 방식에 따라 유형을 찾아 주는 짧은 자가 진단입니다.
 // 심리 진단이 아닌 아이디어·공모전 선택을 위한 재미있는 참고 결과입니다.
+import { deadlineStatus } from '../utils/contestAlerts.js'
 
 // 총 30문항. 각 선택지는 한 유형에 2점, 관련 유형에 1점을 줍니다.
 // 2점 슬롯은 7개 유형에 골고루 배분돼 있어요(유형당 17~18개) — 특정 유형으로
@@ -599,13 +600,17 @@ export function calculateContestType(answers) {
 }
 
 // 유형 키워드로 접수 중 공모전을 골라 마감이 가까운 순으로 추천합니다.
-// 후보가 부족하면 나머지 공모전으로 채워 항상 limit개를 돌려줍니다.
-export function recommendContestsForType(typeId, contests, limit = 3) {
+// 마감이 지난 공모전은 추천에서 뺀다(2026-10-14 사용자 지시). 후보가 부족하면
+// 키워드 불일치분으로 채워 항상 limit개를 돌려줍니다.
+export function recommendContestsForType(typeId, contests, limit = 3, now = new Date()) {
   const type = CONTEST_TYPES[typeId]
   if (!type) return []
   const matched = []
   const rest = []
   for (const contest of contests) {
+    const { left } = deadlineStatus(contest.deadline, now)
+    // 일정을 알 수 없는 공모전은 마감 여부를 판단할 수 없으므로 그대로 둔다.
+    if (left !== null && left < 0) continue
     const haystack = `${contest.title} ${contest.field}`.toLowerCase()
     const isMatch = type.keywords.some((keyword) => haystack.includes(keyword.toLowerCase()))
     ;(isMatch ? matched : rest).push(contest)

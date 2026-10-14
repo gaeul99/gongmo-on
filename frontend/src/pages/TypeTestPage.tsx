@@ -290,11 +290,11 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
             <section className="type-test-panel" data-reveal>
               <h2 className="type-test-panel-title">나의 유형 분포</h2>
               <p className="type-test-panel-caption">
-                응답 점수를 100%로 환산한 성향 비율이에요. 점수가 낮게 나와도 응답 중 가장 가까운
-                유형이 결과예요.
+                응답 점수를 100%로 환산한 성향 비율을, 많이 나타난 순서대로 3개만 보여 줘요.
+                점수가 낮게 나와도 응답 중 가장 가까운 유형이 결과예요.
               </p>
               <div className="type-test-score-list">
-                {result.distribution.map((row) => {
+                {result.distribution.slice(0, 3).map((row) => {
                   const rowType = getTypeById(row.id)
                   return (
                     <div

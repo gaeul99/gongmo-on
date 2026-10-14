@@ -27,7 +27,7 @@
 /* '곧 시작되는 공모전' 패널(upcoming-head h2)과 같은 크기 — 나란히 놓인 두 제목이 통일되게 */
 .deadline-head h2 {
   font-size: var(--fs-lg);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -132,17 +132,17 @@
   flex-shrink: 0;
   margin-top: 1px;
   font-size: 11.5px;
-  font-weight: 700;
   border-radius: 999px;
   padding: 3px 9px;
 }
 
 /* 오늘 마감 / 7일 이내 / 그 이후 — 3단 톤. 2026-10-13 흑백 언어 통일:
-   '임박'(오늘·7일 이내)만 검정 채움으로 강조하고, 여유는 인셋 회색 칩으로 조용하게 */
+   '임박'(오늘·7일 이내)만 강조 채움으로 표시하고, 여유는 인셋 회색 칩으로 조용하게.
+   채움은 2026-10-14 '파란색이 너무 많다' 요청로 정보성 D-day는 진회색(--accent-dark) */
 .tone-today,
 .tone-urgent {
-  color: #fff;
-  background: var(--accent);
+  color: var(--accent-ink);
+  background: var(--accent-dark);
 }
 
 .tone-upcoming {
@@ -162,7 +162,6 @@
 
 .deadline-title {
   font-size: 13.5px;
-  font-weight: 800;
   color: var(--text-h);
   line-height: 1.45;
   display: -webkit-box;
@@ -191,6 +190,5 @@
   background: var(--bg);
   font-size: 10px;
   font-style: normal;
-  font-weight: 800;
   line-height: 1.2;
 }

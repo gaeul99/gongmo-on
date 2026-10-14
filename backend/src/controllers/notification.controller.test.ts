@@ -10,7 +10,6 @@ vi.mock('../services/notificationSenders', () => ({
 }))
 
 vi.mock('../services/notificationStore', () => ({
-  getNotificationStats: vi.fn(() => ({})),
   upsertSubscriber: vi.fn(),
 }))
 

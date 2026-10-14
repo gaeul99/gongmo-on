@@ -6,44 +6,29 @@
   margin: 0 auto;
   padding: 48px 24px 88px;
   box-sizing: border-box;
-  font-size: 15px;
+  font-size: 14px;
 
   @media (max-width: 768px) {
     padding: 32px 20px 64px;
   }
 }
 
-.dashboard-badge {
-  display: inline-block;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--accent-text);
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-  border-radius: 999px;
-  padding: 6px 14px;
-}
+/* 2026-10-14 사용자 요청 '계정 현황 배지 아예 지워주고' — 배지와 is-personal
+   규칙을 함께 뺐다. 제목(h1)만으로 개인 화면임이 읽힌다 */
 
 .dashboard-header h1 {
   margin: 12px 0 8px;
-  font-size: clamp(24px, 4.5vw, 30px);
+  font-size: clamp(19px, 4.5vw, 24px);
   font-weight: 700;
   color: var(--text-h);
 }
 
 .dashboard-caption {
   margin: 0 0 24px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 175%;
   color: var(--text-2);
   word-break: keep-all;
-}
-
-/* 로그인 상태 — 배지를 채워 개인 화면임을 구분 */
-.dashboard-header.is-personal .dashboard-badge {
-  color: var(--accent-ink);
-  background: var(--accent);
-  border-color: var(--accent);
 }
 
 /* 로그아웃 상태의 로그인 유도 버튼 */
@@ -52,7 +37,7 @@
   display: inline-block;
   margin: -12px 0 24px;
   font: inherit;
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--accent-text);
   background: var(--accent-bg);
@@ -105,7 +90,7 @@
 
 .kpi-num {
   margin: 2px 0 0;
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: -0.5px;
@@ -179,7 +164,7 @@
 }
 
 .panel-empty-group .panel-link {
-  font-size: 13px;
+  font-size: 12px;
   padding: 6px 10px;
   border: 1px solid var(--accent-border);
   background: var(--accent-bg);
@@ -188,7 +173,7 @@
 
 .panel-head h2 {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.2px;
   color: var(--text-h);
@@ -206,7 +191,7 @@
 
 .panel-empty {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 170%;
   color: var(--text);
   word-break: keep-all;
@@ -254,19 +239,19 @@
 .deadline-d {
   font-family: var(--sans);
   font-size: 12px;
-  font-weight: 700;
   text-align: center;
   border-radius: 6px;
   padding: 3px 0;
   font-variant-numeric: tabular-nums;
 }
 
-/* 2026-10-13 톤 통일: 임박(오늘·7일 이내)만 검정 채움, 여유는 인셋 회색,
-   마감은 가장 조용한 회색 글자 */
+/* 2026-10-13 톤 통일: 임박(오늘·7일 이내)만 강조 채움, 여유는 인셋 회색,
+   마감은 가장 조용한 회색 글자. 채움은 2026-10-14 '파란색이 너무 많다' 요청으로
+   정보성 마커인 D-day는 진회색(--accent-dark), 행동 요소는 파랑을 유지 */
 .deadline-d.tone-today,
 .deadline-d.tone-urgent {
-  color: #fff;
-  background: var(--accent);
+  color: var(--accent-ink);
+  background: var(--accent-dark);
 }
 
 .deadline-d.tone-upcoming {
@@ -287,8 +272,7 @@
 }
 
 .dash-deadline-title {
-  font-size: 13.5px;
-  font-weight: 700;
+  font-size: 12.5px;
   color: var(--text-h);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -312,7 +296,6 @@
 
 .deadline-kind {
   font-size: 10.5px;
-  font-weight: 700;
   color: var(--accent-text);
   background: var(--accent-bg);
   border-radius: 999px;
@@ -337,7 +320,6 @@
 .field-name {
   font-size: 12.5px;
   color: var(--text-h);
-  font-weight: 700;
 }
 
 .field-track {
@@ -392,7 +374,7 @@
 
 .challenge-num {
   font-family: var(--sans);
-  font-size: 22px;
+  font-size: 16px;
   line-height: 1.1;
   color: var(--text-h);
   font-variant-numeric: tabular-nums;
@@ -400,7 +382,6 @@
 
 .challenge-label {
   font-size: 12px;
-  font-weight: 700;
   color: var(--text-2);
 }
 
@@ -500,8 +481,10 @@
 }
 
 .pager-num.is-on {
-  border-color: var(--accent);
-  background: var(--accent);
+  /* 마감임박 공모전의 페이지 숫자 — 2026-10-14 사용자 요청으로 진회색 포인트
+     (대시보드에서 로드맵·마감임박은 진회색, 나머지는 파랑) */
+  border-color: var(--accent-dark);
+  background: var(--accent-dark);
   color: var(--accent-ink);
 }
 
@@ -519,7 +502,7 @@
 
 .roadmap-next {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 165%;
   color: var(--text);
   min-width: 0;
@@ -532,7 +515,7 @@
 
 .roadmap-percent {
   font-family: var(--sans);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--accent-text);
   font-variant-numeric: tabular-nums;
@@ -551,7 +534,8 @@
   display: block;
   height: 100%;
   border-radius: 999px;
-  background: var(--accent);
+  /* 출품 로드맵은 2026-10-14 사용자 지정으로 진회색 포인트 — 나머지 패널은 파랑 */
+  background: var(--accent-dark);
   transition: width 0.2s;
 }
 
@@ -596,7 +580,7 @@
 }
 
 .roadmap-stage-label {
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--text-h);
 }
@@ -607,7 +591,8 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: var(--accent);
+  /* 단계 번호 원도 로드맵 소속 — 진회색 포인트(2026-10-14 사용자 지정) */
+  background: var(--accent-dark);
   color: var(--accent-ink);
   font-size: 11px;
   line-height: 17px;
@@ -630,7 +615,6 @@
 
 .roadmap-stage.is-over .roadmap-due {
   color: var(--error);
-  font-weight: 700;
 }
 
 .roadmap-tasks {
@@ -645,7 +629,7 @@
   display: flex;
   align-items: flex-start;
   gap: 7px;
-  font-size: 13.5px;
+  font-size: 12.5px;
   line-height: 1.65;
   color: var(--text);
   cursor: pointer;
@@ -675,8 +659,9 @@
 }
 
 .roadmap-tasks label input:checked {
-  background: var(--accent);
-  border-color: var(--accent);
+  /* 체크 표시도 로드맵 소속 — 진회색 포인트(2026-10-14 사용자 지정) */
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
 }
 
 .roadmap-tasks label input:checked::after {

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import AppLink from '../components/AppLink'
+import { useEffect, useState } from 'react'
 import ContestMarquee from '../components/ContestMarquee'
 import HeroDeadlines from '../components/HeroDeadlines'
 import HeroUpcoming from '../components/HeroUpcoming'
@@ -52,41 +53,23 @@ type Props = {
   // '곧 시작되는 공모전'의 전체 보기 — 탐색 화면을 '곧 시작' 필터로 엽니다.
   onExploreUpcoming: () => void
   onOpenContest: (id: number) => void
+  // 기능 소개 5개 메뉴탭 — 하단 바 메뉴 팝업과 같은 목적지(2026-10-14).
+  onTypeTest: () => void
+  onStart: () => void
+  onNotes: () => void
+  onDashboard: () => void
 }
 
 function HomePage({
   onExplore,
   onExploreUpcoming,
   onOpenContest,
+  onTypeTest,
+  onStart,
+  onNotes,
+  onDashboard,
 }: Props) {
   const { typed, done } = useTypewriter(TYPING_TEXT, 75)
-  const strengthsRef = useRef<HTMLElement>(null)
-
-  // '공모온이 특별한 이유' 화면 전환 — 섹션이 뷰포트에 들어오면(is-screen-on)
-  // 배경이 회색 캔버스에서 흰 표면으로 스르륵 바뀌고, 벗어나면 되돌아간다.
-  // 실제 전환 모양은 HomePage.css .strengths가 담당. 위로 다시 지나가도 매번 재생되게
-  // 뷰포트 이탈 시 되돌리는 건 utils/scrollReveal.ts의 Reveal과 같은 원리다.
-  useEffect(() => {
-    const el = strengthsRef.current
-    if (!el) return
-    // 아주 오래된 브라우저 폴백 — 애니메이션 없이 곧바로 흰 표면.
-    if (typeof IntersectionObserver === 'undefined') {
-      el.classList.add('is-screen-on')
-      return
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          el.classList.toggle('is-screen-on', entry.isIntersecting)
-        }
-      },
-      // Reveal과 같은 시작점 — 섹션 상단이 화면 아래에서 조금 보이는 시점부터.
-      // 0을 함께 둬야 완전히 벗어난 순간의 콜백도 받아 되돌릴 수 있다.
-      { threshold: [0, 0.1], rootMargin: '0px 0px -10% 0px' },
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
 
   return (
     <div className="page home">
@@ -118,19 +101,41 @@ function HomePage({
           빼고 aria-label로만 남겼다 — 강점 섹션(.strengths)과 같은 처리다 */}
       <section className="features" aria-label="이렇게 도와드립니다">
         <div className="feature-grid">
-          {/* 2026-10-14 사용자 요청으로 번호 칩과 카드 박스를 빼고 문장만 남겼다.
-              '유사 사례 비교' 항목은 같은 날 '이 부분 삭제해줘' 요청으로 뺐다(3개) */}
-          <Reveal as="article" className="feature-card">
-            <h3>공모전 유형 검사</h3>
-            <p>아직 아이디어가 없어도 괜찮아요. 30문항으로 나의 공모전 성향을 찾아 드려요.</p>
+          {/* 2026-10-14 사용자 요청 '이 지그재그 설명란을 메뉴탭으로 이용해서 클릭하면
+              바로 갈 수 있게' — 3개 설명을 바로가기 5개 메뉴로 바꾸고 각 항목을
+              AppLink로 만들었다. 순서·목적지·NEW 표시는 하단 바 메뉴 팝업과 같다.
+              번호 칩·카드 박스는 같은 날 이른 요청으로 이미 빠져 있다 */}
+          <Reveal as="article" className="feature-item">
+            <AppLink className="feature-card" href="/test" onNavigate={onTypeTest}>
+              <h3>공모전 유형 검사</h3>
+              <p>30문항으로 나의 공모전 성향을 찾고, 시작할 아이디어 방향을 정해요.</p>
+            </AppLink>
           </Reveal>
-          <Reveal as="article" className="feature-card" delay={90}>
-            <h3>강점과 차별점 분석</h3>
-            <p>내 아이디어만의 강점과 보완할 점을 짚어 드려요.</p>
+          <Reveal as="article" className="feature-item" delay={90}>
+            <AppLink className="feature-card" href="/input" onNavigate={onStart}>
+              <h3>아이디어 분석</h3>
+              <p>아이디어를 입력하면 강점·보완점과 어울리는 공모전까지 분석해 드려요.</p>
+            </AppLink>
           </Reveal>
-          <Reveal as="article" className="feature-card" delay={180}>
-            <h3>공모전 추천</h3>
-            <p>아이디어 주제에 맞는 공모전을 찾아 추천해 드려요.</p>
+          <Reveal as="article" className="feature-item" delay={180}>
+            <AppLink className="feature-card" href="/notes" onNavigate={onNotes}>
+              <h3>
+                연습 노트<span className="feature-card-new">NEW</span>
+              </h3>
+              <p>아이디어를 노트에 쌓아 가며 실전 전에 마음껏 연습해요.</p>
+            </AppLink>
+          </Reveal>
+          <Reveal as="article" className="feature-item" delay={270}>
+            <AppLink className="feature-card" href="/dashboard" onNavigate={onDashboard}>
+              <h3>대시보드</h3>
+              <p>성향·응모 기록·출품 로드맵을 한 화면에서 확인해요.</p>
+            </AppLink>
+          </Reveal>
+          <Reveal as="article" className="feature-item" delay={360}>
+            <AppLink className="feature-card" href="/contest" onNavigate={onExplore}>
+              <h3>공모전 탐색</h3>
+              <p>분야·마감일 필터로 전체 공모전을 둘러보고 찜해요.</p>
+            </AppLink>
           </Reveal>
         </div>
       </section>
@@ -148,26 +153,24 @@ function HomePage({
       </Reveal>
 
       {/* 공모온 강점 — 푸터 바로 위(2026-10-14 사용자 요청). 기능 소개가 아니라
-          사용자가 이 사이트를 거치며 발전되는 흐름(막막함→아이디어→전략→도전→
-          기록→자신감)을 보여 준다. 섹션 제목은 같은 날 '글자 지워주고' 요청으로
-          빼고 aria-label로만 남겼다. 큰 문장+한 줄 설명의 크기 대비 — 같은 날
-          사용자 요청 '글자 크기 대비 효과를 더 극대화'. 스크롤로 진입하면 배경이
-          점차 밝아진다(위 useEffect + HomePage.css .strengths) */}
-      <section ref={strengthsRef} className="strengths" aria-label="공모온이 특별한 이유">
+          사용자가 이 사이트를 거치며 발전되는 흐름(아이디어→전략→도전→기록→
+          자신감)을 보여 준다. 첫 항목 '막막함이 아이디어로'는 같은 날
+          '이 문장은 지워줘' 요청으로 삭제했다. 섹션 제목은 같은 날 '글자 지워주고'
+          요청으로 빼고 aria-label로만 남겼다. 큰 문장+한 줄 설명의 크기 대비 — 같은 날
+          사용자 요청 '글자 크기 대비 효과를 더 극대화'. 배경은 섹션을 칠하지 않아
+          회색 캔버스 그라데이션이 그대로 푸터까지 내려온다(2026-10-14 사용자 요청
+          '연하늘빛 그레이 그라데이션이 푸터까지 내려오게' — 흰 전환은 푸터가 담당) */}
+      <section className="strengths" aria-label="공모온이 특별한 이유">
         <div className="strengths-grid">
           <Reveal as="article" className="strength-item">
-            <h3>막막함이 아이디어로</h3>
-            <p>성향 검사와 예시 아이디어로 첫 문장을 시작해요.</p>
-          </Reveal>
-          <Reveal as="article" className="strength-item" delay={90}>
             <h3>아이디어가 전략으로</h3>
             <p>강점·보완점 분석으로 목표 공모전이 보여요.</p>
           </Reveal>
-          <Reveal as="article" className="strength-item" delay={180}>
+          <Reveal as="article" className="strength-item" delay={90}>
             <h3>도전이 기록으로</h3>
             <p>응모와 결과가 쌓여 나만의 히스토리가 돼요.</p>
           </Reveal>
-          <Reveal as="article" className="strength-item" delay={270}>
+          <Reveal as="article" className="strength-item" delay={180}>
             <h3>기록이 자신감으로</h3>
             <p>쌓인 기록이 다음 도전을 가볍게 만들어요.</p>
           </Reveal>

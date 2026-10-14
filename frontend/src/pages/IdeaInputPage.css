@@ -6,7 +6,7 @@
   margin: 0 auto;
   padding: 48px 24px 88px;
   box-sizing: border-box;
-  font-size: 15px;
+  font-size: 14px;
 
   @media (max-width: 768px) {
     padding: 32px 20px 64px;
@@ -16,7 +16,7 @@
 .back-button {
   align-self: flex-start;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--accent-text);
   background: none;
   border: none;
@@ -36,7 +36,7 @@
 
 .input-header h1 {
   margin: 12px 0 8px;
-  font-size: clamp(24px, 4.5vw, 30px);
+  font-size: clamp(19px, 4.5vw, 24px);
   font-weight: 700;
 }
 
@@ -64,7 +64,7 @@
 
 .field label {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-h);
 }
 
@@ -73,7 +73,6 @@
 }
 
 .optional {
-  font-weight: 700;
   font-size: 12.5px;
   color: var(--text-2);
 }
@@ -81,7 +80,6 @@
 /* 입력 글자수 카운터 — 라벨 줄 오른쪽 끝에 붙인다 */
 .char-count {
   float: right;
-  font-weight: 700;
   font-size: 12.5px;
   color: var(--text-2);
   opacity: 0.9;
@@ -139,7 +137,7 @@
 }
 
 .hint-panel-title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--accent-text);
 }
@@ -160,7 +158,7 @@
 
 .hint-chip {
   font: inherit;
-  font-size: 13.5px;
+  font-size: 12.5px;
   line-height: 165%;
   text-align: left;
   word-break: keep-all;
@@ -191,11 +189,16 @@
    hover 광택 스윕(uiverse식): 비스듬한 빛 띠가 왼→오른쪽으로 지나간다 */
 .analyze-button {
   margin-top: 32px;
-  width: 100%;
+  /* 2026-10-14 사용자 요청 — 꽉 찬 CTA를 벗어 폭을 1/3으로 줄인다.
+     폼이 flex column이라 align-self: center로 가운데에 놓고,
+     좁은 화면에서 글자가 잘리지 않게 최소 폭을 둔다 */
+  width: 33.333%;
+  min-width: 160px;
+  align-self: center;
   position: relative;
   overflow: hidden;
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--brand-ink);
   background: var(--brand);
@@ -223,7 +226,7 @@
 }
 
 .analyze-button:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .analyze-button:hover::after {
@@ -251,14 +254,13 @@
 
 .input-archive h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-h);
 }
 
 .input-archive-count {
   font-size: 12px;
-  font-weight: 700;
   color: var(--accent-text);
   margin-left: 6px;
 }
@@ -273,7 +275,7 @@
 .input-archive-empty {
   margin: 16px 0 0;
   padding: 20px 18px;
-  font-size: 13.5px;
+  font-size: 12.5px;
   line-height: 170%;
   color: var(--text);
   background: var(--code-bg);
@@ -311,7 +313,7 @@
 
 .input-archive-info h3 {
   margin: 0 0 4px;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--text-h);
   word-break: keep-all;
 }
@@ -404,7 +406,7 @@
 
 .input-edit-banner-text {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 165%;
   color: var(--text);
   word-break: keep-all;
@@ -413,7 +415,6 @@
 .input-edit-notice {
   margin: 6px 0 0;
   font-size: 12px;
-  font-weight: 700;
   color: var(--brand-text);
   word-break: keep-all;
 }

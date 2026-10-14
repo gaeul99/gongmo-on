@@ -35,7 +35,7 @@
 .contact-title {
   margin: 0;
   font-size: 17px;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text-h);
 }
 
@@ -85,7 +85,6 @@
 
 .contact-optional {
   font-style: normal;
-  font-weight: 700;
   color: var(--text);
   opacity: 0.75;
 }
@@ -131,7 +130,6 @@ textarea.contact-input {
   margin: 0 0 12px;
   padding: 8px 12px;
   font-size: 12px;
-  font-weight: 700;
   color: var(--error);
   background: var(--brand-bg);
   border: 1px solid var(--border);
@@ -147,7 +145,7 @@ textarea.contact-input {
   background: var(--accent);
   color: var(--accent-ink);
   font-size: 13.5px;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .contact-submit:hover {
@@ -175,7 +173,7 @@ textarea.contact-input {
   border: 1.5px solid var(--brand-border);
   color: var(--brand-text);
   font-size: 24px;
-  font-weight: 900;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -184,7 +182,7 @@ textarea.contact-input {
 .contact-done-title {
   margin: 0 0 6px;
   font-size: 16px;
-  font-weight: 900;
+  font-weight: 700;
   color: var(--text-h);
 }
 
