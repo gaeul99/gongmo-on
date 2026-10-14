@@ -22,6 +22,10 @@ const SIMILAR_THRESHOLD = 90
 // 추천 공모전은 아이디어와 가장 잘 맞는 순서대로 이 개수만 보여 줍니다.
 const RECOMMEND_LIMIT = 4
 
+// 상세 분석 블록(강점·보완·심사·확장)과 유사 사례의 겹치는 점은
+// 이 개수까지만 표시합니다(2026-10-14 사용자 요청 — 결과 화면 문구 최소화).
+const DETAIL_ITEM_LIMIT = 2
+
 // 제출 전 자가 점검 항목 — 응모 버튼을 누르기 전 확인용 체크리스트
 const SUBMISSION_CHECKLIST = [
   '접수 자격 요건(대상·지역·학력)을 확인했어요',
@@ -333,8 +337,8 @@ function ResultPage({
           {analysis === null
             ? '입력하신 아이디어를 분석하고 있어요. 잠시만 기다려 주세요.'
             : analysis.source === 'ai'
-              ? 'AI가 입력하신 아이디어를 분석했습니다. 유사 사례·추천 공모전·수상작의 제목·링크 등은 2026년 10월 1일 기준 실제 자료이며, 유사도·추천 점수와 모든 분석 문구는 AI의 참고 의견이므로 제출 전 직접 검토가 필요합니다.'
-              : '유사 사례·추천 공모전·수상작의 제목·링크 등은 2026년 10월 1일 기준 실제 자료이며, 유사도·추천 점수와 모든 분석 문구는 입력을 반영해 만든 참고 자료입니다.'}
+              ? 'AI가 아이디어를 분석했어요. 분석 문구는 참고 의견이니 제출 전 공고 원문을 확인하세요.'
+              : '입력을 반영해 만든 참고 분석이에요. 제출 전 공고 원문을 확인해 주세요.'}
         </p>
         {analysis === null && (
           <p className="result-loading-hint">
@@ -483,7 +487,7 @@ function ResultPage({
             <div className="detail-target">
               <h4>예상 타깃 사용자</h4>
               <ul className="target-chips">
-                {analysis.detail.targetUsers.map((item) => (
+                {analysis.detail.targetUsers.slice(0, DETAIL_ITEM_LIMIT).map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
@@ -492,7 +496,7 @@ function ResultPage({
               <div className="detail-block">
                 <h4>강점</h4>
                 <ul>
-                  {analysis.detail.strengths.map((item) => (
+                  {analysis.detail.strengths.slice(0, DETAIL_ITEM_LIMIT).map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
@@ -500,7 +504,7 @@ function ResultPage({
               <div className="detail-block">
                 <h4>보완하면 좋은 점</h4>
                 <ul>
-                  {analysis.detail.improvements.map((item) => (
+                  {analysis.detail.improvements.slice(0, DETAIL_ITEM_LIMIT).map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
@@ -508,7 +512,7 @@ function ResultPage({
               <div className="detail-block">
                 <h4>심사에서 어필할 포인트</h4>
                 <ul>
-                  {analysis.detail.judgePoints.map((item) => (
+                  {analysis.detail.judgePoints.slice(0, DETAIL_ITEM_LIMIT).map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
@@ -516,16 +520,12 @@ function ResultPage({
               <div className="detail-block">
                 <h4>확장 아이디어</h4>
                 <ul>
-                  {analysis.detail.extensionIdeas.map((item) => (
+                  {analysis.detail.extensionIdeas.slice(0, DETAIL_ITEM_LIMIT).map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
               </div>
             </div>
-            <p className="detail-note">
-              분석 문구는 입력 내용을 바탕으로 만든 참고 의견이에요. 제출 전에는 공고 원문을 꼭
-              직접 확인하세요.
-            </p>
           </div>
         )}
       </section>
@@ -539,17 +539,19 @@ function ResultPage({
 
       <section className="result-section proposal-section" aria-labelledby="proposal-title" data-reveal>
         <h2 id="proposal-title">제안서 초안 만들기</h2>
-        <p className="proposal-intro">
-          <strong>💡 기획서 쓰기가 막막할 때의 초안이에요.</strong> 분석 결과를
-          출품용 기획서 목차에 맞춰 뽑아 드려요.
-        </p>
         {analysis === null || proposalDraft === null ? (
-          <p className="proposal-waiting">분석이 끝나는 대로 분석 내용을 기획서 초안으로 정리해 드릴게요.</p>
+          <>
+            <p className="proposal-intro">
+              <strong>💡 기획서 쓰기가 막막할 때의 초안이에요.</strong> 분석 결과를 출품용
+              기획서 목차에 맞춰 뽑아 드려요.
+            </p>
+            <p className="proposal-waiting">분석이 끝나는 대로 분석 내용을 기획서 초안으로 정리해 드릴게요.</p>
+          </>
         ) : (
           <>
             <p className="proposal-intro">
-              미리보기로 확인하고 복사·TXT 내려받기로 가져가, 공고의 양식과
-              분량에 맞게 다듬어 제출하세요.
+              <strong>💡 기획서 쓰기가 막막할 때의 초안이에요.</strong> 미리보기로 확인하고
+              복사·TXT 내려받기로 가져가, 공고 양식에 맞게 다듬어 제출하세요.
             </p>
             <div className="proposal-actions">
               <button type="button" className="proposal-copy" onClick={handleCopyProposal}>
@@ -627,7 +629,7 @@ function ResultPage({
                       <div className="case-block">
                         <h4>겹치는 점</h4>
                         <ul>
-                          {item.overlap.map((point) => (
+                          {item.overlap.slice(0, DETAIL_ITEM_LIMIT).map((point) => (
                             <li key={point}>{point}</li>
                           ))}
                         </ul>
