@@ -6,6 +6,7 @@
 import os
 import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 # Windows 콘솔(cp949)에서 이메일 로그의 한글·특수문자 print가
 # UnicodeEncodeError로 서버 응답을 깨뜨리지 않게 한다 — 인코딩은 콘솔
@@ -21,6 +22,7 @@ load_dotenv()
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import client_origins
@@ -67,6 +69,32 @@ app.add_middleware(
 )
 app.add_middleware(PayloadLimitMiddleware)
 app.add_middleware(RequestLogAndHeadersMiddleware)
+
+# 단일 서비스 배포(Docker, STATIC_DIR 지정)에서는 빌드된 SPA 화면도 같은 서버가
+# 서빙한다. 로컬 개발은 Vite(5173)가 화면을 담당하므로 STATIC_DIR가 없으면
+# 기존처럼 API 전용으로 동작한다.
+_static_dir = Path((os.getenv("STATIC_DIR") or "").strip())
+
+
+class SPAStaticFiles(StaticFiles):
+    """SPA 마운트 — 파일이 없는 화면 경로는 index.html로, /api 경로는 JSON 404로 답한다."""
+
+    async def get_response(self, path: str, scope):
+        if scope["path"] == "/api" or scope["path"].startswith("/api/"):
+            return JSONResponse(
+                status_code=404,
+                content={"success": False, "error": {"code": "NOT_FOUND", "message": "찾을 수 없는 요청이에요."}},
+            )
+        try:
+            response = await super().get_response(path, scope)
+            if response.status_code == 404:
+                response = await super().get_response("index.html", scope)
+        except StarletteHTTPException as error:
+            # Starlette 버전에 따라 404가 응답 대신 예외로 오기도 한다.
+            if error.status_code != 404:
+                raise
+            response = await super().get_response("index.html", scope)
+        return response
 
 
 # 남용이 비용·스팸으로 이어지는 엔드포인트부터 IP별 요청 수를 제한한다.
@@ -181,9 +209,12 @@ ROOT_HTML = """<!doctype html>
 </html>"""
 
 
-@app.get("/", response_class=HTMLResponse)
-def root():
-    return ROOT_HTML
+# STATIC_DIR(단일 서비스 배포)에서는 이 안내 페이지 대신 SPA가 / 를 서빙한다.
+if not _static_dir.is_dir():
+
+    @app.get("/", response_class=HTMLResponse)
+    def root():
+        return ROOT_HTML
 
 
 @app.get("/api/health")
@@ -218,6 +249,10 @@ app.include_router(
     prefix="/api/inquiries",
     dependencies=[Depends(_limit(10, 5, "inquiries"))],
 )
+
+# 마운트는 API 라우터 등록이 끝난 뒤에 둔다 — 나머지 경로만 화면으로 간다.
+if _static_dir.is_dir():
+    app.mount("/", SPAStaticFiles(directory=_static_dir, html=True), name="spa")
 
 
 # 정의되지 않은 경로 — Express 기본 HTML 대신 표준 JSON으로 답한다.

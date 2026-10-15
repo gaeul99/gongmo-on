@@ -1,0 +1,14 @@
+# Docker 빌드 컨텍스트에서 불필요한 것들 — 이미지 크기와 시크릿 보호용.
+**/node_modules
+backend/.venv
+backend/.env
+backend/backups
+backend/src
+frontend/dist
+frontend/vercel.json
+.git
+artifacts
+dist
+node_modules
+*.md
+*.cmd
