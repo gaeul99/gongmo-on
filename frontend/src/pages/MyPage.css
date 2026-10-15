@@ -493,9 +493,9 @@ section h2 {
   }
 }
 
-/* 공모전 알림 센터 — 바로 위 성장 타임라인과 같은 카드 틀로 통일감을 준다
-   (2026-10-14 사용자 요청 '위쪽 카드형태로 동일하게'). 안의 알림 항목은
-   카드 안의 행으로 눌러 중첩 카드가 되지 않게 한다 */
+/* 공모전 알림 섹션 — 바로 위 성장 타임라인과 같은 카드 틀로 통일감을 준다
+   (2026-10-14 사용자 요청 '위쪽 카드형태로 동일하게'). 2026-10-15 사용자 요청으로
+   알림 목록을 빼고 이메일 수신 토글만 남겼다 */
 .alert-section {
   margin-top: 72px;
   background: var(--bg);
@@ -508,13 +508,6 @@ section h2 {
 /* 이메일 알림 수신 설정 */
 .notif-setting {
   margin-bottom: 14px;
-}
-
-/* 알림 목록 바로 다음 설정 블록 — 목록과의 간격을 더 벌려 설정을 아래로
-   내린다(2026-10-14 사용자 요청 '설정 블록도 아래로 더') */
-.alert-list + .notif-setting,
-.wishlist-empty + .notif-setting {
-  margin-top: 24px;
 }
 
 .notif-toggle-row {
@@ -538,175 +531,11 @@ section h2 {
   word-break: keep-all;
 }
 
-/* 주간 새 공모전 이메일 */
-.weekly-title {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-h);
-}
-
-.weekly-send-button {
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 700;
-  margin-top: 8px;
-  padding: 8px 14px;
-  border: 1px solid var(--accent-border);
-  border-radius: 10px;
-  background: var(--panel);
-  color: var(--accent-text);
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s;
-}
-
-.weekly-send-button:hover:not(:disabled) {
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-.weekly-send-button:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.weekly-status {
-  margin: 8px 0 0;
-  font-size: 12px;
-  color: var(--accent-text);
-  word-break: keep-all;
-}
-
 .mypage-inner section + section {
   margin-top: 84px;
 }
 
-.alert-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* 카드 안의 행 — 테두리·구분선 없이 간격으로만 나눈다(2026-10-14 '전체 구분선은
-   지워줘' 요청). 하단 구분선과 :last-child 예외 규칙을 함께 뺐다 */
-.alert-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: none;
-  border: none;
-  padding: 12px 2px;
-}
-
-/* 오늘 마감·임박 알림만 붙는 확인 버튼 — 누르면 그 항목만 배지 개수에서 빠진다 */
-.alert-dismiss {
-  flex-shrink: 0;
-  margin-left: auto;
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--accent-text);
-  background: none;
-  border: 1px solid var(--accent-border);
-  border-radius: 999px;
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.alert-dismiss:hover {
-  background: var(--hover-bg);
-}
-
-/* '모두 읽음' 줄 — 카드 틀 없이 알림 목록 위 오른쪽에 버튼만 둔다.
-   버튼이 둘(모두 읽음·모두 읽지 않음)이라 margin-left:auto를 풀어
-   자유 공간이 둘로 나뉘어 첫 버튼이 가운데로 밀리지 않게 한다.
-   아래 여백으로 버튼 행과 알림 항목들 사이를 벌린다(2026-10-14 사용자 요청
-   '알림 목록 아래로 더') */
-.alert-all-row {
-  justify-content: flex-end;
-  background: none;
-  border: none;
-  border-radius: 0;
-  padding: 0 2px;
-  margin-bottom: 14px;
-}
-
-.alert-all-row .alert-dismiss {
-  margin-left: 0;
-}
-
-.alert-badge {
-  flex-shrink: 0;
-  font-size: 11px;
-  border-radius: 999px;
-  padding: 4px 10px;
-}
-
-.alert-badge.tone-today {
-  color: var(--accent-ink);
-  background: var(--accent-dark);
-}
-
-.alert-badge.tone-urgent {
-  color: var(--accent-ink);
-  background: var(--accent-dark);
-}
-
-.alert-badge.tone-upcoming {
-  color: var(--accent-text);
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-}
-
-.alert-badge.tone-closed {
-  color: var(--text);
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-}
-
-.alert-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.alert-title {
-  margin: 0;
-  font-size: 13.5px;
-  color: var(--text-h);
-  word-break: keep-all;
-}
-
-.alert-meta {
-  margin: 2px 0 0;
-  font-size: 11.5px;
-  color: var(--text-2);
-  word-break: keep-all;
-}
-
-/* 읽음(확인) 처리한 알림 — 연회색으로 눌러 안 읽은 알림과 대비를 준다.
-   (구분선이 없어진 2026-10-14 이후로는 밝기만으로 읽음을 알린다) */
-.alert-item.is-read {
-  background: none;
-  opacity: 0.6;
-}
-
-.alert-item.is-read .alert-badge {
-  color: var(--text);
-  background: var(--bg);
-  border: 1px solid var(--border);
-}
-
-.alert-item.is-read .alert-title {
-  color: var(--text);
-}
-
-.alert-empty,
+/* 보관함·관심 목록 등의 빈 상태 문구 */
 .wishlist-empty {
   margin: 0;
   font-size: 13px;
@@ -1116,4 +945,13 @@ section h2 {
   .profile-edit-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* 대시보드 '내 응모'·'내 관심'·'보관한 아이디어' 카드(/mypage?section=)에서 바로
+   열릴 때 — sticky 상단바에 제목이 묻히지 않게 스크롤이 멈추는 지점을 바 높이만큼
+   내린다(2026-10-15 사용자 요청) */
+#my-contest-title,
+#wishlist-title,
+#archive-title {
+  scroll-margin-top: 76px;
 }

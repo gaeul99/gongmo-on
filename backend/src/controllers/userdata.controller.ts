@@ -22,7 +22,9 @@ const MAX_MAP_ENTRIES = 500;
 const MAX_ITEM_CHARS = 64_000;
 const MAX_TOTAL_CHARS = 1_000_000;
 
-export function resolveNickname(req: Request): string | undefined {
+export async function resolveNickname(
+  req: Request,
+): Promise<string | undefined> {
   const token = getBearerToken(req);
   if (!token) return undefined;
   return getSessionUser(token);
@@ -137,8 +139,8 @@ function sanitizeUserData(input: unknown): UserData | null {
   return sanitized;
 }
 
-export function getUserdata(req: Request, res: Response) {
-  const nickname = resolveNickname(req);
+export async function getUserdata(req: Request, res: Response) {
+  const nickname = await resolveNickname(req);
   if (!nickname) {
     sendError(
       res,
@@ -148,11 +150,11 @@ export function getUserdata(req: Request, res: Response) {
     );
     return;
   }
-  res.json({ success: true, data: getUserData(nickname) });
+  res.json({ success: true, data: await getUserData(nickname) });
 }
 
-export function putUserdata(req: Request, res: Response) {
-  const nickname = resolveNickname(req);
+export async function putUserdata(req: Request, res: Response) {
+  const nickname = await resolveNickname(req);
   if (!nickname) {
     sendError(
       res,
@@ -172,6 +174,6 @@ export function putUserdata(req: Request, res: Response) {
     );
     return;
   }
-  const record = saveUserData(nickname, sanitized);
+  const record = await saveUserData(nickname, sanitized);
   res.json({ success: true, data: { updatedAt: record.updatedAt } });
 }

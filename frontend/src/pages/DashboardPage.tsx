@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import AppLink from '../components/AppLink'
+import Reveal from '../components/Reveal'
 import { useContestPool } from '../data/contestPool.js'
 import { pageItems } from '../utils/pagination'
 import {
@@ -30,6 +31,11 @@ type Props = {
   onOpenExplore: () => void
   // 아이디어 분석 입력 화면으로 보내는 콜백 — 도전 히스토리 빈 상태에서 씁니다.
   onGoInput: () => void
+  // '내 응모'·'내 관심'·'보관한 아이디어' KPI 카드 클릭 — 마이페이지의 해당 목록으로
+  // 보내는 콜백(2026-10-15 사용자 요청). 주소의 ?section=이 목록 위치를 정한다.
+  onGoMyContests: () => void
+  onGoWishlist: () => void
+  onGoArchive: () => void
 }
 
 const DEADLINE_PAGE_SIZE = 8
@@ -184,7 +190,16 @@ function RoadmapPanel({ candidates }: { candidates: RoadmapCandidate[] }) {
   )
 }
 
-function DashboardPage({ onOpenContest, user, onGoLogin, onOpenExplore, onGoInput }: Props) {
+function DashboardPage({
+  onOpenContest,
+  user,
+  onGoLogin,
+  onOpenExplore,
+  onGoInput,
+  onGoMyContests,
+  onGoWishlist,
+  onGoArchive,
+}: Props) {
   // 로그인하면 계정에 저장된 기록(응모·관심·보관함·로드맵)이 복원되므로
   // 같은 대시보드라도 계정마다 다른 화면이 됩니다.
   const basis = user ? `${user.nickname}님 계정 기준` : '이 브라우저 기준'
@@ -250,21 +265,45 @@ function DashboardPage({ onOpenContest, user, onGoLogin, onOpenExplore, onGoInpu
           <p className="kpi-num">{contests.length}</p>
           <p className="kpi-sub">{soonestLabel}</p>
         </div>
-        <div className="kpi-card" data-reveal data-reveal-delay="90">
-          <p className="kpi-label">내 응모</p>
-          <p className="kpi-num">{activity.myContests}</p>
-          <p className="kpi-sub">{basis}</p>
-        </div>
-        <div className="kpi-card" data-reveal data-reveal-delay="180">
-          <p className="kpi-label">내 관심</p>
-          <p className="kpi-num">{activity.wishlist}</p>
-          <p className="kpi-sub">{basis}</p>
-        </div>
-        <div className="kpi-card" data-reveal data-reveal-delay="270">
-          <p className="kpi-label">보관한 아이디어</p>
-          <p className="kpi-num">{activity.savedIdeas}</p>
-          <p className="kpi-sub">{basis}</p>
-        </div>
+        {/* '내 응모'·'내 관심'·'보관한 아이디어' 카드는 마이페이지 해당 목록으로
+            연결되는 링크다(2026-10-15 사용자 요청). Reveal 래퍼가 카드의 등장
+            애니메이션을 지킨다 */}
+        <Reveal delay={90}>
+          <AppLink
+            className="kpi-card"
+            href="/mypage?section=applied"
+            title="마이페이지 '내가 응모한 공모전'으로 이동"
+            onNavigate={onGoMyContests}
+          >
+            <p className="kpi-label">내 응모</p>
+            <p className="kpi-num">{activity.myContests}</p>
+            <p className="kpi-sub">{basis}</p>
+          </AppLink>
+        </Reveal>
+        <Reveal delay={180}>
+          <AppLink
+            className="kpi-card"
+            href="/mypage?section=wishlist"
+            title="마이페이지 '관심 공모전'으로 이동"
+            onNavigate={onGoWishlist}
+          >
+            <p className="kpi-label">내 관심</p>
+            <p className="kpi-num">{activity.wishlist}</p>
+            <p className="kpi-sub">{basis}</p>
+          </AppLink>
+        </Reveal>
+        <Reveal delay={270}>
+          <AppLink
+            className="kpi-card"
+            href="/mypage?section=archive"
+            title="마이페이지 '보관한 아이디어'로 이동"
+            onNavigate={onGoArchive}
+          >
+            <p className="kpi-label">보관한 아이디어</p>
+            <p className="kpi-num">{activity.savedIdeas}</p>
+            <p className="kpi-sub">{basis}</p>
+          </AppLink>
+        </Reveal>
       </section>
 
       <section className="dash-panel" aria-label="마감 임박 공모전" data-reveal>

@@ -12,8 +12,8 @@ import { getContests, syncContests, type SyncedContest } from '../services/conte
 
 export const contestRouter = Router()
 
-contestRouter.get('/', (_req: Request, res: Response) => {
-  const contests: SyncedContest[] = getContests()
+contestRouter.get('/', async (_req: Request, res: Response) => {
+  const contests: SyncedContest[] = await getContests()
   res.json({ success: true, count: contests.length, contests })
 })
 

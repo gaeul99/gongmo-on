@@ -1,6 +1,7 @@
 .env
 node_modules
 dist
+backups
 
 # tsc가 vitest.config.mts를 컴파일하며 만드는 부산물
 vitest.config.js

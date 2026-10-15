@@ -3,25 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
-    "test": "vitest run",
-    "start": "node dist/server.js"
-  },
-  "dependencies": {
-    "cors": "^2.8.6",
-    "dotenv": "^18.0.4",
-    "express": "^5.2.1",
-    "nodemailer": "^10.0.13",
-    "openai": "^7.25.0"
-  },
-  "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/node": "^26.6.3",
-    "@types/nodemailer": "^8.0.2",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3",
-    "vitest": "^5.0.4"
+    "dev": ".venv\\Scripts\\python.exe -m app.main",
+    "setup": ".venv\\Scripts\\python.exe -m pip install -r requirements.txt",
+    "venv": "python -m venv .venv && .venv\\Scripts\\python.exe -m pip install --upgrade pip && npm run setup",
+    "test": ".venv\\Scripts\\python.exe -m pytest app\\tests -q",
+    "typecheck": ".venv\\Scripts\\python.exe -m compileall -q app",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:backup": "node scripts/backup-db.mjs"
   }
 }

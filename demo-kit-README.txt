@@ -11,17 +11,26 @@
    - 명령 프롬프트에서 "node -v" 입력 → v20 이상이면 OK (이 키트는 v24에서 제작)
    - 없으면 https://nodejs.org 에서 설치
 
-2. 서버 실행
-   - start-dev.cmd 더블클릭
-   - 콘솔 창 2개가 뜸: 백엔드(포트 3000) + 프론트엔드(포트 5173)
-   - 창을 닫으면 해당 서버가 종료됨
+2. Docker Desktop 설치·실행 (DB가 여기서 돕니다)
+   - "docker -v" 입력 → 버전이 나오면 설치된 것. 없으면 https://www.docker.com/products/docker-desktop/ 에서 설치(재부팅 필요할 수 있음)
+   - 시작 메뉴에서 Docker Desktop을 실행해 고래 아이콘이 뜰 때까지 기다리기
+   - start-dev.cmd도 Docker Desktop이 꺼져 있으면 자동으로 띄우려고 시도합니다
 
-3. 브라우저에서 http://localhost:5173 접속
+3. 서버 실행
+   - start-dev.cmd 더블클릭
+   - DB 컨테이너를 띄우고 콘솔 창 2개가 뜸: 백엔드(포트 3000) + 프론트엔드(포트 5173)
+   - 백엔드 창에 "Server running on http://localhost:3000"이 보이면 정상
+   - 창을 닫으면 해당 서버가 종료됨 (DB 컨테이너는 남음 — 완전히 끄려면
+     backend 폴더에서 docker compose down)
+
+4. 브라우저에서 http://localhost:5173 접속
 
 주의 사항
 ---------
 - 포트 3000·5173이 이미 사용 중이면 서버가 안 뜹니다. 기존 콘솔 창을 닫거나
   해당 포트를 쓰는 프로그램을 종료한 뒤 start-dev.cmd를 다시 실행하세요.
+- 백엔드가 "데이터베이스에 연결하지 못했습니다"라고 나오면 Docker Desktop이
+  아직 완전히 안 뜬 것입니다. 고래 아이콘을 확인하고 백엔드 창을 다시 실행하세요.
 - AI 분석 키(backend/.env의 OPENAI_API_KEY)는 2026-10-21 23:59에 만료됩니다.
   발표가 그 이후라면 원래 PC에서 키를 재발급해 backend\.env를 교체하고,
   이 키트를 다시 만들어야 합니다.
@@ -32,11 +41,12 @@
 
 포함된 데이터
 -------------
-- backend/src/data/accounts.json   — 계정 1건 (김가을, 발표 시연용)
-- backend/src/data/userdata.json   — 김가을의 찜·응모·아이디어·연습 노트
-- backend/src/data/sessions.json   — 로그인 세션 (재로그인 불필요할 수 있음)
-- backend/src/data/contests.json   — 자동 수집된 공모전 DB
-- backend/.env                     — AI·이메일 설정
+- backend/src/data/*.json          — 서버 데이터의 옛 백업(최초 실행 때 DB로 자동 이관)
+- backend/docker-compose.yml       — PostgreSQL 컨테이너 정의(데이터는 컨테이너 볼륨에 저장)
+- backend/.env                     — AI·이메일·DB 접속 설정
+- 계정·공모전 등 실제 데이터는 이 폴더 안 DB 컨테이너 볼륨에 들어갑니다.
+  키트 폴더를 통째로 복사해도 DB 볼륨은 따라가지 않으니, 옮긴 뒤 최초 1회
+  실행 때 JSON 백업이 자동으로 DB에 이관됩니다(계정·기록이 그대로 복원됨).
 
 시연 계정 (발표용으로 꾸며 둔 데이터)
 -------------------------------------
@@ -53,9 +63,9 @@
 
 시연 전 준비 (이 PC에서)
 ------------------------
-1. start-dev.cmd로 서버 2개 실행 (포트 3000·5173)
+1. start-dev.cmd로 DB 컨테이너 + 서버 2개 실행 (포트 3000·5173)
 2. 브라우저에서 http://localhost:5173 접속
-3. '김가을 / demo1234!'로 로그인 — 서버 데이터가 이 브라우저로 복원됨
+3. '김가을 / demo1234!'로 로그인 — 서버 DB 데이터가 이 브라우저로 복원됨
 4. 시연 브라우저를 새 창으로 쓰는 것을 권장 (기존 캐시 영향 없음)
    · 이 PC에서 공모온을 쓴 적이 있으면 localStorage에 옛 기록이 남아 복원
      데이터와 섞일 수 있음 → 발표 전 개발자 도구(F12) > Application >

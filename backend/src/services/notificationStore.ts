@@ -1,10 +1,9 @@
 // ==========================================================
-// 알림 구독자·발송 기록 저장소
-// DB가 없는 데모 프로젝트라 backend/data/ 아래 JSON 파일로 보관합니다.
+// 알림 구독자·발송 기록 저장소 — PostgreSQL(gongmo-on-db 컨테이너).
 // ==========================================================
 
-import fs from 'fs'
-import path from 'path'
+import crypto from 'crypto'
+import { getPool } from '../db/pool'
 
 export type SubscriberContest = {
   id: number
@@ -35,88 +34,104 @@ export type OutboxEntry = {
   via: string
 }
 
-const DATA_DIR = path.resolve(__dirname, '..', 'data')
-const SUBSCRIBERS_FILE = path.join(DATA_DIR, 'subscribers.json')
-const OUTBOX_FILE = path.join(DATA_DIR, 'outbox.json')
 const MAX_OUTBOX = 200
 
-function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true })
+type SubscriberRow = {
+  nickname: string
+  email: string
+  idea_categories: string[]
+  contests: SubscriberContest[]
+  opt_in: boolean
+  sent_keys: string[]
+  updated_at: Date
+}
+
+function toSubscriber(row: SubscriberRow): Subscriber {
+  return {
+    nickname: row.nickname,
+    email: row.email,
+    ideaCategories: row.idea_categories ?? [],
+    contests: row.contests ?? [],
+    optIn: row.opt_in,
+    sentKeys: row.sent_keys ?? [],
+    updatedAt: row.updated_at.toISOString(),
   }
 }
 
-function readJson<T>(file: string, fallback: T): T {
-  let raw: string
-  try {
-    raw = fs.readFileSync(file, 'utf-8')
-  } catch {
-    // 파일이 아직 없는 초기 상태뿐이다 — fallback이 정답.
-    return fallback
-  }
-  try {
-    return JSON.parse(raw) as T
-  } catch (error) {
-    if (raw.trim() === '') return fallback
-    // 손상 파일을 빈 값으로 대신 읽으면 이후 저장이 전체를 덮어쓴다.
-    // 원본을 보관하고 실패로 멈춘다(userStore.ts와 같은 정책).
-    const quarantine = `${file}.corrupt-${Date.now()}`
-    try {
-      fs.copyFileSync(file, quarantine)
-      console.error(
-        `[notificationStore] 데이터 파일 손상: ${file} — 원본을 ${quarantine}에 보관했습니다.`,
-        error,
-      )
-    } catch {
-      console.error(`[notificationStore] 데이터 파일 손상: ${file} — 보관 실패, 원본은 그대로 있습니다.`, error)
-    }
-    throw new Error(`Corrupted data file: ${file}`)
-  }
+export async function listSubscribers(): Promise<Subscriber[]> {
+  const result = await getPool().query<SubscriberRow>(
+    `SELECT nickname, email, idea_categories, contests, opt_in, sent_keys, updated_at
+     FROM subscribers ORDER BY updated_at ASC`,
+  )
+  return result.rows.map(toSubscriber)
 }
 
-function writeJson(file: string, value: unknown) {
-  ensureDataDir()
-  // temp에 쓰고 rename으로 갈아끼운다 — 쓰다가 죽어도 기존 파일은 온전하다.
-  const tmp = `${file}.tmp`
-  fs.writeFileSync(tmp, JSON.stringify(value, null, 2), 'utf-8')
-  fs.renameSync(tmp, file)
+export async function upsertSubscriber(
+  input: Omit<Subscriber, 'sentKeys' | 'updatedAt'>,
+): Promise<Subscriber> {
+  // 이미 보낸 알림 기록(sent_keys)은 구독 정보를 갱신해도 유지한다.
+  const result = await getPool().query<SubscriberRow>(
+    `INSERT INTO subscribers (nickname, email, idea_categories, contests, opt_in, sent_keys)
+     VALUES ($1, $2, $3, $4, $5, '[]'::jsonb)
+     ON CONFLICT (nickname) DO UPDATE SET
+       email = EXCLUDED.email,
+       idea_categories = EXCLUDED.idea_categories,
+       contests = EXCLUDED.contests,
+       opt_in = EXCLUDED.opt_in,
+       updated_at = now()
+     RETURNING nickname, email, idea_categories, contests, opt_in, sent_keys, updated_at`,
+    [
+      input.nickname,
+      input.email ?? '',
+      JSON.stringify(input.ideaCategories ?? []),
+      JSON.stringify(input.contests ?? []),
+      input.optIn,
+    ],
+  )
+  return toSubscriber(result.rows[0]!)
 }
 
-export function listSubscribers(): Subscriber[] {
-  return readJson<Subscriber[]>(SUBSCRIBERS_FILE, [])
+export async function saveSubscriber(next: Subscriber): Promise<void> {
+  await getPool().query(
+    `INSERT INTO subscribers (nickname, email, idea_categories, contests, opt_in, sent_keys)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     ON CONFLICT (nickname) DO UPDATE SET
+       email = EXCLUDED.email,
+       idea_categories = EXCLUDED.idea_categories,
+       contests = EXCLUDED.contests,
+       opt_in = EXCLUDED.opt_in,
+       sent_keys = EXCLUDED.sent_keys,
+       updated_at = now()`,
+    [
+      next.nickname,
+      next.email ?? '',
+      JSON.stringify(next.ideaCategories ?? []),
+      JSON.stringify(next.contests ?? []),
+      next.optIn,
+      JSON.stringify(next.sentKeys ?? []),
+    ],
+  )
 }
 
-export function upsertSubscriber(input: Omit<Subscriber, 'sentKeys' | 'updatedAt'>): Subscriber {
-  const subscribers = listSubscribers()
-  const existing = subscribers.find((item) => item.nickname === input.nickname)
-  const next: Subscriber = {
-    ...input,
-    sentKeys: existing?.sentKeys ?? [],
-    updatedAt: new Date().toISOString(),
-  }
-  const updated = existing
-    ? subscribers.map((item) => (item.nickname === input.nickname ? next : item))
-    : [...subscribers, next]
-  writeJson(SUBSCRIBERS_FILE, updated)
-  return next
-}
-
-export function saveSubscriber(next: Subscriber) {
-  const subscribers = listSubscribers()
-  const updated = subscribers.some((item) => item.nickname === next.nickname)
-    ? subscribers.map((item) => (item.nickname === next.nickname ? next : item))
-    : [...subscribers, next]
-  writeJson(SUBSCRIBERS_FILE, updated)
-}
-
-export function appendOutbox(entry: Omit<OutboxEntry, 'id' | 'at'>): OutboxEntry {
-  const outbox = readJson<OutboxEntry[]>(OUTBOX_FILE, [])
+export async function appendOutbox(
+  entry: Omit<OutboxEntry, 'id' | 'at'>,
+): Promise<OutboxEntry> {
   const record: OutboxEntry = {
     ...entry,
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: `${Date.now()}-${crypto.randomBytes(4).toString('hex')}`,
     at: new Date().toISOString(),
   }
-  const next = [...outbox, record].slice(-MAX_OUTBOX)
-  writeJson(OUTBOX_FILE, next)
+  const pool = getPool()
+  await pool.query(
+    `INSERT INTO outbox (id, at, channel, to_addr, subject, body, via)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [record.id, record.at, record.channel, record.to, record.subject ?? null, record.text, record.via],
+  )
+  // 아웃박스는 최근 200건만 유지해 테이블이 커지지 않게 합니다.
+  await pool.query(
+    `DELETE FROM outbox WHERE id NOT IN (
+       SELECT id FROM outbox ORDER BY at DESC, id DESC LIMIT ${MAX_OUTBOX}
+     )`,
+  )
   return record
 }

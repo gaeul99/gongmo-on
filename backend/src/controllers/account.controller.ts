@@ -1,20 +1,18 @@
 // ==========================================================
 // 회원가입·로그인·로그아웃 컨트롤러 — 검증과 에러 매핑을 담당합니다.
-// 계정은 userStore(backend/data/accounts.json)에, 비밀번호는
+// 계정은 userStore(PostgreSQL accounts 테이블)에, 비밀번호는
 // salt+scrypt 해시로만 저장합니다.
 // ==========================================================
 
 import type { Request, Response } from "express";
 import {
   createSession,
-  deleteAccount,
   deleteSession,
   findAccount,
   getSessionUser,
   hashPassword,
   makeSalt,
-  renameSessions,
-  renameUserdata,
+  renameAccountProfile,
   saveAccount,
   verifyPassword,
   type Account,
@@ -52,7 +50,7 @@ function readString(value: unknown): string {
   return normaliseText(value);
 }
 
-export function postSignUp(req: Request, res: Response) {
+export async function postSignUp(req: Request, res: Response) {
   const body = (req.body ?? {}) as SignupBody;
   const nickname = readString(body.nickname);
   const password = typeof body.password === "string" ? body.password : "";
@@ -89,7 +87,7 @@ export function postSignUp(req: Request, res: Response) {
     );
     return;
   }
-  if (findAccount(nickname)) {
+  if (await findAccount(nickname)) {
     sendError(
       res,
       409,
@@ -108,19 +106,19 @@ export function postSignUp(req: Request, res: Response) {
     phone: phoneDigits || undefined,
     createdAt: new Date().toISOString(),
   };
-  saveAccount(account);
-  const token = createSession(nickname);
+  await saveAccount(account);
+  const token = await createSession(nickname);
   res.json({ success: true, data: { user: publicUser(account), token } });
 }
 
-export function postSignIn(req: Request, res: Response) {
+export async function postSignIn(req: Request, res: Response) {
   const body = (req.body ?? {}) as SignupBody;
   const nickname = readString(body.nickname);
   const password = typeof body.password === "string" ? body.password : "";
 
   // 미가입 아이디와 비밀번호 불일치를 같은 응답으로 묶는다 — 응답 차이로
   // 아이디 존재 여부를 탐지(계정 열거)할 수 없게 하기 위해서입니다.
-  const account = findAccount(nickname);
+  const account = await findAccount(nickname);
   if (!account || !verifyPassword(account, password)) {
     sendError(
       res,
@@ -131,13 +129,13 @@ export function postSignIn(req: Request, res: Response) {
     return;
   }
 
-  const token = createSession(nickname);
+  const token = await createSession(nickname);
   res.json({ success: true, data: { user: publicUser(account), token } });
 }
 
-export function postLogout(req: Request, res: Response) {
+export async function postLogout(req: Request, res: Response) {
   const token = getBearerToken(req);
-  if (token) deleteSession(token);
+  if (token) await deleteSession(token);
   res.json({ success: true });
 }
 
@@ -153,14 +151,14 @@ type ProfileBody = {
 // 회원정보 수정 — 현재 비밀번호 확인 후 아이디(표시 이름)·이메일·휴대폰을 바꿉니다.
 // 아이디는 로그인 ID이자 저장소 키라, 바꾸면 세션과 사용자 데이터 백업도
 // 함께 옮겨 로그인 상태와 내역이 그대로 유지됩니다.
-export function putProfile(req: Request, res: Response) {
+export async function putProfile(req: Request, res: Response) {
   const token = getBearerToken(req);
-  const current = token ? getSessionUser(token) : undefined;
+  const current = token ? await getSessionUser(token) : undefined;
   if (!current) {
     sendError(res, 401, "UNAUTHORIZED", "로그인 후 이용해 주세요.");
     return;
   }
-  const account = findAccount(current);
+  const account = await findAccount(current);
   if (!account) {
     sendError(
       res,
@@ -209,7 +207,7 @@ export function putProfile(req: Request, res: Response) {
     );
     return;
   }
-  if (nextNickname !== account.nickname && findAccount(nextNickname)) {
+  if (nextNickname !== account.nickname && (await findAccount(nextNickname))) {
     sendError(
       res,
       409,
@@ -226,15 +224,12 @@ export function putProfile(req: Request, res: Response) {
     phone: phoneDigits || undefined,
   };
   if (nextNickname !== account.nickname) {
-    // 아이디 변경은 3개 파일에 걸친 다단계 쓰기다. 중간에 죽어도 계정·세션이
-    // 남아 있도록 기존 계정 삭제를 마지막으로 미룬다 — 최악의 경우 두 아이디가
-    // 잠시 공존하지만(재시도로 정리 가능), 계정이 통째로 사라지는 일은 없다.
-    saveAccount(updated);
-    renameUserdata(account.nickname, nextNickname);
-    renameSessions(account.nickname, nextNickname);
-    deleteAccount(account.nickname);
+    // 아이디는 로그인 ID이자 저장소 키라, 바꾸면 계정·세션·사용자 데이터를
+    // 한 트랜잭션으로 새 아이디에 옮긴다 — 중간에 실패해도 전부 원래대로 돌아와
+    // 로그인 상태와 내역이 그대로 유지됩니다.
+    await renameAccountProfile(account.nickname, updated);
   } else {
-    saveAccount(updated);
+    await saveAccount(updated);
   }
   res.json({ success: true, data: { user: publicUser(updated) } });
 }

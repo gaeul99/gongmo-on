@@ -95,8 +95,16 @@ function HomePage({
         </div>
       </section>
 
-      {/* 서비스 바로가기 탭은 메뉴바로 흡수됐다(2026-10-13) — 히어로 다음은
-          '이렇게 도와드립니다'(2026-10-14 사용자 요청으로 마키 앞으로 옮김) */}
+      {/* 히어로 바로 다음은 '접수 중인 공모전' 마키 — 2026-10-15 사용자 요청으로
+          기능 소개(.features) 앞으로 순서를 바꿨다. 히어로와 같은 흰 캔버스 위에
+          마키 카드(흰)가 뜬다 */}
+      <Reveal className="reveal--block home-marquee-band">
+        <ContestMarquee onOpenContest={onOpenContest} />
+      </Reveal>
+
+      {/* 서비스 바로가기 탭은 메뉴바로 흡수됐다(2026-10-13) — 마키 다음은
+          '이렇게 도와드립니다'(2026-10-14에 마키 앞으로 옮겼다가 2026-10-15
+          사용자 요청으로 마키 뒤로 되돌림) */}
       {/* 섹션 제목('이렇게 도와드립니다')은 2026-10-14 사용자 요청 '글자 지워주고'로
           빼고 aria-label로만 남겼다 — 강점 섹션(.strengths)과 같은 처리다 */}
       <section className="features" aria-label="이렇게 도와드립니다">
@@ -140,11 +148,8 @@ function HomePage({
         </div>
       </section>
 
-      {/* 기능 소개(흰) 다음은 '접수 중인 공모전' 마키 — 같은 흰 밴드로 이어진다 */}
-      <Reveal className="reveal--block home-marquee-band">
-        <ContestMarquee onOpenContest={onOpenContest} />
-      </Reveal>
-
+      {/* 기능 소개 다음은 '곧 마감'·'곧 시작' 두 패널 — '접수 중인 공모전' 마키는
+          2026-10-15 사용자 요청으로 히어로 다음으로 옮겨 갔다 */}
       <Reveal className="reveal--block">
         <div className="home-deadlines">
           <HeroDeadlines onOpenExplore={onExplore} onOpenContest={onOpenContest} />

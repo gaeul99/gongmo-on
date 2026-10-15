@@ -1,0 +1,22 @@
+# 공모온 백엔드 DB — PostgreSQL 17 (backend 폴더에서 `docker compose up -d`로 실행)
+# 데이터는 이름 붙은 볼륨(gongmo_on_pgdata)에 저장되므로 컨테이너를 내려도 남습니다.
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: gongmo-on-db
+    environment:
+      POSTGRES_USER: gongmo
+      POSTGRES_PASSWORD: gongmo
+      POSTGRES_DB: gongmo_on
+    ports:
+      - "5432:5432"
+    volumes:
+      - gongmo_on_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gongmo -d gongmo_on"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  gongmo_on_pgdata:

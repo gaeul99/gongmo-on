@@ -39,7 +39,7 @@ export async function sendEmail(to: string, subject: string, text: string): Prom
     }
   }
 
-  appendOutbox({ channel: 'email', to, subject, text, via })
+  await appendOutbox({ channel: 'email', to, subject, text, via })
   if (via === 'log') {
     console.log(`[알림·로그 모드] 이메일 → ${to} | ${subject}\n${text}`)
   }

@@ -60,14 +60,14 @@ async function notifySubscriber(subscriber: Subscriber, now = new Date()): Promi
     sentCount += 1
   }
 
-  // sentKeys는 최근 200개만 유지해 파일이 커지지 않게 합니다.
+  // sentKeys는 최근 200개만 유지해 테이블이 커지지 않게 합니다.
   subscriber.sentKeys = [...seen].slice(-200)
-  saveSubscriber(subscriber)
+  await saveSubscriber(subscriber)
   return sentCount
 }
 
 export async function runDeadlineCheck(now = new Date()): Promise<number> {
-  const subscribers = listSubscribers()
+  const subscribers = await listSubscribers()
   let total = 0
   for (const subscriber of subscribers) {
     total += await notifySubscriber(subscriber, now)

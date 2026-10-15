@@ -1,14 +1,13 @@
 // ==========================================================
 // 공모전 자동 등록(스크래핑 동기화)
 // 위비티(wevity.com)와 콘테스트코리아(contestkorea.com)의 접수 중·접수 예정
-// 공모전 목록을 주기적으로 읽어 backend/data/contests.json에 등록한다.
+// 공모전 목록을 주기적으로 읽어 PostgreSQL DB(contests 테이블)에 등록한다.
 // 수동으로 정제한 목업 데이터(frontend mockData.js)는 프론트엔드 폴백이며,
 // 이 서버는 그 외의 공모전을 자동으로 수집해 /api/contests로 내려준다.
 // robots.txt가 Allow:/ 인 공개 목록 페이지만 읽고, 요청 사이에 지연을 둔다.
 // ==========================================================
 
-import fs from 'fs'
-import path from 'path'
+import { getPool } from '../db/pool'
 
 export type SyncedContest = {
   id: number
@@ -84,9 +83,6 @@ export type DetailInfo = {
   category?: string | undefined
 }
 
-const DATA_DIR = path.resolve(__dirname, '..', 'data')
-const CONTESTS_FILE = path.join(DATA_DIR, 'contests.json')
-
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) GongmoOnContestSync/1.0'
 const REQUEST_DELAY_MS = 400
@@ -156,28 +152,123 @@ function mapField(source: Candidate['source'], category: string, bcode?: string)
   return category ? `기타 (${category.replace(/\//g, '·')})` : '기타'
 }
 
-// ---------- 상태 파일 ----------
-function readState(): ContestSyncState {
-  let parsed: Partial<ContestSyncState>
-  try {
-    const raw = fs.readFileSync(CONTESTS_FILE, 'utf-8')
-    parsed = JSON.parse(raw) as Partial<ContestSyncState>
-  } catch {
-    // 파일이 없거나 손상됐으면 빈 상태에서 다시 수집한다.
-    return { nextId: 1000, registry: {}, contests: [] }
+// ---------- DB 상태 ----------
+// contests.json 한 덩어리였던 상태를 두 테이블로 나눠 저장한다.
+//  - contests      : 공모전 본체(행 단위)
+//  - sync_state(1행): id 발급기(next_id)·소스 등록부(registry)·마지막 동기화 시각
+
+type ContestRow = {
+  id: number
+  source: string
+  source_id: string
+  title: string
+  organizer: string
+  field: string
+  start_date: string | null
+  deadline: string
+  eligibility: string
+  age_groups: SyncedContest['ageGroups']
+  image: string
+  url: string
+  description: string
+  apply_steps: SyncedContest['applySteps']
+}
+
+function toContest(row: ContestRow): SyncedContest {
+  return {
+    id: row.id,
+    source: row.source === 'wevity' ? 'wevity' : 'contestkorea',
+    sourceId: row.source_id,
+    title: row.title,
+    organizer: row.organizer,
+    field: row.field,
+    ...(row.start_date ? { startDate: row.start_date } : {}),
+    deadline: row.deadline,
+    eligibility: row.eligibility,
+    ageGroups: row.age_groups ?? [],
+    image: row.image,
+    url: row.url,
+    description: row.description,
+    applySteps: row.apply_steps ?? [],
   }
+}
+
+const CONTEST_COLUMNS =
+  'id, source, source_id, title, organizer, field, start_date, deadline, eligibility, age_groups, image, url, description, apply_steps'
+
+async function loadState(): Promise<ContestSyncState> {
+  const pool = getPool()
+  const [stateResult, contestResult] = await Promise.all([
+    pool.query<{ next_id: number; registry: ContestSyncState['registry']; last_sync: Date | null }>(
+      'SELECT next_id, registry, last_sync FROM sync_state WHERE id = 1',
+    ),
+    pool.query<ContestRow>(`SELECT ${CONTEST_COLUMNS} FROM contests ORDER BY id ASC`),
+  ])
+  const row = stateResult.rows[0]
   const state: ContestSyncState = {
-    nextId: Number(parsed.nextId) > 0 ? Number(parsed.nextId) : 1000,
-    registry: parsed.registry ?? {},
-    contests: Array.isArray(parsed.contests) ? parsed.contests : [],
+    nextId: Number(row?.next_id) > 0 ? Number(row?.next_id) : 1000,
+    registry: row?.registry ?? {},
+    contests: contestResult.rows.map(toContest),
   }
-  if (typeof parsed.lastSync === 'string') state.lastSync = parsed.lastSync
+  const lastSync = row?.last_sync
+  if (lastSync) state.lastSync = new Date(lastSync).toISOString()
   return state
 }
 
-function writeState(state: ContestSyncState) {
-  fs.mkdirSync(DATA_DIR, { recursive: true })
-  fs.writeFileSync(CONTESTS_FILE, `${JSON.stringify(state, null, 2)}\n`, 'utf-8')
+// 동기화 결과를 DB에 반영한다. 사라진 항목(마감 정리)은 삭제하고, 새 항목은
+// 넣는다 — 기존 항목은 절대 고치지 않는다는 동기화 규칙을 그대로 유지한다.
+async function persistState(state: ContestSyncState): Promise<void> {
+  const pool = getPool()
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+    const keepIds = state.contests.map((contest) => contest.id)
+    if (keepIds.length === 0) {
+      await client.query('DELETE FROM contests')
+    } else {
+      await client.query('DELETE FROM contests WHERE NOT (id = ANY($1::int[]))', [keepIds])
+    }
+    for (const contest of state.contests) {
+      await client.query(
+        `INSERT INTO contests
+           (id, source, source_id, title, organizer, field, start_date, deadline,
+            eligibility, age_groups, image, url, description, apply_steps)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+         ON CONFLICT DO NOTHING`,
+        [
+          contest.id,
+          contest.source,
+          contest.sourceId,
+          contest.title,
+          contest.organizer,
+          contest.field,
+          contest.startDate ?? null,
+          contest.deadline,
+          contest.eligibility,
+          JSON.stringify(contest.ageGroups),
+          contest.image,
+          contest.url,
+          contest.description,
+          JSON.stringify(contest.applySteps),
+        ],
+      )
+    }
+    await client.query(
+      `INSERT INTO sync_state (id, next_id, registry, last_sync)
+       VALUES (1, $1, $2, $3)
+       ON CONFLICT (id) DO UPDATE SET
+         next_id = EXCLUDED.next_id,
+         registry = EXCLUDED.registry,
+         last_sync = EXCLUDED.last_sync`,
+      [state.nextId, JSON.stringify(state.registry), state.lastSync ?? null],
+    )
+    await client.query('COMMIT')
+  } catch (error) {
+    await client.query('ROLLBACK')
+    throw error
+  } finally {
+    client.release()
+  }
 }
 
 // ---------- HTTP ----------
@@ -641,21 +732,25 @@ export async function collectWevity(): Promise<Candidate[]> {
 // ---------- 동기화 본체 ----------
 let syncInFlight: Promise<SyncSummary> | null = null
 
-export function syncContests(options: { force?: boolean } = {}): Promise<SyncSummary> {
+export async function syncContests(options: { force?: boolean } = {}): Promise<SyncSummary> {
   if (syncInFlight) return syncInFlight
-  const state = readState()
-  if (!options.force && state.lastSync) {
-    const elapsed = Date.now() - new Date(state.lastSync).getTime()
+  // 재시작 직후 중복 실행 방지 — DB의 마지막 동기화 시각만 가볍게 읽는다.
+  const gate = await getPool().query<{ last_sync: Date; total: string }>(
+    `SELECT last_sync, (SELECT count(*)::text FROM contests) AS total FROM sync_state WHERE id = 1`,
+  )
+  const lastSync = gate.rows[0]?.last_sync
+  if (!options.force && lastSync) {
+    const elapsed = Date.now() - lastSync.getTime()
     if (Number.isFinite(elapsed) && elapsed < SYNC_MIN_GAP_MS) {
       const summary: SyncSummary = {
         added: 0,
         refreshed: 0,
         pruned: 0,
         skippedDetailFail: 0,
-        total: state.contests.length,
+        total: Number(gate.rows[0]?.total ?? '0'),
       }
-      summary.lastSync = state.lastSync
-      return Promise.resolve(summary)
+      summary.lastSync = lastSync.toISOString()
+      return summary
     }
   }
   syncInFlight = runSync().finally(() => {
@@ -665,7 +760,7 @@ export function syncContests(options: { force?: boolean } = {}): Promise<SyncSum
 }
 
 async function runSync(): Promise<SyncSummary> {
-  const state = readState()
+  const state = await loadState()
   const [ckItems, wevityItems] = await Promise.all([
     collectContestKorea(),
     collectWevity().catch((error) => {
@@ -740,7 +835,7 @@ async function runSync(): Promise<SyncSummary> {
   }
   state.contests = kept
   state.lastSync = new Date().toISOString()
-  writeState(state)
+  await persistState(state)
 
   const summary: SyncSummary = {
     added,
@@ -755,8 +850,11 @@ async function runSync(): Promise<SyncSummary> {
 }
 
 // ---------- 조회·스케줄러 ----------
-export function getContests(): SyncedContest[] {
-  return readState().contests
+export async function getContests(): Promise<SyncedContest[]> {
+  const result = await getPool().query<ContestRow>(
+    `SELECT ${CONTEST_COLUMNS} FROM contests ORDER BY id ASC`,
+  )
+  return result.rows.map(toContest)
 }
 
 let schedulerStarted = false

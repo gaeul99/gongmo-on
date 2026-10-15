@@ -28,7 +28,11 @@
 }
 
 .marquee-window {
-  overflow: hidden;
+  /* 가로만 잘라낸다(clip) — 세로는 visible로 둬서 카드 뒤 그림자가 창 아래로도
+     온전히 그려지게 한다(2026-10-15 사용자 요청 '슬라이드 밑에 그림자가 잘리지
+     않게'). overflow: hidden이던 시절에는 아래 패딩 4px에서 그림자가 잘렸다 */
+  overflow-x: clip;
+  overflow-y: visible;
   /* 카드 hover 시 위로 살짝 뜨는 만큼 위쪽 여백을 넉넉히 */
   padding-block: 6px 4px;
   mask-image: linear-gradient(to right, transparent, #333 7%, #333 93%, transparent);
@@ -97,9 +101,16 @@
    스크롤바 숨김은 기본 .marquee-window 규칙이 담당한다 */
 .marquee-window.manual {
   overflow-x: auto;
+  /* 스크롤 컨테이너가 되면 세로는 잘리는 박스로 바뀌어 기본 규칙의 visible이
+     유지되지 않는다 — 그림자 높이(위 약 20px·아래 약 44px)만큼 창 안에 여백을
+     벌려 두고 마진을 음수로 되돌려, 자동 흐름 모드와 카드 위치·아래 간격이
+     같게 유지한다(2026-10-15 그림자 잘림 수정) */
+  overflow-y: clip;
   scroll-snap-type: x mandatory;
   /* 가로 스와이프가 브라우저 '뒤로 가기' 제스처로 새어 나가지 않게 */
   overscroll-behavior-x: contain;
+  padding-block: 24px 48px;
+  margin-block: -20px -44px;
 }
 
 .marquee-track.manual {
@@ -250,9 +261,14 @@
   }
 
   .marquee-window {
+    /* 수동 모드와 같은 이유로 — 스크롤 컨테이너 안에서 그림자가 잘리지 않게
+       세로 여백을 벌리고 마진으로 되돌린다 */
     overflow-x: auto;
+    overflow-y: clip;
     scroll-snap-type: x mandatory;
     overscroll-behavior-x: contain;
+    padding-block: 24px 48px;
+    margin-block: -20px -44px;
     mask-image: none;
     -webkit-mask-image: none;
   }

@@ -563,8 +563,11 @@ export const CONTEST_TYPES = {
 }
 
 // answers: 질문 순서대로 고른 선택지 번호(0부터) 배열. 부분 응답이어도 계산됩니다.
-// percentage는 결과 유형의 성향 일치율(%) — 한 문항에서 한 유형이 받을 수 있는 최대 2점,
-// 즉 전체 문항수 × 2점을 100% 기준으로 환산한 값입니다.
+// percentage와 distribution.percent는 성향 일치율(%) — 각 유형이 받은 점수를
+// 답한 문항의 만점(문항당 최대 2점) 기준으로 환산한 값입니다. 한 유형이 응답한
+// 모든 문항에서 2점을 받으면 100%가 됩니다. 유형 간에 100%를 나눠 가지는 값이
+// 아니므로 7개 유형 비율의 합은 100%가 아닙니다. 답한 문항이 없으면 모든 비율은
+// 0%입니다.
 // 동점 처리는 '강한 신호(2점 선택) 개수'로 가릅니다 — 점수만 같아도 확신 있게 고른
 // 유형이 더 정확한 결과이기 때문입니다. 그래도 같으면 기존처럼 유형 정의 순서를 따릅니다.
 export function calculateContestType(answers) {
@@ -574,18 +577,22 @@ export function calculateContestType(answers) {
   }, {})
   const scores = { ...initial }
   const strongPicks = { ...initial }
+  let answeredCount = 0
 
   answers.forEach((answerIndex, questionIndex) => {
     const option = TYPE_TEST_QUESTIONS[questionIndex]?.options[answerIndex]
     if (!option) return
+    answeredCount += 1
     Object.entries(option.scores).forEach(([id, score]) => {
       scores[id] += score
       if (score >= 2) strongPicks[id] += 1
     })
   })
 
-  const maxScore = TYPE_TEST_QUESTIONS.length * 2
-  const percentOf = (score) => Math.round((score / maxScore) * 100)
+  // 일치율의 만점은 '답한 문항 수 × 문항당 최대 2점' — 유형별 점수를 서로 나누지 않고
+  // 각 유형이 만점에 얼마나 가까운지를 나타낸다.
+  const maxScore = answeredCount * 2
+  const percentOf = (score) => (maxScore > 0 ? Math.round((score / maxScore) * 100) : 0)
   const sorted = Object.entries(scores).sort(([idA, scoreA], [idB, scoreB]) => {
     if (scoreB !== scoreA) return scoreB - scoreA
     return strongPicks[idB] - strongPicks[idA]

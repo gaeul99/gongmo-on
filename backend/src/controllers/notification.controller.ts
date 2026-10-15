@@ -42,7 +42,7 @@ export async function postSubscribe(req: Request, res: Response) {
     return
   }
 
-  const subscriber = upsertSubscriber({
+  const subscriber = await upsertSubscriber({
     nickname,
     email,
     ideaCategories: parseCategories(req.body?.ideaCategories),

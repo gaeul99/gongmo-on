@@ -1,13 +1,11 @@
 // ==========================================================
-// 계정·세션·사용자 데이터 저장소
-// DB가 없는 데모 프로젝트라 notificationStore.ts처럼 backend/data/
-// 아래 JSON 파일로 보관합니다. 브라우저를 정리해도 서버의 이 파일에
-// 계정과 내역이 남아, 다시 로그인하면 복원됩니다.
+// 계정·세션·사용자 데이터 저장소 — PostgreSQL(gongmo-on-db 컨테이너).
+// 스키마는 db/schema.ts가 관리하고, 브라우저를 정리해도 서버 DB에
+// 계정과 내역이 남아 다시 로그인하면 복원됩니다.
 // ==========================================================
 
 import crypto from "crypto";
-import fs from "fs";
-import path from "path";
+import { getPool } from "../db/pool";
 
 export type Account = {
   nickname: string;
@@ -35,58 +33,8 @@ export type UserDataRecord = {
   updatedAt: string;
 };
 
-const DATA_DIR = path.resolve(__dirname, "..", "data");
-const ACCOUNTS_FILE = path.join(DATA_DIR, "accounts.json");
-const USERDATA_FILE = path.join(DATA_DIR, "userdata.json");
-const SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
 const SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30; // 30일
 const SESSION_MAX_PER_USER = 5;
-
-function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-}
-
-function readJson<T>(file: string, fallback: T): T {
-  let raw: string;
-  try {
-    raw = fs.readFileSync(file, "utf-8");
-  } catch {
-    // 파일이 아직 없는 초기 상태뿐이다 — fallback이 정답.
-    return fallback;
-  }
-  try {
-    return JSON.parse(raw) as T;
-  } catch (error) {
-    if (raw.trim() === "") return fallback;
-    // 내용이 있는데 JSON이 아니면 파일 손상. 조용히 fallback을 반환하면 이후
-    // 저장이 빈 값 기반으로 파일 전체를 다시 써 계정·데이터가 소실된다.
-    // 원본을 보관해 두고 실패로 멈춘다(해당 API는 500).
-    const quarantine = `${file}.corrupt-${Date.now()}`;
-    try {
-      fs.copyFileSync(file, quarantine);
-      console.error(
-        `[userStore] 데이터 파일 손상: ${file} — 원본을 ${quarantine}에 보관했습니다. 복구 전까지 관련 기능은 실패합니다.`,
-        error,
-      );
-    } catch {
-      console.error(
-        `[userStore] 데이터 파일 손상: ${file} — 보관 실패, 원본은 그대로 있습니다.`,
-        error,
-      );
-    }
-    throw new Error(`Corrupted data file: ${file}`);
-  }
-}
-
-function writeJson(file: string, value: unknown) {
-  ensureDataDir();
-  // temp에 쓰고 rename으로 갈아끼운다 — 쓰다가 죽어도 기존 파일은 온전하다.
-  const tmp = `${file}.tmp`;
-  fs.writeFileSync(tmp, JSON.stringify(value, null, 2), "utf-8");
-  fs.renameSync(tmp, file);
-}
 
 // ---------- 비밀번호 해시 (salt + scrypt, 평문 저장 없음) ----------
 
@@ -105,113 +53,162 @@ export function verifyPassword(account: Account, password: string): boolean {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
+// ---------- 행 → 타입 변환 ----------
+
+type AccountRow = {
+  nickname: string;
+  salt: string;
+  password_hash: string;
+  email: string;
+  phone: string | null;
+  created_at: Date;
+};
+
+function toAccount(row: AccountRow): Account {
+  return {
+    nickname: row.nickname,
+    salt: row.salt,
+    passwordHash: row.password_hash,
+    email: row.email,
+    ...(row.phone ? { phone: row.phone } : {}),
+    createdAt: row.created_at.toISOString(),
+  };
+}
+
 // ---------- 계정 ----------
 
-export function listAccounts(): Account[] {
-  return readJson<Account[]>(ACCOUNTS_FILE, []);
+export async function findAccount(nickname: string): Promise<Account | undefined> {
+  const result = await getPool().query<AccountRow>(
+    "SELECT nickname, salt, password_hash, email, phone, created_at FROM accounts WHERE nickname = $1",
+    [nickname],
+  );
+  const row = result.rows[0];
+  return row ? toAccount(row) : undefined;
 }
 
-export function findAccount(nickname: string): Account | undefined {
-  return listAccounts().find((item) => item.nickname === nickname);
-}
-
-export function saveAccount(account: Account) {
-  const accounts = listAccounts();
-  const updated = accounts.some((item) => item.nickname === account.nickname)
-    ? accounts.map((item) =>
-        item.nickname === account.nickname ? account : item,
-      )
-    : [...accounts, account];
-  writeJson(ACCOUNTS_FILE, updated);
-}
-
-export function deleteAccount(nickname: string) {
-  writeJson(
-    ACCOUNTS_FILE,
-    listAccounts().filter((item) => item.nickname !== nickname),
+export async function saveAccount(account: Account): Promise<void> {
+  await getPool().query(
+    `INSERT INTO accounts (nickname, salt, password_hash, email, phone, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     ON CONFLICT (nickname) DO UPDATE SET
+       salt = EXCLUDED.salt,
+       password_hash = EXCLUDED.password_hash,
+       email = EXCLUDED.email,
+       phone = EXCLUDED.phone,
+       created_at = EXCLUDED.created_at`,
+    [
+      account.nickname,
+      account.salt,
+      account.passwordHash,
+      account.email,
+      account.phone ?? null,
+      account.createdAt,
+    ],
   );
 }
 
 // ---------- 세션 ----------
 
-function readSessions(): Record<
-  string,
-  { nickname: string; createdAt: string }
-> {
-  return readJson(SESSIONS_FILE, {});
-}
-
-export function listSessionsForUser(nickname: string): string[] {
-  const sessions = readSessions();
-  return Object.entries(sessions)
-    .filter(([, session]) => session.nickname === nickname)
-    .sort(
-      ([, a], [, b]) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-    )
-    .map(([token]) => token);
-}
-
-export function createSession(nickname: string): string {
+export async function createSession(nickname: string): Promise<string> {
   const token = crypto.randomBytes(32).toString("hex");
-  const sessions = readSessions();
-
-  const userSessions = listSessionsForUser(nickname);
-  if (userSessions.length >= SESSION_MAX_PER_USER) {
-    const oldestToken = userSessions[0];
-    if (oldestToken && sessions[oldestToken]) {
-      delete sessions[oldestToken];
+  const pool = getPool();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    // 사용자당 세션은 최대 5개 — 넘치면 가장 오래된 것부터 버린다.
+    const existing = await client.query<{ token: string }>(
+      "SELECT token FROM sessions WHERE nickname = $1 ORDER BY created_at ASC, token ASC",
+      [nickname],
+    );
+    const overflow = existing.rows.length + 1 - SESSION_MAX_PER_USER;
+    for (let i = 0; i < overflow; i += 1) {
+      const oldest = existing.rows[i]?.token;
+      if (oldest) await client.query("DELETE FROM sessions WHERE token = $1", [oldest]);
     }
+    await client.query(
+      "INSERT INTO sessions (token, nickname) VALUES ($1, $2)",
+      [token, nickname],
+    );
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
   }
-
-  sessions[token] = { nickname, createdAt: new Date().toISOString() };
-  writeJson(SESSIONS_FILE, sessions);
   return token;
 }
 
-export function getSessionUser(token: string): string | undefined {
-  const session = readSessions()[token];
+export async function getSessionUser(token: string): Promise<string | undefined> {
+  const result = await getPool().query<{ nickname: string; created_at: Date }>(
+    "SELECT nickname, created_at FROM sessions WHERE token = $1",
+    [token],
+  );
+  const session = result.rows[0];
   if (!session) return undefined;
-  if (Date.now() - new Date(session.createdAt).getTime() > SESSION_MAX_AGE_MS) {
-    deleteSession(token);
+  if (Date.now() - session.created_at.getTime() > SESSION_MAX_AGE_MS) {
+    await deleteSession(token);
     return undefined;
   }
   return session.nickname;
 }
 
-export function deleteSession(token: string) {
-  const sessions = readSessions();
-  if (token in sessions) {
-    delete sessions[token];
-    writeJson(SESSIONS_FILE, sessions);
-  }
+export async function deleteSession(token: string): Promise<void> {
+  await getPool().query("DELETE FROM sessions WHERE token = $1", [token]);
 }
 
-// 아이디 변경 — 이 아이디의 모든 세션을 새 아이디로 옮겨 로그인 상태를 유지합니다.
-export function renameSessions(oldNickname: string, newNickname: string) {
-  const sessions = readSessions();
-  let changed = false;
-  for (const session of Object.values(sessions)) {
-    if (session.nickname === oldNickname) {
-      session.nickname = newNickname;
-      changed = true;
-    }
+// 아이디 변경 — 계정·세션·사용자 데이터를 한 트랜잭션으로 새 아이디에 옮긴다.
+// 옛 JSON 저장소 때는 3개 파일에 걸친 다단계 쓰기라 중간 실패를 순서로 막았지만,
+// 이제는 한 트랜잭션이라 어느 단계에서 실패해도 모두 원래대로 돌아갑니다.
+export async function renameAccountProfile(
+  oldNickname: string,
+  updated: Account,
+): Promise<void> {
+  const pool = getPool();
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(
+      `INSERT INTO accounts (nickname, salt, password_hash, email, phone, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (nickname) DO UPDATE SET
+         salt = EXCLUDED.salt,
+         password_hash = EXCLUDED.password_hash,
+         email = EXCLUDED.email,
+         phone = EXCLUDED.phone,
+         created_at = EXCLUDED.created_at`,
+      [
+        updated.nickname,
+        updated.salt,
+        updated.passwordHash,
+        updated.email,
+        updated.phone ?? null,
+        updated.createdAt,
+      ],
+    );
+    await client.query("UPDATE userdata SET nickname = $2 WHERE nickname = $1", [
+      oldNickname,
+      updated.nickname,
+    ]);
+    await client.query("UPDATE sessions SET nickname = $2 WHERE nickname = $1", [
+      oldNickname,
+      updated.nickname,
+    ]);
+    await client.query("DELETE FROM accounts WHERE nickname = $1", [oldNickname]);
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
   }
-  if (changed) writeJson(SESSIONS_FILE, sessions);
 }
 
 // 서버 시작 때 만료된 세션을 한 번 정리합니다.
-export function pruneExpiredSessions() {
-  const sessions = readSessions();
-  const now = Date.now();
-  let changed = false;
-  for (const [token, session] of Object.entries(sessions)) {
-    if (now - new Date(session.createdAt).getTime() > SESSION_MAX_AGE_MS) {
-      delete sessions[token];
-      changed = true;
-    }
-  }
-  if (changed) writeJson(SESSIONS_FILE, sessions);
+export async function pruneExpiredSessions(): Promise<void> {
+  await getPool().query(
+    "DELETE FROM sessions WHERE created_at < now() - interval '30 days'",
+  );
 }
 
 // ---------- 사용자 데이터 ----------
@@ -228,25 +225,25 @@ function emptyUserData(): UserData {
   };
 }
 
-export function getUserData(nickname: string): UserData {
-  const store = readJson<Record<string, UserDataRecord>>(USERDATA_FILE, {});
-  return store[nickname]?.data ?? emptyUserData();
+export async function getUserData(nickname: string): Promise<UserData> {
+  const result = await getPool().query<{ data: UserData; updated_at: Date }>(
+    "SELECT data, updated_at FROM userdata WHERE nickname = $1",
+    [nickname],
+  );
+  const row = result.rows[0];
+  return row?.data ?? emptyUserData();
 }
 
-export function saveUserData(nickname: string, data: UserData): UserDataRecord {
-  const store = readJson<Record<string, UserDataRecord>>(USERDATA_FILE, {});
-  const record: UserDataRecord = { data, updatedAt: new Date().toISOString() };
-  store[nickname] = record;
-  writeJson(USERDATA_FILE, store);
-  return record;
-}
-
-// 아이디 변경 — 사용자 데이터 백업 키도 새 아이디로 옮깁니다.
-export function renameUserdata(oldNickname: string, newNickname: string) {
-  const store = readJson<Record<string, UserDataRecord>>(USERDATA_FILE, {});
-  const record = store[oldNickname];
-  if (!record) return;
-  store[newNickname] = record;
-  delete store[oldNickname];
-  writeJson(USERDATA_FILE, store);
+export async function saveUserData(
+  nickname: string,
+  data: UserData,
+): Promise<UserDataRecord> {
+  const result = await getPool().query<{ updated_at: Date }>(
+    `INSERT INTO userdata (nickname, data) VALUES ($1, $2)
+     ON CONFLICT (nickname) DO UPDATE SET data = EXCLUDED.data, updated_at = now()
+     RETURNING updated_at`,
+    [nickname, JSON.stringify(data)],
+  );
+  const updatedAt = result.rows[0]?.updated_at ?? new Date();
+  return { data, updatedAt: updatedAt.toISOString() };
 }

@@ -10,6 +10,7 @@ import { inquiryRouter } from "./routes/inquiry.routes";
 import { startNotificationScheduler } from "./services/notificationScheduler";
 import { emailConfigured } from "./services/notificationSenders";
 import { getAiTokenNotice } from "./services/ai.service";
+import { initDb } from "./db/initDb";
 import { pruneExpiredSessions } from "./services/userStore";
 import { startContestSyncScheduler } from "./services/contestSync";
 import { rateLimit, securityHeaders } from "./middleware/security";
@@ -227,18 +228,36 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 // 배포 환경(VPS·PaaS)에서는 PORT 환경변수로 포트를 지정한다. 미지정 시 개발 기본값 3000.
 const PORT = Number(process.env.PORT) || 3000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log(
-    `[알림] 이메일: ${emailConfigured() ? "SMTP 발송" : "로그 모드(SMTP 미설정)"}`,
-  );
-  // 게이트웨이 토큰(JWT)은 유효기간이 있어 만료되면 AI 분석이 함께 멈춘다.
-  // 시작 시 남은 기간을 보여 관리자가 미리 갱신하도록 한다.
-  const tokenNotice = getAiTokenNotice();
-  if (tokenNotice) console.log(tokenNotice);
-  // 만료된 로그인 세션을 시작 때 한 번 정리합니다.
-  pruneExpiredSessions();
-  startNotificationScheduler();
-  // 위비티·콘테스트코리아에서 공모전을 자동 등록한다(최근 동기화가 있으면 건너뜀).
-  startContestSyncScheduler();
+async function main() {
+  // PostgreSQL(Docker 컨테이너) 연결 + 스키마 적용. 최초 실행이면 옛 JSON
+  // 데이터(backend/src/data/*.json)도 자동으로 이관한다. 연결 실패 시
+  // initDb가 방법을 안내하므로 재시도 없이 종료한다.
+  try {
+    await initDb();
+  } catch {
+    process.exit(1);
+  }
+
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(
+      `[알림] 이메일: ${emailConfigured() ? "SMTP 발송" : "로그 모드(SMTP 미설정)"}`,
+    );
+    // 게이트웨이 토큰(JWT)은 유효기간이 있어 만료되면 AI 분석이 함께 멈춘다.
+    // 시작 시 남은 기간을 보여 관리자가 미리 갱신하도록 한다.
+    const tokenNotice = getAiTokenNotice();
+    if (tokenNotice) console.log(tokenNotice);
+    // 만료된 로그인 세션을 시작 때 한 번 정리합니다.
+    pruneExpiredSessions().catch((error) =>
+      console.error("[server] 만료 세션 정리 실패:", error),
+    );
+    startNotificationScheduler();
+    // 위비티·콘테스트코리아에서 공모전을 자동 등록한다(최근 동기화가 있으면 건너뜀).
+    startContestSyncScheduler();
+  });
+}
+
+main().catch((error) => {
+  console.error("[server] 시작 실패:", error);
+  process.exit(1);
 });

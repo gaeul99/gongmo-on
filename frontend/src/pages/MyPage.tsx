@@ -5,13 +5,7 @@ import CategorySelect from "../components/CategorySelect";
 import GrowthTimeline from "../components/GrowthTimeline";
 import MyContestCalendar from "../components/MyContestCalendar";
 import ToggleSwitch from "../components/ToggleSwitch";
-import { getAllContests } from "../data/contestPool.js";
-import { alertDismissKey } from "../utils/contestAlerts.js";
-import { sendWeeklyDigest } from "../services/notificationService.js";
-import {
-  downloadUserData,
-  mergeImportedData,
-} from "../utils/dataPortability.js";
+import { downloadUserData, mergeImportedData } from "../utils/dataPortability.js";
 import { STORAGE_KEYS } from "../utils/storageKeys.js";
 import type { Analysis } from "../types/analysis";
 import "./MyPage.css";
@@ -81,15 +75,6 @@ type Props = {
   myContests: AppliedContest[];
   wishlist: WishlistContest[];
   savedIdeas: SavedIdea[];
-  alerts: ContestAlert[];
-  // 읽음(확인) 처리한 알림 키 집합 — 읽은 항목은 목록에서 연회색으로 표시합니다.
-  readAlertKeys: Set<string>;
-  /** 알림 하나를 확인(읽음) 처리 — 확인한 것은 상단 배지 개수에서 빠집니다. */
-  onDismissAlert: (alert: ContestAlert) => void;
-  /** 알림을 모두 읽음 처리 — 하나씩 확인하지 않고도 배지를 지울 수 있습니다. */
-  onMarkAllAlertsRead: () => void;
-  /** 알림을 모두 읽지 않음 처리 — '모두 읽음'의 반대로 배지와 읽음 표시를 되살립니다. */
-  onMarkAllAlertsUnread: () => void;
   onLogin: (nickname: string, password: string) => Promise<AuthResult>;
   onSignup: (
     nickname: string,
@@ -128,15 +113,8 @@ type Props = {
   ) => void;
   onBack: () => void;
   onGoInput: () => void;
-  // 공모전 탐색 화면으로 보내는 콜백 — 관심 목록·알림 빈 상태에서 씁니다.
+  // 공모전 탐색 화면으로 보내는 콜백 — 관심 목록 빈 상태에서 씁니다.
   onGoExplore: () => void;
-};
-
-const ALERT_BADGE_TEXT: Record<ContestAlert["tone"], string> = {
-  today: "오늘 마감",
-  urgent: "임박",
-  upcoming: "예정",
-  closed: "마감",
 };
 
 // 입력 화면과 같은 관심 분야 목록
@@ -181,11 +159,6 @@ function MyPage({
   myContests,
   wishlist,
   savedIdeas,
-  alerts,
-  readAlertKeys,
-  onDismissAlert,
-  onMarkAllAlertsRead,
-  onMarkAllAlertsUnread,
   onLogin,
   onSignup,
   onUpdateProfile,
@@ -277,59 +250,9 @@ function MyPage({
   const [ideaFormOpen, setIdeaFormOpen] = useState(false);
   // 수정 중인 보관함 아이디어 — 폼이 '직접 기록하기' 대신 '아이디어 수정'으로 바뀝니다.
   const [editingIdeaId, setEditingIdeaId] = useState<string | null>(null);
-  // 주간 새 공모전 이메일 — 발송 버튼 상태와 결과 문구
-  const [weeklyPending, setWeeklyPending] = useState(false);
-  const [weeklyStatus, setWeeklyStatus] = useState<string | null>(null);
   // 관심 목록 '응모하기'의 2단계 확인 — 상세·결과 화면과 같은 원칙으로,
   // 확인 박스를 연 공모전 id를 기억합니다(한 번에 하나만 열립니다).
   const [confirmingWishId, setConfirmingWishId] = useState<number | null>(null);
-
-  // 주간 새 공모전 다이제스트 발송. 응모·관심 공모전의 분야를 모아 '내 분야'로 쓰고,
-  // 기록이 없으면 전체 분야 기준으로 보냅니다.
-  const handleSendWeeklyDigest = async () => {
-    if (!user?.email || weeklyPending) return;
-    setWeeklyPending(true);
-    setWeeklyStatus(null);
-    // 목업 + 자동 등록이 합쳐진 공모전 풀 — 자동 등록 공모전도 다이제스트 후보에 넣는다
-    const contests = getAllContests();
-    const known = new Map(
-      contests.map(
-        (contest) => [contest.id, String(contest.field ?? "")] as const,
-      ),
-    );
-    const fields = [
-      ...new Set(
-        [...myContests, ...wishlist]
-          .map((item) => (known.get(item.id) ?? "").split(" ")[0])
-          .filter(Boolean),
-      ),
-    ];
-    try {
-      const payload = await sendWeeklyDigest({
-        nickname: user.nickname,
-        email: user.email,
-        fields,
-        contests: contests.map((contest) => ({
-          id: contest.id,
-          title: contest.title,
-          field: String(contest.field ?? ""),
-          deadline: contest.deadline,
-          startDate: contest.startDate,
-          url: contest.url,
-        })),
-      });
-      const data = payload?.data;
-      setWeeklyStatus(
-        data?.matched > 0
-          ? `발송 완료! 새 공모전 ${data.matched}건을 ${user.email}로 보냈어요.`
-          : (data?.message ?? "이번 주 새 소식이 없어요."),
-      );
-    } catch {
-      setWeeklyStatus("발송에 실패했어요. 백엔드가 켜져 있는지 확인해 주세요.");
-    } finally {
-      setWeeklyPending(false);
-    }
-  };
 
   // 보관함 항목 '수정' — 기록 폼을 수정 모드로 전환하고 값을 채워 넣습니다.
   const startIdeaEdit = (idea: SavedIdea) => {
@@ -803,69 +726,8 @@ function MyPage({
           data-reveal
         >
           <h2 id="alert-title">공모전 알림</h2>
-          {/* 알림 목록(모두 읽음·모두 읽지 않음 버튼 + 항목)을 설정 블록보다
-              위로 옮겼다(2026-10-14 사용자 요청 '버튼과 글씨 위로') */}
-          {alerts.length === 0 ? (
-            <div className="wishlist-empty">
-              응모·관심 공모전의 마감일이 가까워지면 이곳에 알려 드려요.
-              <AppLink
-                className="empty-cta-button"
-                href="/contest"
-                onNavigate={onGoExplore}
-              >
-                공모전 둘러보고 찜하기 →
-              </AppLink>
-            </div>
-          ) : (
-            <ul className="alert-list">
-              <li className="alert-item alert-all-row" aria-hidden="true">
-                <button
-                  type="button"
-                  className="alert-dismiss alert-dismiss-all"
-                  onClick={onMarkAllAlertsRead}
-                >
-                  모두 읽음 ✓
-                </button>
-                <button
-                  type="button"
-                  className="alert-dismiss alert-dismiss-all"
-                  onClick={onMarkAllAlertsUnread}
-                >
-                  모두 읽지 않음
-                </button>
-              </li>
-              {alerts.map((alert) => {
-                const isRead = readAlertKeys.has(alertDismissKey(alert));
-                return (
-                  <li
-                    key={alert.id}
-                    className={isRead ? "alert-item is-read" : "alert-item"}
-                  >
-                    <span className={`alert-badge tone-${alert.tone}`}>
-                      {ALERT_BADGE_TEXT[alert.tone]}
-                    </span>
-                    <div className="alert-text">
-                      <p className="alert-title">{alert.title}</p>
-                      <p className="alert-meta">
-                        {alert.kindLabel} · 마감 {alert.deadline} ·{" "}
-                        {alert.message}
-                      </p>
-                    </div>
-                    {!isRead &&
-                      (alert.tone === "today" || alert.tone === "urgent") && (
-                        <button
-                          type="button"
-                          className="alert-dismiss"
-                          onClick={() => onDismissAlert(alert)}
-                        >
-                          확인 ✓
-                        </button>
-                      )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          {/* 마감 알림 목록은 2026-10-15 사용자 요청으로 빼고 이메일 수신 토글만
+              남겼다 — 알림은 상단바 종 모양 메뉴에서 확인한다 */}
           {user && (
             <div className="notif-setting">
               <div className="notif-toggle-row">
@@ -886,28 +748,6 @@ function MyPage({
                   ? "마감 7일 전·3일 전·당일에 이메일로 알려 드려요."
                   : "마감 알림을 받으려면 회원가입 때 이메일을 입력해 주세요."}
               </p>
-            </div>
-          )}
-          {user?.email && (
-            <div className="notif-setting">
-              <p className="weekly-title">주간 새 공모전 이메일</p>
-              <p className="notif-hint">
-                이번 주 새 공모전을 응모·관심 기록의 분야 기준으로 모아 보내
-                드려요.
-              </p>
-              <button
-                type="button"
-                className="weekly-send-button"
-                onClick={handleSendWeeklyDigest}
-                disabled={weeklyPending}
-              >
-                {weeklyPending ? "보내는 중…" : "이번 주 소식 메일로 받기"}
-              </button>
-              {weeklyStatus && (
-                <p className="weekly-status" role="status">
-                  {weeklyStatus}
-                </p>
-              )}
             </div>
           )}
         </section>

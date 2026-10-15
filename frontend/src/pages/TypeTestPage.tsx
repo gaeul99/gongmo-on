@@ -290,8 +290,9 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
             <section className="type-test-panel" data-reveal>
               <h2 className="type-test-panel-title">나의 유형 분포</h2>
               <p className="type-test-panel-caption">
-                응답 점수를 100%로 환산한 성향 비율을, 많이 나타난 순서대로 3개만 보여 줘요.
-                점수가 낮게 나와도 응답 중 가장 가까운 유형이 결과예요.
+                각 유형이 답한 문항의 만점(문항당 최대 2점)에 얼마나 가까운지 일치율로, 많이
+                나타난 순서대로 3개만 보여 줘요. 유형끼리 100%를 나눠 가지는 값이 아니라서
+                합이 100%가 되지 않아요.
               </p>
               <div className="type-test-score-list">
                 {result.distribution.slice(0, 3).map((row) => {

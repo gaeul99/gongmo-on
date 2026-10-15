@@ -32,7 +32,7 @@ export async function postInquiry(req: Request, res: Response) {
     return
   }
 
-  const inquiry = appendInquiry({ email, category, content })
+  const inquiry = await appendInquiry({ email, category, content })
 
   // 담당자에게 알림 메일을 보낸다. SMTP가 없으면 로그·아웃박스에만 기록된다(데모 모드).
   const delivery: SendResult = await sendEmail(

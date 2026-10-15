@@ -398,9 +398,24 @@ function App() {
   }, [])
 
   // 화면이 바뀔 때마다 맨 위에서부터 보여 줍니다. (보관함 '다시 보기'처럼
-  // 페이지 아래에서 화면을 열어도 결과가 위에서 시작하게)
+  // 페이지 아래에서 화면을 열어도 결과가 위에서 시작하게) 마이페이지 주소에
+  // ?section=이 붙어 있으면 대시보드 '내 응모'·'내 관심'·'보관한 아이디어'
+  // 카드에서 해당 목록을 바로 보고자 온 것이므로, 최상단 이동 뒤 그 목록으로
+  // 스크롤한다(2026-10-15 사용자 요청).
   useEffect(() => {
     window.scrollTo(0, 0)
+    if (screen !== 'mypage') return
+    const section = new URLSearchParams(window.location.search).get('section')
+    const targetId =
+      section === 'applied'
+        ? 'my-contest-title'
+        : section === 'wishlist'
+          ? 'wishlist-title'
+          : section === 'archive'
+            ? 'archive-title'
+            : null
+    if (!targetId) return
+    document.getElementById(targetId)?.scrollIntoView({ block: 'start' })
   }, [screen])
 
   // 결과 화면 주소인데 저장된 아이디어가 없으면 주소를 입력 화면에 맞춰 둡니다.
@@ -988,6 +1003,12 @@ function App() {
             setTypeHints(null)
             navigate('input')
           }}
+          // ?section=은 마이페이지에서 해당 목록 위치로 스크롤하는 표지다(아래
+          // 화면 전환 효과). 내 응모·내 관심·보관한 아이디어 카드에서 온다
+          // (2026-10-15 사용자 요청)
+          onGoMyContests={() => navigate('mypage', '?section=applied')}
+          onGoWishlist={() => navigate('mypage', '?section=wishlist')}
+          onGoArchive={() => navigate('mypage', '?section=archive')}
         />
       )}
       {screen === 'notes' && (
@@ -1009,11 +1030,6 @@ function App() {
           myContests={myContests}
           wishlist={wishlist}
           savedIdeas={savedIdeas}
-          alerts={alerts}
-          readAlertKeys={readAlertKeys}
-          onDismissAlert={dismissAlert}
-          onMarkAllAlertsRead={markAllAlertsRead}
-          onMarkAllAlertsUnread={markAllAlertsUnread}
           onLogin={handleSignIn}
           onSignup={handleSignUp}
           onUpdateProfile={handleUpdateProfile}

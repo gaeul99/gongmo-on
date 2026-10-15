@@ -84,20 +84,23 @@
      순백으로, border·accent-border를 검정으로 통일해 기존 hover 규칙의 배경 틴트와
      테두리 색 반응이 눈에 보이지 않았다. hover 규칙들은 이 변수를 쓴다. */
   --hover-bg: #eef0f4;
-  /* 그림자 3단(2026-10-12 카드 뉴스 정비) — 카드가 캔버스 위에 항상 살짝 떠 있어야
-     구획이 읽힌다(--shadow: 잠깐 상태), 손을 올리면 더 뜨고(--shadow-hover),
-     화면 위를 덮는 팝업은 가장 크게 떠 있다(--shadow-pop). */
-  --shadow: 0 1px 2px rgba(16, 18, 22, 0.04), 0 4px 14px rgba(16, 18, 22, 0.05);
-  --shadow-hover: 0 6px 18px rgba(16, 18, 22, 0.09);
-  --shadow-pop: 0 6px 16px rgba(16, 18, 22, 0.08), 0 20px 44px rgba(16, 18, 22, 0.13);
-  /* 첫화면 배경 광원(HomePage .home-glow)과 그라데이션 색 — 흑백 테마에서 광원은 끈다(투명) */
+  /* 그림자 3단(2026-10-12 카드 뉴스 정비) — 카드가 캔버스 위에 떠 있어야 구획이
+     읽힌다(--shadow: 잠깐 상태), 손을 올리면 더 뜨고(--shadow-hover),
+     화면 위를 덮는 팝업은 가장 크게 떠 있다(--shadow-pop).
+   2026-10-15 사용자 요청 '카드와 박스 뒤 그림자 극대화'로 세 단계 모두
+   크기·농도를 크게 올렸다 — 같은 rgba(16,18,22) 검정 기반으로 계층만 유지.
+   같은 날 이어진 요청 '그림자 반만 낮춰줘'로 농도(알파)는 절반으로 낮추고
+   크기·방향은 그대로 뒀다 — 뭉개지지 않는 선에서 은은하게 */
+  --shadow: 0 12px 32px rgba(16, 18, 22, 0.1), 0 4px 10px rgba(16, 18, 22, 0.06);
+  --shadow-hover: 0 16px 40px rgba(16, 18, 22, 0.13), 0 6px 14px rgba(16, 18, 22, 0.07);
+  --shadow-pop: 0 20px 52px rgba(16, 18, 22, 0.15), 0 8px 20px rgba(16, 18, 22, 0.08);
+  /* 광원(--glow-*)은 흑백 테마에서 끈 상태(투명)를 유지한다. 캔버스 그라데이션
+     색(--grad-*)은 2026-10-15 사용자 요청 '그라데이션 입히는 거 전부 지우고 흰색'으로
+     삭제했다 — 캔버스는 이제 흰색 단색이다 */
   --glow-a: transparent;
   --glow-b: transparent;
-  --grad-a: transparent;
-  --grad-b: transparent;
   --error: #333333;
   --social-bg: #ffffff;
-  --shadow: none;
 
   --sans: 'Malgun Gothic', '맑은 고딕', system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
@@ -156,13 +159,10 @@
      상단바가 그대로 동작하고, 화면 밖으로 나간 부분만 잘라낸다 */
   overflow-x: clip;
   color: var(--text);
-  /* 캔버스 — 2026-10-14 사용자 요청 '연하늘빛 그레이 그라데이션이 푸터까지
-     내려오게'로 문서 캔버스는 회색을 끝까지 유지하고, 흰색 전환은 푸터가
-     자체 그라데이션으로 담당한다(SiteFooter.css .site-footer). 루트 배경은
-     문서 캔버스 전체에 깔리므로 내용 폭이 좁은 입력·결과 화면 주변까지
-     화면 전체 폭이 함께 회색이다. 홈은 .home-bg(고정, 불투명)가 캔버스를
-     통째로 가리므로 홈은 자체 캔버스를 쓴다 */
-  background-color: var(--page);
+  /* 캔버스 — 2026-10-15 사용자 요청 '그라데이션 색상 입히는 거 전부 지우고 흰색'으로
+     연하늘빛 대각 그라데이션(--grad-a → --grad-b)을 걷어내고 흰색 단색으로 돌아갔다.
+     홈의 .home-bg는 캔버스를 가리지 않게 투명 비켜섰다(HomePage.css) */
+  background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -279,8 +279,8 @@ p {
   margin-top: 6px;
 }
 
-/* 스크롤바 — '구슬 레일 + 검정 알약'(2026-10-13 6차). 트랙은 1px 구조선을
-   점(구슬) 줄로 이어 받아 가볍게 긋고, 손잡이(thumb)는 무늬 없는 검정 알약이
+/* 스크롤바 — '구슬 레일 + 진회색 알약'(2026-10-13 6차). 트랙은 1px 구조선을
+   점(구슬) 줄로 이어 받아 가볍게 긋고, 손잡이(thumb)는 무늬 없는 진회색 알약이
    레일에서 살짝 떠 있다. 포인터를 올리면 알약이 통통해지고 짙어지고, 눌러
    끌면 더 짙어진다. 표준 속성(scrollbar-color 등)을 함께 쓰면
    Chromium 121+에서 표준 쪽이 이겨 커스텀 스타일이 무시되므로 webkit 계열만
@@ -309,21 +309,22 @@ p {
   background-repeat: repeat-x;
 }
 
-/* 손잡이 — 투명 테두리(3px)로 레일과의 사이를 낸 무늬 없는 검정 알약.
+/* 손잡이 — 투명 테두리(3px)로 레일과의 사이를 낸 무늬 없는 진회색 알약.
    2026-10-14 강조색이 파랑으로 통일된 뒤 사용자 요청 '스크롤바 색은 원래대로'로
-   리브랜딩 시점 값(#333·hover #111·active #000)을 그대로 박아 되돌렸다 —
-   스크롤바는 --accent를 따라가지 않는다 */
+   리브랜딩 시점 값(#333·hover #111·active #000)을 박아 되돌렸고, 이어 같은 날
+   '알약도 진회색으로' 요청으로 기본을 팔레트 진회색(--text-2 #555)으로 밝혔다.
+   hover는 검정(--text-h #333), 끌 때는 #000 — 스크롤바는 --accent를 따라가지 않는다 */
 ::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
   border-radius: 999px;
-  background-color: #333;
+  background-color: var(--text-2);
   background-clip: padding-box;
   min-height: 36px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   border-width: 2px;
-  background-color: #111;
+  background-color: var(--text-h);
 }
 
 ::-webkit-scrollbar-thumb:active {
@@ -367,7 +368,6 @@ p {
     .input-archive-item,
     .profile-card,
     .my-contest-item,
-    .alert-item,
     .profile-edit
   ) {
   box-shadow: var(--shadow);
