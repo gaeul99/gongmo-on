@@ -3,6 +3,10 @@ node_modules
 dist
 backups
 
+# Python 실행 때마다 재생성되는 바이트코드·캐시
+__pycache__/
+*.pyc
+
 # tsc가 vitest.config.mts를 컴파일하며 만드는 부산물
 vitest.config.js
 vitest.config.js.map
