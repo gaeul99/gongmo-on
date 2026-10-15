@@ -19,6 +19,17 @@ _buckets_lock = threading.Lock()
 _last_sweep = time.monotonic()
 
 
+def _client_ip(request: Request) -> str:
+    # PaaS(Render 등)는 리버스 프록시 뒤에서 앱을 실행하므로 request.client.host가
+    # 프록시 IP가 되어 모든 사용자가 같은 버킷을 공유하게 된다. 프록시가 실제
+    # 클라이언트 주소를 덧붙인 X-Forwarded-For의 마지막 값을 쓰고, 직접 연결(로컬
+    # 개발)에서는 헤더가 없으므로 소켓 주소를 그대로 쓴다.
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[-1].strip() or "unknown"
+    return request.client.host if request.client else "unknown"
+
+
 def rate_limit(window_ms: int, max_count: int, name: str):
     """
     IP별 요청 수 제한. 윈도우가 지나면 카운트가 초기화되고, 초과하면 429를 돌려준다.
@@ -34,7 +45,7 @@ def rate_limit(window_ms: int, max_count: int, name: str):
                 for key in [k for k, b in _buckets.items() if b["reset_at"] <= now]:
                     del _buckets[key]
             _last_sweep = now
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = _client_ip(request)
         key = f"{name}:{client_ip}"
         with _buckets_lock:
             bucket = _buckets.get(key)
