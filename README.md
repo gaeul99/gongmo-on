@@ -1,0 +1,165 @@
+# 공모온 (Gongmo-On)
+
+공모전 지원자를 위한 아이디어 분석 웹 서비스입니다.
+
+아이디어를 입력하면 AI가 공모전 적합도를 분석해 추천 공모전과 개선점을 알려 주고, 유형 검사·대시보드·연습 노트로 응모 준비 전 과정을 돕습니다.
+
+## 서비스 소개
+
+**공모온**은 대학생·주니어가 가진 막막한 아이디어를 공모전 출품까지 이끄는 AI 아이디어 분석·공모전 추천 서비스입니다. 공모전에 도전하고 싶어도 세 가지 벽에 부딪힙니다.
+
+1. **"아이디어는 있는데, 어디에 내야 할지 모른다."** — 공모전 정보는 위비티·캠퍼스픽 등 여러 사이트에 흩어져 있고, 나의 아이디어와 맞는지 판단하기 어렵습니다.
+2. **"아이디어가 괜찮은지 스스로 판단하기 어렵다."** — 강점과 약점, 심사위원이 볼 차별점을 객관적으로 짚어 줄 창구가 없습니다.
+3. **"출품 직전이 가장 막막하다."** — 서류를 쓰고 예상 질문을 준비하는 '마지막 한 걸음'을 도와주는 도구는 거의 없습니다.
+
+공모온은 이 세 가지를 각각 **공모전 추천 → 아이디어 분석 → 연습 노트·제안서 초안**으로 풀어, 준비 과정 전체를 하나의 흐름으로 연결합니다.
+
+```
+유형 검사 (20문항) → 아이디어 입력 → AI 분석 · 추천 공모전 → 제안서 초안·연습 노트 → 대시보드
+```
+
+| 기존 공모전 사이트 | 공모온 |
+| --- | --- |
+| 공모전 목록만 제공 | 아이디어 분석 → 추천 → 준비 → 기록까지 전 과정 |
+| 검색은 키워드에 의존 | 아이디어 내용 기반 AI 적합도·추천 이유 제공 |
+| 준비는 각자의 몫 | 제안서 초안 생성, 예상 질문 연습 노트 제공 |
+| 도전 이력 관리 없음 | 대시보드로 도전 히스토리·출품 로드맵 시각화 |
+
+> **'응모 완료'는 실제 응모와 분리된 기록 기능입니다.** 공모온에서 응모를 기록해도 실제 응모는 반드시 해당 공모전 사이트에서 진행하도록 2단계 확인으로 안내하며, 접수가 마감된 공모전도 이미 제출을 마친 응모라면 기록으로 남길 수 있습니다.
+
+## 배포 주소
+
+아직 외부 배포는 하지 않았으며, **로컬 실행 기준**으로 개발·시연하고 있습니다. 배포하면 아래에 주소를 추가합니다.
+
+> 배포 주소: (미배포)
+
+코드에는 배포를 위한 준비가 돼 있습니다. 서버 포트는 `PORT`, 요청을 허용할 프론트 주소는 `CLIENT_ORIGIN`, 문의 수신 이메일은 `CONTACT_EMAIL` 환경변수로 지정합니다(`backend/app/main.py`, `backend/app/routers/inquiries.py`). 자세한 절차는 아래 [배포](#배포) 섹션을 참고하세요.
+
+## 기술 스택
+
+| 영역 | 기술 |
+| --- | --- |
+| 화면(프론트엔드) | React 19 + TypeScript + Vite (SPA, 포트 5173) |
+| 서버(백엔드) | Python 3.14 + FastAPI + uvicorn (포트 3000) |
+| AI 분석 | OpenAI 호환 게이트웨이 연동 (모델: `openai/gpt-5.6-luna`) |
+| 데이터 저장 | PostgreSQL 17 (Docker 컨테이너) + 브라우저 localStorage(1차 캐시) |
+| 공모전 데이터 | 위비티·콘테스트코리아 자동 수집 (`backend/app/services/contest_sync.py`) |
+| 테스트 | Vitest(프론트 26개) + pytest(백엔드 35개) = 총 61개 |
+
+## 저장소 구성
+
+```
+frontend/          React 19 + TypeScript + Vite (SPA, 포트 5173)
+backend/           Python 3.14 + FastAPI (API 서버, 포트 3000) — 옛 TS 소스는 backend/src/ 참고용
+발표/              발표 자료·대본·다이어그램 (pptx·md·png)
+공모온_설계서.md    기술 설계
+```
+
+## 사전 준비
+
+- **Node.js 20.19 이상(22 LTS 권장)** — `node -v`로 확인. Vite 8이 이 버전대를 요구합니다.
+- **Python 3.14** — `python --version`으로 확인. 백엔드 가상환경(.venv) 생성에 필요합니다.
+- **Docker Desktop** — PostgreSQL 데이터베이스를 컨테이너로 실행하는 데 필요합니다.
+- **npm** — Node.js 설치 시 함께 설치됩니다.
+- **AI 분석용 API 키** — `backend/.env`에 설정(아래 환경변수 항목 참고). 키가 없어도 앱 자체는 동작하며, 분석 실행 시 미리 준비된 **데모 분석**으로 자동 대체됩니다.
+
+## 설치 및 실행
+
+### 방법 1 — 루트에서 한 번에 실행
+
+```bash
+npm install       # 루트 도구(concurrently) 설치
+npm run setup     # 프론트엔드 의존성 설치 (백엔드는 npm 패키지 의존성이 없음)
+cd backend
+npm run venv      # 최초 1회 — Python 가상환경(.venv) 생성 + requirements 설치
+npm run db:up     # PostgreSQL 컨테이너 기동 (Docker Desktop 필요)
+cd ..
+npm run dev       # 백엔드(3000) + 프론트엔드(5173) 동시 실행
+```
+
+### 방법 2 — 각자 다른 터미널에서 실행
+
+```bash
+# 1) 백엔드 (포트 3000)
+cd backend
+npm run venv      # 최초 1회
+npm run db:up     # PostgreSQL 컨테이너 (Docker Desktop 필요)
+npm run dev
+
+# 2) 프론트엔드 (포트 5173) — 새 터미널에서
+cd frontend
+npm install
+npm run dev        # http://localhost:5173
+```
+
+- 매번 수동 실행이 번거로우면 루트의 `start-dev.cmd`를 더블클릭하세요. Docker Desktop(꺼져 있으면 기동)→DB 컨테이너→백엔드·프론트엔드가 각각의 콘솔 창으로 뜨고(백엔드 venv가 없으면 자동 생성), 창을 닫으면 해당 서버가 종료됩니다. 이 파일의 바로 가기를 Windows 시작프로그램 폴더에 두면 PC 로그인 시 자동 실행됩니다.
+
+### 백엔드 환경변수 (backend/.env)
+
+| 키 | 필수 여부 | 설명 |
+| --- | --- | --- |
+| `DATABASE_URL` | 필수 | PostgreSQL 접속 정보. 기본값 `postgresql://gongmo:gongmo@localhost:5432/gongmo_on` |
+| `OPENAI_API_KEY` | 필수 | AI 분석용 키. JWT 형태라 유효기간이 있고 만료 시 401 `expired_key` 발생 |
+| `OPENAI_BASE_URL` | 필수 | OpenAI 호환 게이트웨이 주소 |
+| `OPENAI_MODEL` | 필수 | `openai/gpt-5.6-luna` — 접두사(`openai/`)까지 정확히 기입 |
+| `SMTP_HOST` 등 `SMTP_*`·`MAIL_FROM` | 선택 | 이메일 발송. 비어 있으면 실제 발송 없이 콘솔·outbox 테이블에만 기록 |
+| `ADMIN_TOKEN` | 선택 | 공모전 강제 동기화·수동 마감 점검 등 관리 엔드포인트 인증(헤더 `x-admin-token`) |
+| `CLIENT_ORIGIN` | 선택 | CORS 허용 출처(배포 시, 쉼표로 나열). 기본 `localhost:5173` |
+| `CONTACT_EMAIL` | 선택 | 문의 수신 이메일(기본값 있음) |
+| `PORT` · `STATIC_DIR` | 선택 | 배포용 — 서버 포트 변경, 빌드된 SPA를 같은 서버가 서빙하는 단일 배포 모드 |
+
+전체 환경변수 설명은 `backend/README.md`를 참고하세요.
+
+### 테스트·빌드
+
+```bash
+cd frontend && npm run test       # 프론트 단위 테스트 (vitest, 26개)
+cd backend  && npm run test       # 백엔드 단위 테스트 (pytest, 35개 — DB 통합 테스트는 DB 기동 시 실행)
+cd backend  && npm run typecheck  # 백엔드 문법 검사 (compileall — Python은 빌드 개념이 없음)
+cd frontend && npm run build      # 프론트 프로덕션 빌드 (tsc -b && vite build)
+```
+
+## 주요 기능
+
+- **아이디어 분석** — 아이디어를 입력하면 AI가 공모전별 적합도(점수·근거)를 분석해 추천하고, 제안서 초안까지 만들어 줍니다.
+- **공모전 탐색** — 실제 공모전 DB 기반 목록·상세, 찜·응모 기록 관리. 위비티·콘테스트코리아에서 공모전을 주기적으로 자동 수집해 최신 상태를 유지합니다.
+- **유형 검사** — 20문항으로 나의 공모전 유형을 진단합니다.
+- **대시보드** — 찜·응모 현황과 도전 히스토리를 시각화합니다.
+- **연습 노트** — 응모 전 심사 연습 노트(기획 의도·예상 질문·답변)를 작성합니다.
+- **마이페이지** — 회원가입·로그인, 회원정보 수정, 응모 기록, 알림 설정.
+
+## 트러블슈팅
+
+| 증상 | 원인 | 해결 |
+| --- | --- | --- |
+| `npm run dev`가 5173에서 띄워지지 않고 바로 실패함 | 프론트 개발 서버는 `--strictPort`로 **5173 고정**이라, 5173이 이미 사용 중이면 5174로 우회하지 않고 실패합니다(의도된 동작) | 5173을 쓰고 있는 프로세스를 종료하세요. `netstat -ano \| findstr :5173`으로 PID 확인 후 `taskkill /PID <번호> /F`. **포트를 바꾸는 것은 금지** — 아래 '데이터가 사라진 것처럼 보임' 항목 참고 |
+| 계정·찜·아이디어 데이터가 사라진 것처럼 보임 | localStorage는 주소(origin)별로 분리됩니다. 포트가 다르면(예: 5174) 같은 PC라도 다른 저장 공간이 됩니다 | 브라우저 주소가 `http://localhost:5173`인지 확인하세요. 과거 키(`idea-navigation:` 등)는 앱 시작 시 자동 이전됩니다 |
+| AI 분석 실행 시 401 "The key has expired" (`expired_key`) | `OPENAI_API_KEY`는 JWT 토큰이라 유효기간이 있으며 만료됨 | 게이트웨이(mlapi.run)에서 토큰을 재발급받아 `backend/.env`의 `OPENAI_API_KEY`를 교체하고 백엔드를 재시작 |
+| 분석 결과가 갑자기 '데모 분석'으로 표시됨 | AI 호출 실패 시 서비스가 끊기지 않도록 준비된 데모 분석으로 **자동 전환**된 것(정상 동작) | 백엔드 콘솔의 오류 로그를 확인하세요. 대부분은 API 키 만료(위 항목) 또는 네트워크 문제입니다 |
+| 이메일이 실제로 오지 않음 | `SMTP_*` 환경변수가 비어 있으면 발송 대신 콘솔·아웃박스(outbox 테이블)에만 기록합니다(개발 기본 동작) | 실제 발송이 필요하면 `backend/.env`에 `SMTP_HOST`·`SMTP_PORT`·`SMTP_USER`·`SMTP_PASS`·`MAIL_FROM`을 설정하고 재시작 |
+| 공모전 목록이 비어 있거나 오래됨 | 자동 수집이 아직 실행되지 않았거나 수집 사이트 구조 변경으로 실패 | 서버가 켜져 있으면 주기적으로 자동 수집됩니다. 즉시 동기화는 `POST /api/contests/sync`(`Authorization: Bearer <ADMIN_TOKEN>` 필요)를 호출하세요. 백엔드 콘솔에 `[contestSync]` 로그가 찍힙니다 |
+| 백엔드가 3000 포트에서 시작되지 않음 | `start-dev.cmd` 중복 실행 등으로 3000이 이미 사용 중 | 기존 백엔드 콘솔 창을 닫거나 `netstat -ano \| findstr :3000`으로 PID 확인 후 종료 |
+| 백엔드가 시작되자마자 종료됨 | PostgreSQL 컨테이너(DB)가 꺼져 있으면 백엔드는 안내 후 종료됩니다(의도된 동작) | Docker Desktop을 켜고 backend 폴더에서 `npm run db:up` 후 다시 실행 |
+| 사용자 데이터·계정을 모두 초기화하고 싶음 | — | 백엔드와 컨테이너를 끈 뒤 backend 폴더에서 `docker compose down -v`(볼륨까지 삭제)하고 `npm run db:up`으로 다시 올리면 빈 DB가 생성됩니다. **주의: 계정과 모든 기록이 지워지며 되돌릴 수 없습니다.** 평소에는 `npm run db:down`(볼륨 유지)으로 중지하세요 |
+| `npm install` 또는 빌드·venv 생성이 실패함 | Node 버전이 낮거나(주로 구버전 Node 18) Python 3.14 미설치 | Node.js 20.19 이상(22 LTS 권장)·Python 3.14로 업그레이드 후 재시도 |
+| gpt-5 계열 모델에서 `max_tokens`·temperature 오류 | gpt-5 계열은 `max_tokens` 미지원, temperature 생략 필요 | `app/services/ai_service.py`가 모델명 접두사를 보고 자동 처리합니다. `OPENAI_MODEL`에 `openai/` 접두사가 정확히 들어갔는지만 확인하세요 |
+
+## 배포
+
+현재는 미배포 상태입니다(위 '배포 주소' 참고). 배포 시 작업 순서:
+
+1. **백엔드** — 빌드 단계 없이 `python -m app.main`(uvicorn)으로 실행합니다. `PORT`(미지정 시 3000), `CLIENT_ORIGIN`(프론트가 배포될 주소), `DATABASE_URL`(PostgreSQL 접속 정보) 환경변수를 지정합니다.
+2. **프론트엔드** — `npm run build`로 만들어진 `dist/`를 정적 호스팅(Vercel·Netlify·Nginx 등)에 올리거나, 백엔드의 `STATIC_DIR` 환경변수에 `dist/` 경로를 지정해 API 서버가 SPA까지 함께 서빙하는 단일 배포로 운영합니다. 정적 호스팅을 쓴다면 SPA라서 모든 경로가 `index.html`로 폴백되도록 설정해야 합니다.
+3. **환경변수·시크릿** — `OPENAI_API_KEY`·`SMTP_*`·`ADMIN_TOKEN`·`DATABASE_URL`은 배포 플랫폼의 시크릿 관리에 등록하고, `.env` 파일은 절대 저장소에 커밋하지 않습니다.
+4. **데이터 저장소** — PostgreSQL이 필요합니다. 관리형 DB를 쓰거나 볼륨이 영속되는 컨테이너로 실행하세요. 정기 백업은 `npm run db:backup`(backend 폴더)으로 `backend/backups/*.sql` 덤프를 만들 수 있습니다.
+5. 배포가 완료되면 이 문서의 **배포 주소** 항목에 URL을 추가하세요.
+
+## 문서
+
+| 문서 | 내용 |
+| --- | --- |
+| `공모온_설계서.md` | 기술 설계 (API·데이터 모델·동기화 정책) |
+| `backend/README.md` | 백엔드 상세 (API·환경변수·데이터 저장) |
+| `발표/공모온_과제발표자료.pptx` | 발표 슬라이드 (13장) |
+| `발표/공모온_과제발표대본.md` | 슬라이드별 발표 대본 |
+| `발표/공모온_다이어그램.pptx` | ERD·와이어프레임 등 질의응답용 보조 자료 |

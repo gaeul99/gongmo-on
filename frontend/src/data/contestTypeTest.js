@@ -2,8 +2,10 @@
 // 심리 진단이 아닌 아이디어·공모전 선택을 위한 재미있는 참고 결과입니다.
 import { deadlineStatus } from '../utils/contestAlerts.js'
 
-// 총 30문항. 각 선택지는 한 유형에 2점, 관련 유형에 1점을 줍니다.
-// 2점 슬롯은 7개 유형에 골고루 배분돼 있어요(유형당 17~18개) — 특정 유형으로
+// 총 20문항(2026-10-18 사용자 요청으로 30문항에서 축소 — 주제·상황이 겹치는 문항을
+// 골라 뺐다). 각 선택지는 한 유형에 2점, 관련 유형에 1점을 줍니다.
+// 2점 슬롯은 7개 유형에 골고루 배분돼 있어요(유형당 11~13개 — solver·explorer·
+// storyteller·creator·maker 11, connector 12, civic 13) — 특정 유형으로
 // 기우는 구조적 편향이 생기지 않게 하기 위함입니다.
 export const TYPE_TEST_QUESTIONS = [
   {
@@ -117,36 +119,6 @@ export const TYPE_TEST_QUESTIONS = [
     ],
   },
   {
-    id: 'next-level',
-    question: '다음 공모전에 완승하려면 무엇이 가장 필요할까요?',
-    options: [
-      { text: '더 단단한 데이터와 근거', scores: { civic: 2, explorer: 1 } },
-      { text: '더 완성도 높은 시제품', scores: { maker: 2, solver: 1 } },
-      { text: '더 많은 사람의 목소리와 참여', scores: { connector: 2, storyteller: 1 } },
-      { text: '더 새로운 표현과 콘셉트', scores: { creator: 2, storyteller: 1 } },
-    ],
-  },
-  {
-    id: 'environment',
-    question: '작업할 때 나를 가장 잘 움직이게 하는 환경은?',
-    options: [
-      { text: '문제 하나에 집중할 수 있는 조용한 곳', scores: { solver: 2, explorer: 1 } },
-      { text: '자료와 도구를 마음껏 쓸 수 있는 곳', scores: { explorer: 2, maker: 1 } },
-      { text: '사람들과 이야기가 오가는 활기찬 곳', scores: { storyteller: 2, connector: 1 } },
-      { text: '나만의 감각에 몰입할 수 있는 곳', scores: { creator: 2, storyteller: 1 } },
-    ],
-  },
-  {
-    id: 'news',
-    question: '세상 뉴스 중 눈길이 가는 것은?',
-    options: [
-      { text: '일상을 바꾸는 새 정책·제도', scores: { civic: 2, solver: 1 } },
-      { text: '신기술과 새 서비스 출시 소식', scores: { explorer: 2, maker: 1 } },
-      { text: '사람들의 반응과 화제가 된 콘텐츠', scores: { storyteller: 2, connector: 1 } },
-      { text: '디자인·문화 트렌드', scores: { creator: 2, storyteller: 1 } },
-    ],
-  },
-  {
     id: 'helper',
     question: '친구가 고민을 상담해 왔다. 나의 첫 마디는?',
     options: [
@@ -154,26 +126,6 @@ export const TYPE_TEST_QUESTIONS = [
       { text: '"비슷한 사례를 찾아서 참고해 보자"', scores: { civic: 2, explorer: 1 } },
       { text: '"네 이야기가 사람들에게 전해지게 해 보자"', scores: { storyteller: 2, connector: 1 } },
       { text: '"그 마음, 같이 있어 줄게"', scores: { connector: 2, civic: 1 } },
-    ],
-  },
-  {
-    id: 'role-model',
-    question: '성공한 공모전 참가자의 모습은 어떤 모습일까요?',
-    options: [
-      { text: '문제를 발견하고 제안으로 연결하는 사람', scores: { solver: 2, civic: 1 } },
-      { text: '새 도구를 먼저 익히고 응용하는 사람', scores: { explorer: 2, maker: 1 } },
-      { text: '직접 만들어 결과물로 보여 주는 사람', scores: { maker: 2, creator: 1 } },
-      { text: '사람들의 마음을 움직인 사람', scores: { storyteller: 2, connector: 1 } },
-    ],
-  },
-  {
-    id: 'compliment',
-    question: '주변에서 가장 자주 듣는 나의 장점은?',
-    options: [
-      { text: '"책임감이 있어서 믿을 만해"', scores: { civic: 2, solver: 1 } },
-      { text: '"호기심이 많아서 같이 있으면 재밌어"', scores: { explorer: 2, creator: 1 } },
-      { text: '"손이 빠르고 결과물이 좋아"', scores: { maker: 2, solver: 1 } },
-      { text: '"경청을 잘해서 너랑 있으면 편안해"', scores: { connector: 2, storyteller: 1 } },
     ],
   },
   {
@@ -217,26 +169,6 @@ export const TYPE_TEST_QUESTIONS = [
     ],
   },
   {
-    id: 'prize',
-    question: '공모전 상금을 받았다. 가장 뿌듯한 사용처는?',
-    options: [
-      { text: '문제 해결에 도움 될 도구·강의에 투자', scores: { solver: 2, explorer: 1 } },
-      { text: '더 좋은 장비·재료로 업그레이드', scores: { maker: 2, creator: 1 } },
-      { text: '함께한 사람들과의 기념 모임', scores: { connector: 2, storyteller: 1 } },
-      { text: '다음 작품을 위한 나만의 작업 공간', scores: { creator: 2, maker: 1 } },
-    ],
-  },
-  {
-    id: 'advice',
-    question: '친구가 공모전에 도전한다며 조언을 구한다. 나의 조언은?',
-    options: [
-      { text: '"네가 아픈 문제부터 찾아 봐, 그게 주제야"', scores: { solver: 2, civic: 1 } },
-      { text: '"요즘 새로 나온 도구부터 익혀 봐"', scores: { explorer: 2, maker: 1 } },
-      { text: '"작게라도 일단 만들어서 보여 줘"', scores: { maker: 2, solver: 1 } },
-      { text: '"네 이야기가 담긴 결과물을 만들어"', scores: { storyteller: 2, creator: 1 } },
-    ],
-  },
-  {
     id: 'self-time',
     question: '혼자만의 시간에 즐기는 것은?',
     options: [
@@ -274,36 +206,6 @@ export const TYPE_TEST_QUESTIONS = [
       { text: '직접 만들어 돌아가는 시제품', scores: { maker: 2, solver: 1 } },
       { text: '마음을 울리는 한 편의 캠페인', scores: { storyteller: 2, connector: 1 } },
       { text: '정책·제도를 바꿀 구체적인 방안', scores: { civic: 2, solver: 1 } },
-    ],
-  },
-  {
-    id: 'presentation',
-    question: '결과물 발표에서 맡고 싶은 몫은?',
-    options: [
-      { text: '기획 논리를 순서대로 정리하기', scores: { solver: 2, maker: 1 } },
-      { text: '시연 화면을 직접 굴려 보여 주기', scores: { maker: 2, explorer: 1 } },
-      { text: '팀이 현장에서 들은 목소리 전하기', scores: { connector: 2, storyteller: 1 } },
-      { text: '슬라이드 비주얼로 첫인상 잡기', scores: { creator: 2, maker: 1 } },
-    ],
-  },
-  {
-    id: 'group-work',
-    question: '공동 작업에서 사람들이 나에게 찾아오는 이유는?',
-    options: [
-      { text: '막힌 문제를 정리해 주려고', scores: { solver: 2, explorer: 1 } },
-      { text: '"매끄러운 발표 문장을 다듬어 주려고"', scores: { storyteller: 2, maker: 1 } },
-      { text: '분위기가 가라앉았을 때', scores: { connector: 2, storyteller: 1 } },
-      { text: '뭔가 멋진 걸 만들고 싶을 때', scores: { maker: 2, creator: 1 } },
-    ],
-  },
-  {
-    id: 'dream',
-    question: '10년 뒤 내 모습 중 가장 끌리는 그림은?',
-    options: [
-      { text: '사회 문제를 제안으로 풀어내는 사람', scores: { civic: 2, solver: 1 } },
-      { text: '새 기술로 전에 없던 것을 만드는 사람', scores: { explorer: 2, maker: 1 } },
-      { text: '사람들의 이야기에 목소리가 되는 사람', scores: { storyteller: 2, connector: 1 } },
-      { text: '세상의 장면을 예쁘게 바꾸는 사람', scores: { creator: 2, maker: 1 } },
     ],
   },
 ]

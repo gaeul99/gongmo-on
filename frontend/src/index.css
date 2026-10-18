@@ -348,7 +348,8 @@ p {
    그림자를 한꺼번에 부여한다. 손을 올릴 때의 추가 상승은 각 hover 규칙의
    --shadow-hover가 담당하고, 화면을 덮는 패널(notif-panel·search-dropdown·
    category-panel)은 각 컴포넌트 CSS에서 더 강한 --shadow-pop을 쓴다.
-   :where 명시도 0이라 자체 box-shadow를 선언한 카드(marquee-card 등)는 그 값이 이긴다. */
+   :where 명시도 0이라 자체 box-shadow를 선언한 카드(marquee-card 등)는 그 값이 이긴다.
+   2026-10-19 사용자 요청으로 박스 모양 버튼·안내 박스도 같은 그림자를 받는다. */
 :where(
     .service-tab,
     .explore-card,
@@ -361,14 +362,26 @@ p {
     .challenge-count,
     .roadmap-stage,
     .growth-timeline,
+    .type-test-last-result,
     .type-test-panel,
     .type-test-result-card,
+    .type-test-retry,
+    .type-test-copy,
     .note-card,
     .note-qa,
+    .notes-tips,
     .input-archive-item,
     .profile-card,
     .my-contest-item,
-    .profile-edit
+    .profile-edit,
+    .proposal-preview,
+    .diff-example,
+    .apply-done,
+    .checklist-complete,
+    .differentiation-text,
+    .analysis-retry,
+    .restart-button,
+    .wish-button
   ) {
   box-shadow: var(--shadow);
 }

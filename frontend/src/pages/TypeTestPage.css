@@ -85,25 +85,27 @@
   color: var(--accent-text);
 }
 
+/* '지난 결과 보기' 박스 — 2026-10-19 사용자 요청으로 아래 인트로 패널과 같은
+   흰 카드 모양(배경·테두리·반경·그림자)으로 통일했다. 그림자는 index.css의
+   카드 그림자 :where 목록이 부여한다 */
 .type-test-last-result {
   display: block;
   width: 100%;
   margin: 0 0 12px;
   font: inherit;
-  font-size: 12px;
-  color: var(--accent-text);
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-  border-radius: 12px;
-  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
   /* width + padding 조합 — 전역 border-box 규칙이 없어 명시 필요 */
   box-sizing: border-box;
   cursor: pointer;
-  transition: opacity 0.15s;
 }
 
 .type-test-last-result:hover {
-  opacity: 0.85;
+  box-shadow: var(--shadow-hover);
 }
 
 .type-test-start {
@@ -266,10 +268,14 @@
 }
 
 /* --- 결과 --- */
+/* 결과 카드 — 2026-10-19 사용자 요청으로 테두리를 다른 박스(panel)와 동일한
+   기본 테두리로 통일했다(accent 테두리 → --border). 배경은 유형 진단 결과임을
+   살리려는 연한 포인트색을 유지하고, 그림자는 index.css 카드 그림자 목록이
+   panel과 같이 부여한다 */
 .type-test-result-card {
   text-align: center;
   background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 30px 24px 26px;
   margin-bottom: 32px;
@@ -521,7 +527,8 @@
   gap: 12px;
   padding: 12px 14px;
   background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
+  /* 아래 추천 공모전 항목(.type-test-contest-item)과 같은 연회색 테두리 */
+  border: 1px solid var(--border);
   border-radius: 12px;
 }
 
@@ -651,6 +658,8 @@
   gap: 10px;
 }
 
+/* '다시 검사하기'·'결과 복사' — 2026-10-19 사용자 요청으로 다른 박스들과 같은
+   연회색 테두리·카드 그림자로 통일했다(그림자는 index.css의 :where 목록) */
 .type-test-retry,
 .type-test-copy {
   flex: 1;
@@ -658,17 +667,16 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--accent-text);
-  background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 11px 16px;
   cursor: pointer;
-  transition: opacity 0.15s;
 }
 
 .type-test-retry:hover,
 .type-test-copy:hover {
-  opacity: 0.85;
+  box-shadow: var(--shadow-hover);
 }
 
 .type-test-copy-message {

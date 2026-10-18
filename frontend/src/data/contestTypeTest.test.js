@@ -50,7 +50,7 @@ describe('calculateContestType', () => {
     expect(result.distribution.every((row) => row.percent === 0 && row.score === 0)).toBe(true)
   })
 
-  it('30문항 전체 응답에서도 만점(문항당 2점) 기준 일치율을 낸다', () => {
+  it('20문항 전체 응답에서도 만점(문항당 2점) 기준 일치율을 낸다', () => {
     const answers = TYPE_TEST_QUESTIONS.map(() => 0)
     const result = calculateContestType(answers)
     const totalScore = result.distribution.reduce((total, row) => total + row.score, 0)

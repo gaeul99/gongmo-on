@@ -468,7 +468,8 @@
 /* 차별화 포인트 안내 */
 .differentiation-text {
   background: var(--bg);
-  border: 1px dashed var(--accent-border);
+  /* 다른 박스들과 같은 연회색 점선 테두리(2026-10-19 사용자 요청) */
+  border: 1px dashed var(--border);
   border-radius: 16px;
   padding: 20px 24px;
   line-height: 180%;
@@ -833,7 +834,8 @@
   justify-content: space-between;
   gap: 10px;
   flex-wrap: wrap;
-  border: 1px solid var(--accent-border);
+  /* 응모 완료 표시 박스 — 다른 박스들과 같은 연회색 테두리·그림자(2026-10-19) */
+  border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--accent-bg);
   padding: 10px 14px;
@@ -908,7 +910,8 @@
   font-weight: 700;
   color: var(--accent-text);
   background: var(--bg);
-  border: 1px solid var(--accent-border);
+  /* 상세 페이지의 찜 버튼(.detail-wish-button)과 같은 연회색 테두리 */
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px 20px;
   cursor: pointer;
@@ -919,6 +922,7 @@
 
 .wish-button:hover {
   background: var(--hover-bg);
+  box-shadow: var(--shadow-hover);
 }
 
 .wish-button.active {
@@ -1009,7 +1013,8 @@
   font-size: 13px;
   color: var(--accent-text);
   background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
+  /* 완료 안내 박스 — 다른 박스들과 같은 연회색 테두리·그림자(2026-10-19) */
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px 12px;
   word-break: keep-all;
@@ -1089,7 +1094,8 @@
   font-weight: 700;
   color: var(--accent-text);
   background: var(--bg);
-  border: 1px solid var(--accent);
+  /* 유형 검사의 '다시 검사하기'와 같은 박스 모양 — 연회색 테두리·그림자(2026-10-19) */
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 15px 24px;
   cursor: pointer;
@@ -1101,6 +1107,7 @@
 .restart-button:hover {
   transform: translateY(-1px);
   background: var(--hover-bg);
+  box-shadow: var(--shadow-hover);
 }
 
 .restart-button:active {
@@ -1146,7 +1153,8 @@
 /* AI 분석 실패 공지 — 재시도 경로를 명확히 제시 */
 .analysis-retry {
   margin-top: 16px;
-  border: 1px solid var(--accent-border);
+  /* 다른 박스들과 같은 연회색 테두리·그림자(2026-10-19 사용자 요청) */
+  border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--accent-bg);
   padding: 14px 18px;

@@ -116,7 +116,7 @@ function HomePage({
           <Reveal as="article" className="feature-item">
             <AppLink className="feature-card" href="/test" onNavigate={onTypeTest}>
               <h3>공모전 유형 검사</h3>
-              <p>30문항으로 나의 공모전 성향을 찾고, 시작할 아이디어 방향을 정해요.</p>
+              <p>20문항으로 나의 공모전 성향을 찾고, 시작할 아이디어 방향을 정해요.</p>
             </AppLink>
           </Reveal>
           <Reveal as="article" className="feature-item" delay={90}>

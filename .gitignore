@@ -18,6 +18,10 @@ backend/src/data/*.json
 # 설계 문서 (로컬에만 보관 — GitLab에는 올리지 않음)
 artifacts/
 
-# 문서·실행 스크립트 (로컬에만 보관 — GitLab에는 올리지 않음)
+# 발표 자료 (로컬에만 보관 — GitLab에는 올리지 않음)
+발표/
+
+# 문서·실행 스크립트 (로컬에만 보관 — GitLab에는 올리지 않음. README는 예외로 포함)
 *.md
+!/README.md
 *.cmd

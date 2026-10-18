@@ -13,7 +13,7 @@ import type { TypeIdeaHints } from './IdeaInputPage'
 import './TypeTestPage.css'
 
 const LAST_RESULT_KEY = STORAGE_KEYS.typeTest
-// 진행 중 답변 저장 키 — 30문항 도중에 새로고침해도 이어서 진행할 수 있게 한다.
+// 진행 중 답변 저장 키 — 20문항 도중에 새로고침해도 이어서 진행할 수 있게 한다.
 const PROGRESS_KEY = 'gongmo-on:type-test-progress'
 
 type LastResult = {
@@ -218,7 +218,7 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
           )}
           <section className="type-test-panel type-test-intro" data-reveal>
             <ul className="type-test-points">
-              <li>총 {TYPE_TEST_QUESTIONS.length}문항 · 약 3분</li>
+              <li>총 {TYPE_TEST_QUESTIONS.length}문항 · 약 2분</li>
               <li>결과는 7가지 공모온 유형 중 하나 + 성향 일치율</li>
               <li>결과 화면에서 접수 중인 공모전 3곳을 추천</li>
             </ul>
@@ -373,7 +373,9 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
             <p className="type-test-tip-text">{result.type.tip}</p>
           </section>
           <section className="type-test-panel" data-reveal>
-            <h2 className="type-test-panel-title">이 유형에게 추천하는 공모전</h2>
+            <h2 className="type-test-panel-title">
+              이 유형에게 어울리는 공모전 3곳을 추천해 줘요
+            </h2>
             <p className="type-test-panel-caption">
               접수 중인 공모전 중에서 골랐어요.
             </p>
