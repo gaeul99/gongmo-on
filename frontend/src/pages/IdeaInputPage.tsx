@@ -1,6 +1,9 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
+import AppLink from '../components/AppLink'
 import CategorySelect from '../components/CategorySelect'
+import { CONTEST_TYPES } from '../data/contestTypeTest.js'
+import { STORAGE_KEYS } from '../utils/storageKeys.js'
 import type { SavedIdea } from './MyPage'
 import './IdeaInputPage.css'
 
@@ -37,6 +40,8 @@ type Props = {
     id: string,
     patch: { title: string; description: string; category: string },
   ) => boolean
+  // 힌트가 없을 때 보여 주는 '유형 검사 하러 가기' 안내가 이동할 때 씁니다.
+  onGoTypeTest: () => void
 }
 
 type FieldErrors = {
@@ -53,15 +58,36 @@ function IdeaInputPage({
   onOpenIdea,
   onDeleteIdea,
   onUpdateIdea,
+  onGoTypeTest,
 }: Props) {
   // 백엔드 검증 한도(account/idea.controller)와 맞춘 길이 제한.
   // 대용량 텍스트가 그대로 AI 프롬프트로 전송되는 것을 막는다.
   const TITLE_MAX = 100
   const DESCRIPTION_MAX = 2000
-  const hints = typeHints?.examples ?? []
+  // 유형 검사를 마친 적이 있으면 저장된 결과로 힌트를 채운다 — 검사 화면을 거치지
+  // 않고 입력 화면으로 바로 와도 '검사 결과는 아이디어 입력 화면의 힌트로 자동
+  // 채워진다'(기획)를 지킨다. 검사 화면의 CTA로 넘어온 typeHints가 우선이다.
+  const savedTypeHints = useMemo<TypeIdeaHints | null>(() => {
+    if (typeHints) return null
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.typeTest)
+      if (!raw) return null
+      const parsed = JSON.parse(raw) as { typeId?: string }
+      const typeId = parsed?.typeId
+      if (!typeId || !Object.prototype.hasOwnProperty.call(CONTEST_TYPES, typeId)) return null
+      const type = CONTEST_TYPES[typeId as keyof typeof CONTEST_TYPES]
+      return { typeName: type.name, emoji: type.emoji, examples: type.ideaHints }
+    } catch {
+      return null
+    }
+  }, [typeHints])
+  const activeHints = typeHints ?? savedTypeHints
+  const hints = activeHints?.examples ?? []
   const [title, setTitle] = useState(initialIdea?.title ?? '')
   const [description, setDescription] = useState(
-    () => initialIdea?.description || hints[0] || '',
+    // 설명란 자동 채움은 검사 화면의 CTA로 넘어온 경우에만 — 저장 결과 기준 힌트를
+    // 몰래 채워 넣으면 예시 문장을 그대로 분석하는 실수를 부를 수 있다.
+    () => initialIdea?.description || typeHints?.examples[0] || '',
   )
   const [category, setCategory] = useState(initialIdea?.category ?? '')
   const [errors, setErrors] = useState<FieldErrors>({})
@@ -180,14 +206,13 @@ function IdeaInputPage({
               {description.length}/{DESCRIPTION_MAX}
             </span>
           </label>
-          {typeHints && hints.length > 0 && (
+          {activeHints && hints.length > 0 && (
             <div className="hint-panel">
-              <p className="hint-panel-title">
-                <span aria-hidden="true">{typeHints.emoji}</span> {typeHints.typeName} 맞춤 아이디어
-                힌트
-              </p>
+              <p className="hint-panel-title">{activeHints.typeName} 맞춤 아이디어 힌트</p>
               <p className="hint-panel-caption">
-                검사 결과에 어울리는 예시예요. 눌러 넣거나 자유롭게 고쳐 쓰세요.
+                {typeHints
+                  ? '검사 결과에 어울리는 예시예요. 눌러 넣거나 자유롭게 고쳐 쓰세요.'
+                  : '전에 받은 검사 결과 기준이에요. 눌러 넣거나 자유롭게 고쳐 쓰세요.'}
               </p>
               <div className="hint-chips" role="group" aria-label="유형 맞춤 아이디어 힌트">
                 {hints.map((hint, index) => (
@@ -204,6 +229,31 @@ function IdeaInputPage({
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+          {!activeHints && (
+            <div className="hint-panel hint-panel--suggest">
+              <p className="hint-panel-title">유형 검사를 하면 맞춤 힌트가 생겨요</p>
+              <p className="hint-panel-caption">
+                20문항 검사로 나의 준비 성향을 찾으면, 그에 어울리는 아이디어 예시가 이 자리에
+                나타나요.
+              </p>
+              <AppLink className="hint-panel-link" href="/test" onNavigate={onGoTypeTest}>
+                유형 검사 하러 가기 →
+              </AppLink>
+            </div>
+          )}
+          {/* 저장된 검사 결과 기준 힌트가 떠 있을 때도 안내를 남긴다(2026-10-19 사용자
+              요청) — 검사 화면의 CTA로 막 넘어온 경우(typeHints)는 생략한다. 안내는
+              테두리 없이 제목과 박스 버튼을 나란히 보여 준다(같은 날 사용자 요청) */}
+          {!typeHints && savedTypeHints && (
+            <div className="hint-panel hint-panel--retest">
+              <p className="hint-panel-title">
+                유형 검사를 다시 받으면 힌트가 새 결과 기준으로 바뀌어요
+              </p>
+              <AppLink className="hint-panel-link" href="/test" onNavigate={onGoTypeTest}>
+                유형 검사 다시 하기 →
+              </AppLink>
             </div>
           )}
           <textarea

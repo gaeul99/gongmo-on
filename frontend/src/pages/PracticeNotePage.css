@@ -44,13 +44,22 @@
   word-break: keep-all;
 }
 
-/* 도구 줄 — 새 노트 만들기 + 분석으로 이어가는 입구 */
+/* 도구 줄 — 새 노트 만들기 + 두 출구(분석 입구·대시보드 버튼)는 세로로 나란히 */
 .notes-toolbar {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px 16px;
   margin-top: 22px;
+}
+
+.notes-links {
+  display: flex;
+  flex-direction: column;
+  /* 컨테이너 폭을 가장 긴 버튼에 맞춰 두 버튼 가로길이를 동일하게 맞춘다
+     (2026-10-19 사용자 요청) */
+  width: fit-content;
+  gap: 2px;
 }
 
 .notes-new-button {
@@ -71,19 +80,48 @@
   opacity: 0.92;
 }
 
+/* 아이디어 분석 입구 버튼 — 대시보드 출구 버튼과 같은 모양으로 두 출구를
+   나란히 맞춘다(2026-10-19 사용자 요청) */
 .notes-to-input {
   font: inherit;
   font-size: 12.5px;
   font-weight: 700;
-  color: var(--accent-text);
-  background: none;
-  border: none;
-  padding: 8px 0;
+  color: var(--text-h);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 14px;
   cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .notes-to-input:hover {
-  text-decoration: underline;
+  background: var(--hover-bg);
+  border-color: var(--accent-border);
+}
+
+/* 대시보드로 이어지는 출구 버튼 — 기획 흐름(연습 노트 → 대시보드)의 마지막 고리.
+   분석 입구 링크 아래에 세로로 나란히 두고, 버튼 모양으로 목적지를 구분한다
+   (2026-10-19 사용자 요청) */
+.notes-to-dashboard {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-h);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.notes-to-dashboard:hover {
+  background: var(--hover-bg);
+  border-color: var(--accent-border);
 }
 
 /* 비어 있을 때 */

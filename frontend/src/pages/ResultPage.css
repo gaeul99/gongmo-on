@@ -107,7 +107,9 @@
 
 .proposal-intro strong {
   font-weight: 700;
-  color: var(--text-h);
+  /* 이모지 없이 포인트를 주는 방법 — 크기는 그대로 두고 포인트 파랑으로만 강조한다
+     (2026-10-19 사용자 규칙) */
+  color: var(--brand-text);
 }
 
 .proposal-waiting {
@@ -330,6 +332,14 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 24px;
+  /* '상세 정보 보기' 링크 없이 카드 전체가 상세 화면으로 이동한다
+     (2026-10-19 사용자 요청) — 글자 크기·이모지 없이 손가락·테두리로 알려 준다 */
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.case-card:hover {
+  border-color: var(--accent-border);
 }
 
 .case-top {
@@ -699,7 +709,41 @@
   text-align: left;
 }
 
-/* 앱 내 상세 + 외부 사이트 링크 나란히 */
+/* '적합도순으로 전체 공모전 둘러보기' — 추천 상위 4개 아래에서 탐색 화면의
+   적합도순 정렬로 이어지는 다리(2026-10-19 화면 흐름 점검). 분석을 마친
+   사용자의 다음 목적지라 카드 링크보다 한 단계 큰 알약 버튼으로 둔다 */
+.contest-more {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.contest-more-link {
+  display: inline-block;
+  /* padding 조합 — 전역 border-box 규칙이 없어 명시 필요 */
+  box-sizing: border-box;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand-ink);
+  background: var(--brand);
+  border-radius: 999px;
+  padding: 11px 22px;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.contest-more-link:hover {
+  opacity: 0.9;
+}
+
+.contest-more-caption {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-2);
+  word-break: keep-all;
+}
+
+/* 외부 사이트 링크 — 앱 내 상세는 카드 클릭으로 이동한다(2026-10-19 사용자 요청) */
 .case-links {
   display: flex;
   flex-wrap: wrap;
@@ -904,6 +948,19 @@
   gap: 8px;
 }
 
+/* 응모·찜 버튼 — 카드 폭의 절반으로 줄여 가운데에 모은다
+   (2026-10-19 사용자 요청). 직계 버튼에만 적용해 확인 단계('제출했어요')의
+   버튼 배치는 그대로 둔다 */
+.contest-actions > .apply-button {
+  width: 50%;
+  margin-inline: auto;
+}
+
+.contest-actions > .wish-button {
+  width: 50%;
+  align-self: center;
+}
+
 .wish-button {
   font: inherit;
   font-size: 12px;
@@ -940,6 +997,25 @@
 .case-detail {
   flex: 1;
   min-width: 0;
+}
+
+/* 포스터 + 외부 사이트 링크 — 링크는 포스터 바로 아래, 포스터 폭에 맞춰
+   가운데로 붙인다(2026-10-19 사용자 요청) */
+.case-media {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.case-media .case-links {
+  margin-top: 0;
+}
+
+/* 포스터 아래 외부 링크 — 공통 링크(13px)보다 한 단계 작게(2026-10-19 사용자 요청) */
+.case-media .detail-link {
+  font-size: 11.5px;
 }
 
 .case-image {

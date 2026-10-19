@@ -4,7 +4,7 @@
 // 라벨은 utils/contestAlerts.js의 기준(deadlineStatus·isApplicationOpen)을 쓴다.
 // 아이디어 분석을 한 사용자에게는 분석 스냅숏의 적합도 점수로 '적합도순'
 // 정렬과 카드 뱃지가 생기고, 아직 분석 전이면 그 자리에 안내 한 줄이 보인다.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import AppLink from '../components/AppLink'
 import { useContestPool, getSyncedContestCount } from '../data/contestPool.js'
 import { pageItems } from '../utils/pagination'
@@ -19,6 +19,9 @@ type Props = {
   onBack: () => void
   // 홈 '곧 시작되는 공모전' 전체 보기로 들어오면 'upcoming'이 초기값이 된다.
   initialStatusFilter?: StatusFilter
+  // 결과 화면 '적합도순으로 전체 공모전 둘러보기'로 들어오면 'fit'이 초기값이 된다.
+  // 점수표(fitScores)가 비어 있으면 정렬 옵션 자체가 없으므로 기본값으로 되돌린다.
+  initialSort?: SortMode
   // 마지막 아이디어 분석의 공모전별 적합도 점수(App.tsx가 스냅숏에서 뽑아 준다).
   // 있으면 '적합도순' 정렬과 카드 점수 뱃지가 생긴다. null이면 아직 분석 전이다.
   fitScores?: Array<{ id: number; score: number }> | null
@@ -45,7 +48,7 @@ type ContestRow = {
 
 // '곧 시작되는 공모전' 전체 보기처럼 다른 화면에서 필터를 정해 두고 들어올 수 있게 내보낸다.
 export type StatusFilter = 'all' | ContestStatus
-type SortMode = 'soon' | 'far' | 'fit'
+export type SortMode = 'soon' | 'far' | 'fit'
 
 // 연령 필터 — mockData의 ageGroups('teen'·'adult')를 기준으로 삼는다.
 // '청소년'은 청소년(미성년)이 참여할 수 있는, '성인'은 성인이 참여할 수 있는
@@ -102,6 +105,7 @@ function ContestListPage({
   onOpenContest,
   onBack,
   initialStatusFilter = 'all',
+  initialSort,
   fitScores = null,
   onGoInput,
 }: Props) {
@@ -109,9 +113,21 @@ function ContestListPage({
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(initialStatusFilter)
   const [fieldFilter, setFieldFilter] = useState('all')
   const [ageFilter, setAgeFilter] = useState<AgeFilter>('all')
-  const [sort, setSort] = useState<SortMode>('soon')
+  const [sort, setSort] = useState<SortMode>(() =>
+    initialSort === 'fit' && (fitScores ?? []).length === 0 ? 'soon' : initialSort ?? 'soon',
+  )
   // 현재 페이지(1부터). 검색어·필터·정렬이 바뀌면 항상 1페이지로 되돌린다.
   const [page, setPage] = useState(1)
+
+  // 검색어를 입력창(query)과 목록 계산(appliedQuery)으로 나눠 둔다. 입력 글자는
+  // 즉시 반영하되 목록 필터는 입력이 멈춘 뒤 한 번만 다시 계산한다 — 매 글자마다
+  // 카드 목록·페이지네이션·푸터가 재배치돼 검색 입력 중 화면이 계속 움직이는
+  // 문제를 막는다(2026-10-19 사용자 지적).
+  const [appliedQuery, setAppliedQuery] = useState('')
+  useEffect(() => {
+    const timer = setTimeout(() => setAppliedQuery(query), 220)
+    return () => clearTimeout(timer)
+  }, [query])
 
   // 목업 + 백엔드 자동 등록이 합쳐진 공모전 풀. 자동 등록분은 앱 시작 직후 도착하며,
   // 도착하면 이 화면이 다시 그려져 목록에 합쳐져 보인다.
@@ -138,7 +154,7 @@ function ContestListPage({
   }, [contests])
 
   const filtered = useMemo(() => {
-    const q = query.trim()
+    const q = appliedQuery.trim()
     return contests
       .map((contest) => ({ contest, status: contestStatus(contest) }))
       .filter(({ status }) => statusFilter === 'all' || status === statusFilter)
@@ -148,7 +164,7 @@ function ContestListPage({
         if (!q) return true
         return `${contest.title} ${contest.organizer} ${contest.field} ${contest.description}`.includes(q)
       })
-  }, [contests, query, statusFilter, fieldFilter, ageFilter])
+  }, [contests, appliedQuery, statusFilter, fieldFilter, ageFilter])
 
   // 마감 임박순(기본)은 접수 중·곧 시작을 마감일 가까운 순으로, 마감된 공모전은
   // 맨 뒤에 최근에 닫힌 순으로 보낸다. 마감 여유순은 그 반대. 적합도순은 아이디어
@@ -169,7 +185,10 @@ function ContestListPage({
   }, [filtered, sort, fitScoreById])
 
   const hasFilters =
-    query.trim() !== '' || statusFilter !== 'all' || fieldFilter !== 'all' || ageFilter !== 'all'
+    appliedQuery.trim() !== '' ||
+    statusFilter !== 'all' ||
+    fieldFilter !== 'all' ||
+    ageFilter !== 'all'
 
   // 페이지 수와 현재 페이지가 보여 줄 카드 묶음. 필터 변경 시 page를 1로 되돌리므로
   // 범위를 벗어나는 일은 없지만, 안전하게 상한으로 잘라 둔다.
@@ -179,6 +198,7 @@ function ContestListPage({
 
   const resetFilters = () => {
     setQuery('')
+    setAppliedQuery('')
     setStatusFilter('all')
     setFieldFilter('all')
     setAgeFilter('all')
@@ -219,19 +239,21 @@ function ContestListPage({
               aria-label="공모전 검색"
               maxLength={40}
             />
-            {query && (
-              <button
-                type="button"
-                className="explore-search-clear"
-                onClick={() => {
-                  setQuery('')
-                  setPage(1)
-                }}
-                aria-label="검색어 지우기"
-              >
-                ×
-              </button>
-            )}
+            {/* 지우기 버튼 자리를 늘 확보한다 — 첫 글자를 입력할 때 버튼이
+                생기며 입력칸이 좁아져 글자가 밀리는 움직임을 막는다 */}
+            <button
+              type="button"
+              className="explore-search-clear"
+              onClick={() => {
+                setQuery('')
+                setAppliedQuery('')
+                setPage(1)
+              }}
+              aria-label="검색어 지우기"
+              style={{ visibility: query ? 'visible' : 'hidden' }}
+            >
+              ×
+            </button>
           </div>
 
           <div className="explore-chip-row" role="group" aria-label="접수 상태 필터">

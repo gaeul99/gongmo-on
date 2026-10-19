@@ -205,6 +205,9 @@
   top: 8px;
   left: 8px;
   font-size: 11px;
+  /* 이모지 없이도 배지가 포인트로 읽히게 굵기로 강조한다(2026-10-19 사용자 규칙 —
+     포인트는 글자 크기·이모지 대신 색·굵기·테두리로) */
+  font-weight: 700;
   border-radius: 999px;
   padding: 3px 9px;
 }

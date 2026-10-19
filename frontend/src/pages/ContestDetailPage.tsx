@@ -13,6 +13,9 @@ type Props = {
   onApplyContest: (target: Omit<AppliedContest, 'appliedAt'>) => void
   onToggleWish: (target: Omit<WishlistContest, 'addedAt'>) => void
   onGoMyPage: () => void
+  // '이 공모전으로 아이디어 분석 시작' — 탐색·마키로 유입된 사용자가 상세에서
+  // 아이디어 흐름(입력 → 분석)으로 합류하는 다리다.
+  onGoInput: () => void
   onBack: () => void
   onSignIn: (nickname: string, password: string) => Promise<AuthResult>
   onSignUp: (nickname: string, password: string, email: string, phone: string) => Promise<AuthResult>
@@ -41,6 +44,7 @@ function ContestDetailPage({
   onApplyContest,
   onToggleWish,
   onGoMyPage,
+  onGoInput,
   onBack,
   onSignIn,
   onSignUp,
@@ -275,6 +279,15 @@ function ContestDetailPage({
           위 소개와 응모 방법은 공모전 공고를 요약해 둔 참고 자료예요. 세부 일정·상금·제출
           양식은 반드시 공모전 사이트의 공식 공고로 확인해 주세요.
         </p>
+
+        <div className="detail-idea-cta" data-reveal>
+          <AppLink className="detail-idea-cta-link" href="/input" onNavigate={onGoInput}>
+            이 공모전으로 아이디어 분석 시작 →
+          </AppLink>
+          <p className="detail-idea-cta-caption">
+            아이디어를 입력하면 강점·보완점 분석과 공모전 적합도를 받을 수 있어요.
+          </p>
+        </div>
       </div>
     </div>
   )

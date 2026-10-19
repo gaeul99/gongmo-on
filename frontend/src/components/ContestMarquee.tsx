@@ -19,14 +19,6 @@ import './ContestMarquee.css'
 // 이 값은 '한 번에 한 카드' 이동량으로만 쓴다.
 const CARD_STEP = 296
 
-// 마감 상태별 배지 이모지 (tone은 deadlineStatus 기준)
-const TONE_EMOJI: Record<string, string> = {
-  today: '🔥',
-  urgent: '⏰',
-  upcoming: '📅',
-  closed: '📌',
-}
-
 type Props = {
   onOpenContest: (id: number) => void
 }
@@ -162,9 +154,7 @@ function ContestMarquee({ onOpenContest }: Props) {
                           img.src = '/contest/ck/placeholder.svg'
                         }}
                       />
-                      <span className={`marquee-badge tone-${status.tone}`}>
-                        {TONE_EMOJI[status.tone] ?? '📌'} {status.label}
-                      </span>
+                      <span className={`marquee-badge tone-${status.tone}`}>{status.label}</span>
                     </span>
                     <span className="marquee-info">
                       <span className="marquee-name">{contest.title}</span>

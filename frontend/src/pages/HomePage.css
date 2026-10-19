@@ -198,6 +198,45 @@
   vertical-align: 2px;
 }
 
+/* 히어로 첫 행동 CTA — 기획 흐름(유형 검사 → 아이디어 입력)의 시작을 히어로에서
+   바로 연다(2026-10-19 화면 흐름 점검). 주 CTA는 유형 검사 — 같은 날 사용자 요청으로
+   진한 파랑 알약에서 투명한 파랑 채움으로 바꾸고, 이어진 요청으로 그림자는 뺐다.
+   보조는 텍스트 링크 */
+.hero-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: 20px;
+}
+
+.hero-cta-primary {
+  display: inline-block;
+  /* padding 조합 — 전역 border-box 규칙이 없어 명시 필요 */
+  box-sizing: border-box;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand-text);
+  background: rgba(37, 99, 235, 0.12);
+  border-radius: 999px;
+  padding: 12px 24px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.hero-cta-primary:hover {
+  background: rgba(37, 99, 235, 0.2);
+}
+
+.hero-cta-secondary {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 @keyframes idea-example-fade {
   from {
     opacity: 0;

@@ -6,7 +6,7 @@ import MyPage from './pages/MyPage'
 import DashboardPage from './pages/DashboardPage'
 import TypeTestPage from './pages/TypeTestPage'
 import ContestDetailPage from './pages/ContestDetailPage'
-import ContestListPage, { type StatusFilter } from './pages/ContestListPage'
+import ContestListPage, { type SortMode, type StatusFilter } from './pages/ContestListPage'
 import PracticeNotePage from './pages/PracticeNotePage'
 import type { NotePrefill } from './pages/PracticeNotePage'
 import TopNav from './components/TopNav'
@@ -344,6 +344,9 @@ function App() {
   // ('곧 마감' 전체 보기는 전체, '곧 시작' 전체 보기는 'upcoming').
   // 주소의 ?status=도 함께 반영해 새 탭에서 열어도 같은 필터가 걸립니다.
   const [exploreFilter, setExploreFilter] = useState<StatusFilter>(exploreFilterFromLocation)
+  // 탐색 화면에 미리 걸어 둘 정렬 — 결과 화면의 '적합도순으로 전체 공모전 둘러보기'가
+  // 'fit'을 심어 적합도순으로 바로 열린다. 다른 입구는 undefined(기본 정렬)로 되돌린다.
+  const [exploreInitialSort, setExploreInitialSort] = useState<SortMode | undefined>(undefined)
   const urgentCount = urgentAlertCount(alerts)
   // 지금 확인이 필요한(오늘 마감·임박) 알림 목록의 조합. 조합이 바뀌면 새 알림이 생긴 것입니다.
   const urgentAlertKey = alerts
@@ -872,6 +875,7 @@ function App() {
         onOpenContest={openContest}
         onOpenExplore={() => {
           setExploreFilter('all')
+          setExploreInitialSort(undefined)
           navigate('contests')
         }}
         onToggleWish={handleToggleWish}
@@ -882,12 +886,14 @@ function App() {
           <HomePage
             onExplore={() => {
               setExploreFilter('all')
+              setExploreInitialSort(undefined)
               navigate('contests')
             }}
             // '곧 시작되는 공모전'의 전체 보기 — 탐색 화면을 '곧 시작' 필터로 엽니다.
             // 주소에도 ?status=를 심어 새 탭으로 열어도 같은 필터가 걸리게 합니다.
             onExploreUpcoming={() => {
               setExploreFilter('upcoming')
+              setExploreInitialSort(undefined)
               navigate('contests', '?status=upcoming')
             }}
             onOpenContest={openContest}
@@ -916,6 +922,7 @@ function App() {
           onUpdateIdea={handleUpdateIdea}
           onBack={() => navigate('home')}
           onAnalyze={handleAnalyze}
+          onGoTypeTest={() => navigate('test')}
         />
       )}
       {screen === 'contests' && (
@@ -925,6 +932,7 @@ function App() {
           onOpenContest={openContest}
           onBack={() => navigate('home')}
           initialStatusFilter={exploreFilter}
+          initialSort={exploreInitialSort}
           fitScores={fitScores}
           onGoInput={() => {
             setPrefill(null)
@@ -942,6 +950,11 @@ function App() {
           onApplyContest={handleApplyContest}
           onToggleWish={handleToggleWish}
           onGoMyPage={() => navigate('mypage')}
+          onGoInput={() => {
+            setPrefill(null)
+            setTypeHints(null)
+            navigate('input')
+          }}
           onSignIn={handleSignIn}
           onSignUp={handleSignUp}
           onBack={() => {
@@ -961,6 +974,7 @@ function App() {
             setTypeHints(hints)
             navigate('input')
           }}
+          onOpenContest={openContest}
         />
       )}
       {screen === 'result' && idea && (
@@ -981,6 +995,11 @@ function App() {
           onSaveIdea={(analysis) => handleSaveIdea(idea, analysis)}
           onGoMyPage={() => navigate('mypage')}
           onOpenContest={openContest}
+          onGoExplore={() => {
+            setExploreFilter('all')
+            setExploreInitialSort('fit')
+            navigate('contests')
+          }}
           onGoNotes={(draft) => {
             setNotePrefill(draft)
             navigate('notes')
@@ -996,6 +1015,7 @@ function App() {
           onGoLogin={() => navigate('mypage')}
           onOpenExplore={() => {
             setExploreFilter('all')
+            setExploreInitialSort(undefined)
             navigate('contests')
           }}
           onGoInput={() => {
@@ -1022,6 +1042,7 @@ function App() {
             setTypeHints(null)
             navigate('input')
           }}
+          onGoDashboard={() => navigate('dashboard')}
         />
       )}
       {screen === 'mypage' && (
@@ -1053,6 +1074,7 @@ function App() {
           }}
           onGoExplore={() => {
             setExploreFilter('all')
+            setExploreInitialSort(undefined)
             navigate('contests')
           }}
         />

@@ -17,14 +17,14 @@ type Props = {
 }
 
 // TypeTestPage가 저장하는 실제 스키마(typeId + 백분율)와 맞춘다.
-// 유형 이름·이모지는 CONTEST_TYPES에서 typeId로 되찾는다.
+// 유형 이름은 CONTEST_TYPES에서 typeId로 되찾는다.
 type TypeTestSaved = {
   typeId: string
   percentage?: number
   savedAt: string
 }
 
-function readTypeTest(): (TypeTestSaved & { emoji: string; name: string }) | null {
+function readTypeTest(): (TypeTestSaved & { name: string }) | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.typeTest)
     if (!raw) return null
@@ -33,7 +33,7 @@ function readTypeTest(): (TypeTestSaved & { emoji: string; name: string }) | nul
     if (!Object.prototype.hasOwnProperty.call(CONTEST_TYPES, parsed.typeId)) return null
     const meta = CONTEST_TYPES[parsed.typeId as keyof typeof CONTEST_TYPES]
     if (!meta?.name) return null
-    return { ...parsed, emoji: meta.emoji, name: meta.name }
+    return { ...parsed, name: meta.name }
   } catch {
     return null
   }
@@ -62,7 +62,7 @@ function GrowthTimeline({ myContests, savedIdeas }: Props) {
       done: typeTest !== null,
       status:
         typeTest !== null
-          ? `${typeTest.emoji} ${typeTest.name} · ${typeTest.savedAt}`
+          ? `${typeTest.name} · ${typeTest.savedAt}`
           : '30초 만에 나의 공모전 유형을 찾아 보세요',
     },
     {

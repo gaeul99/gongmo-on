@@ -87,6 +87,9 @@ type Props = {
   onBack: () => void
   // 결과 유형의 관심 분야와 맞춤 힌트를 입력 화면에 미리 채우면서 분석을 시작합니다.
   onGoInput: (category: string, hints: TypeIdeaHints) => void
+  // 유형 추천 3곳을 앱 안의 공모전 상세 화면으로 열 때 씁니다 — 외부 사이트로
+  // 새어 나가지 않게 상세에서 응모 기록·찜까지 이어 받습니다.
+  onOpenContest: (id: number) => void
 }
 
 type Stage = 'intro' | 'quiz' | 'result'
@@ -101,7 +104,7 @@ function getTypeById(typeId: string | null): ContestType | null {
     : null
 }
 
-function TypeTestPage({ onBack, onGoInput }: Props) {
+function TypeTestPage({ onBack, onGoInput, onOpenContest }: Props) {
   // 저장된 진행이 있으면 인트로를 건너뛰고 바로 이어서 진행합니다.
   const [stage, setStage] = useState<Stage>(() => (loadProgress() ? 'quiz' : 'intro'))
   const [answers, setAnswers] = useState<(number | null)[]>(() => {
@@ -388,9 +391,12 @@ function TypeTestPage({ onBack, onGoInput }: Props) {
                       {status.label}
                     </span>
                     <div className="type-test-contest-info">
-                      <a href={contest.url} target="_blank" rel="noreferrer">
-                        {contest.title} ↗
-                      </a>
+                      <AppLink
+                        href={`/contest/${contest.id}`}
+                        onNavigate={() => onOpenContest(contest.id)}
+                      >
+                        {contest.title}
+                      </AppLink>
                       <p>
                         {contest.organizer} · 마감 {contest.deadline}
                       </p>

@@ -146,6 +146,9 @@ type Props = {
   onGoMyPage: () => void
   // 앱 안의 공모전 상세 화면으로 이동 — 추천 공모전 카드에서 씁니다.
   onOpenContest: (id: number) => void
+  // 추천 상위 4개 아래의 '적합도순으로 전체 공모전 둘러보기' — 탐색 화면을
+  // 적합도순 정렬로 엽니다(아이디어 분석을 마친 사용자의 다음 목적지).
+  onGoExplore: () => void
   // 이 아이디어로 연습 노트를 만들 때 초안을 넘겨 연습 노트 화면으로 이동합니다.
   onGoNotes: (draft: { title: string; intent: string; diff: string }) => void
   onSignIn: (nickname: string, password: string) => Promise<AuthResult>
@@ -166,6 +169,7 @@ function ResultPage({
   onSaveIdea,
   onGoMyPage,
   onOpenContest,
+  onGoExplore,
   onGoNotes,
   onSignIn,
   onSignUp,
@@ -429,7 +433,7 @@ function ResultPage({
           onClick={() => setShowDiffExample((open) => !open)}
           aria-expanded={showDiffExample}
         >
-          📖 예시로 따라해 보기 {showDiffExample ? '▲' : '▼'}
+          예시로 따라해 보기 {showDiffExample ? '▲' : '▼'}
         </button>
         {showDiffExample && (
           <div className="diff-example">
@@ -541,7 +545,7 @@ function ResultPage({
 
       <div className="note-cta" data-reveal>
         <button type="button" className="note-cta-button" onClick={handleCreateNote}>
-          🗒️ 이 아이디어로 연습 노트 만들기 →
+          이 아이디어로 연습 노트 만들기 →
         </button>
         <p className="note-cta-hint">기획 의도가 채워진 채로 시작돼요.</p>
       </div>
@@ -551,7 +555,7 @@ function ResultPage({
         {analysis === null || proposalDraft === null ? (
           <>
             <p className="proposal-intro">
-              <strong>💡 기획서 쓰기가 막막할 때의 초안이에요.</strong> 분석 결과를 출품용
+              <strong>기획서 쓰기가 막막할 때의 초안이에요.</strong> 분석 결과를 출품용
               기획서 목차에 맞춰 뽑아 드려요.
             </p>
             <p className="proposal-waiting">분석이 끝나는 대로 분석 내용을 기획서 초안으로 정리해 드릴게요.</p>
@@ -559,7 +563,7 @@ function ResultPage({
         ) : (
           <>
             <p className="proposal-intro">
-              <strong>💡 기획서 쓰기가 막막할 때의 초안이에요.</strong> 미리보기로 확인하고
+              <strong>기획서 쓰기가 막막할 때의 초안이에요.</strong> 미리보기로 확인하고
               복사·TXT 내려받기로 가져가, 공고 양식에 맞게 다듬어 제출하세요.
             </p>
             <div className="proposal-actions">
@@ -701,7 +705,17 @@ function ResultPage({
           <>
           <div className="case-list">
             {recommendedContests.map((contest, index) => (
-            <article key={contest.id} className="case-card">
+            <article
+              key={contest.id}
+              className="case-card"
+              onClick={(event) => {
+                // '상세 정보 보기' 링크 대신 카드 전체가 상세 화면으로 이동한다
+                // (2026-10-19 사용자 요청). 카드 안의 링크·버튼(외부 사이트 이동,
+                // 응모 기록 등)을 누를 때는 카드 이동이 발동하지 않게 막는다.
+                if ((event.target as HTMLElement).closest('a, button')) return
+                onOpenContest(contest.id)
+              }}
+            >
               <div className="case-top">
                 <div className="case-title-wrap">
                   <span className="case-rank">{index + 1}</span>
@@ -732,18 +746,6 @@ function ResultPage({
                     </div>
                   </dl>
                   <p className="case-summary">{contest.matchReason}</p>
-                  <div className="case-links">
-                    <AppLink
-                      className="detail-link detail-link-button"
-                      href={`/contest/${contest.id}`}
-                      onNavigate={() => onOpenContest(contest.id)}
-                    >
-                      상세 정보 보기 →
-                    </AppLink>
-                    <a className="detail-link" href={contest.url} target="_blank" rel="noreferrer">
-                      공모전 사이트 ↗
-                    </a>
-                  </div>
                   <div className="contest-actions">
                     {appliedContestIds.includes(contest.id) ? (
                       <div className="apply-done">
@@ -859,15 +861,32 @@ function ResultPage({
                     </button>
                   </div>
                 </div>
-                <img
-                  className="case-image"
-                  src={contest.image}
-                  alt={`${contest.title} 공모전 포스터`}
-                  loading="lazy"
-                />
+                {/* 포스터와 외부 사이트 링크 — 링크는 포스터 바로 아래에 붙인다
+                    (2026-10-19 사용자 요청) */}
+                <div className="case-media">
+                  <img
+                    className="case-image"
+                    src={contest.image}
+                    alt={`${contest.title} 공모전 포스터`}
+                    loading="lazy"
+                  />
+                  <div className="case-links">
+                    <a className="detail-link" href={contest.url} target="_blank" rel="noreferrer">
+                      공모전 사이트 ↗
+                    </a>
+                  </div>
+                </div>
               </div>
             </article>
             ))}
+          </div>
+          <div className="contest-more" data-reveal>
+            <AppLink className="contest-more-link" href="/contest" onNavigate={onGoExplore}>
+              적합도순으로 전체 공모전 둘러보기 →
+            </AppLink>
+            <p className="contest-more-caption">
+              나머지 공모전도 같은 적합도 점수로 정렬해 탐색 화면에서 비교할 수 있어요.
+            </p>
           </div>
           </>
         )}

@@ -381,6 +381,45 @@
   word-break: keep-all;
 }
 
+/* '이 공모전으로 아이디어 분석 시작' — 상세가 흐름의 섬이 되지 않게 아이디어
+   흐름(입력 → 분석)으로 합류시키는 다리다(2026-10-19 화면 흐름 점검).
+   같은 날 사용자 요청으로 박스 톤을 다른 카드 박스와 동일한 테두리·그림자로 맞췄다 */
+.detail-idea-cta {
+  margin-top: 16px;
+  text-align: center;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  /* width 100% + padding — 전역 border-box 규칙이 없어 명시 필요 */
+  box-sizing: border-box;
+}
+
+.detail-idea-cta-link {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand-ink);
+  background: var(--brand);
+  border-radius: 999px;
+  padding: 10px 20px;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.detail-idea-cta-link:hover {
+  opacity: 0.9;
+}
+
+.detail-idea-cta-caption {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-2);
+  word-break: keep-all;
+}
+
 @media (max-width: 640px) {
   .detail-hero {
     flex-direction: column;

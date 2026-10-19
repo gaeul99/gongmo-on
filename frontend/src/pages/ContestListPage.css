@@ -1,6 +1,12 @@
 /* 공모전 탐색 화면 — 전체 공모전 검색·필터·정렬 */
 
 .explore-inner {
+  /* .page가 flex column이라 margin: 0 auto만 두면 폭이 내용물(카드) 고유 폭을
+     따라 수축한다 — 검색으로 카드가 바뀌는 순간 폭이 1002↔1080px를 오가며
+     그리드가 3열↔4열로 깜빡이고 화면 높이가 통째로 왕복한다(2026-10-19 사용자
+     지적). width: 100%로 폭을 부모 기준으로 고정해 내용물과 무관하게 만든다.
+     max-width 1080(content-box)이라 테두리 상자는 1128px — 기존 배치와 동일 */
+  width: 100%;
   max-width: 1080px;
   margin: 0 auto;
   padding: 24px 24px 80px;

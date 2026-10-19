@@ -48,6 +48,9 @@ type Props = {
   onBack: () => void
   // 연습한 아이디어를 곧바로 분석으로 옮겨 보는 입구
   onGoInput: () => void
+  // 준비 현황·출품 로드맵이 모인 대시보드로 이어지는 출구 — 기획 흐름
+  // (연습 노트 → 대시보드)의 마지막 고리다.
+  onGoDashboard: () => void
 }
 
 function loadNotes(): PracticeNote[] {
@@ -82,7 +85,7 @@ const PRACTICE_TIPS = [
   '소리 내어 1분 발표를 연습하고 막힌 부분을 질문 칸에 옮겨 두면, 다음 연습 때 그 부분만 다듬으면 됩니다.',
 ]
 
-function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, onBack, onGoInput }: Props) {
+function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, onBack, onGoInput, onGoDashboard }: Props) {
   // 분석 결과에서 넘어오면 초안(title·intent)이 채워진 작성 화면으로 바로 시작합니다.
   const [notes, setNotes] = useState<PracticeNote[]>(loadNotes)
   // null이면 목록 화면, 값이면 작성·수정 화면입니다.
@@ -305,9 +308,16 @@ function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, on
         <button type="button" className="notes-new-button" onClick={openNew}>
           + 새 노트 만들기
         </button>
-        <AppLink className="notes-to-input" href="/input" onNavigate={onGoInput}>
-          아이디어를 AI 분석해 보고 싶다면 →
-        </AppLink>
+        {/* 두 출구는 세로로 나란히 — 대시보드 쪽은 버튼 모양으로 목적지를 구분한다
+            (2026-10-19 사용자 요청) */}
+        <div className="notes-links">
+          <AppLink className="notes-to-input" href="/input" onNavigate={onGoInput}>
+            아이디어를 AI 분석해 보고 싶다면 →
+          </AppLink>
+          <AppLink className="notes-to-dashboard" href="/dashboard" onNavigate={onGoDashboard}>
+            준비 현황·출품 로드맵은 대시보드에서 →
+          </AppLink>
+        </div>
       </div>
 
       {notes.length === 0 ? (
