@@ -1,6 +1,7 @@
-// 연습 노트 — 실제 응모 전에 심사 관점을 미리 연습해 두는 준비 노트.
-// 노트마다 기획 의도·차별점·예상 심사 질문·답변을 적어 두고,
-// 실제 기획서·발표·면담에서 그대로 쓸 수 있게 한다.
+// 연습 노트 — 실제 응모 전에 심사 관점을 미리 준비해 두는 노트.
+// 노트마다 기획 의도·차별점·예상 심사 질문·답변을 적어 두는데, 질문은
+// 심사위원이 기획서를 읽으며 품을 의문이다. 면접·발표가 없는 공모전은
+// 답변이 곧 기획서에 들어갈 문장이 되고, 있는 공모전은 발표 답변으로 쓴다.
 // 노트는 localStorage에 저장되고, 로그인 중이면 회고처럼 서버 백업에 함께 실립니다.
 import { useState } from 'react'
 import AppLink from '../components/AppLink'
@@ -82,7 +83,7 @@ function answeredCount(qa: PracticeQA[]): number {
 const PRACTICE_TIPS = [
   '심사위원은 보통 문제 정의 → 실현 가능성 → 차별점 → 기대효과 순서로 봅니다. 노트 칸도 같은 순서예요.',
   '예상 질문은 "비용은 어떻게 충당하나요?", "이미 있는 서비스와 뭐가 다른가요?", "팀이 감당 가능한가요?"부터 준비하세요.',
-  '소리 내어 1분 발표를 연습하고 막힌 부분을 질문 칸에 옮겨 두면, 다음 연습 때 그 부분만 다듬으면 됩니다.',
+  '면접·발표가 없는 공모전은 답변을 기획서에 들어갈 문장으로 옮겨 보세요. 질문에 답했다는 건 그 의문을 이미 해결했다는 뜻이에요.',
 ]
 
 function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, onBack, onGoInput, onGoDashboard }: Props) {
@@ -237,7 +238,8 @@ function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, on
           <fieldset className="note-qa">
             <legend>예상 심사 질문 · 내 답변</legend>
             <p className="note-qa-lead">
-              심사에서 실제로 나올 만한 질문을 미리 적고 답을 준비해 두세요.
+              심사위원이 기획서를 읽으며 품을 의문을 미리 적고 답해 두세요.
+              면접·발표가 없는 공모전은 이 답변이 기획서에 들어갈 문장이 돼요.
             </p>
             {draft.qa.map((pair, index) => (
               <div className="note-qa-row" key={index}>
@@ -299,8 +301,9 @@ function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, on
       <header className="notes-header" data-reveal>
         <h1>연습 노트</h1>
         <p>
-          실제 응모 전에 미리 연습해 두는 준비 노트예요. 기획 의도·차별점·예상 질문을
-          노트로 만들어 두면 기획서 작성과 발표, 심사 면담에서 그대로 쓸 수 있습니다.
+          실제 응모 전에 미리 준비해 두는 노트예요. 기획 의도·차별점·예상 질문을
+          노트로 만들어 두면 심사위원이 기획서에서 확인할 문장이 되고, 발표·면접이
+          있는 공모전은 그대로 답변으로 쓸 수 있습니다.
         </p>
       </header>
 
