@@ -419,7 +419,12 @@
   text-align: right;
 }
 
+/* 터치 화면에는 hover가 없다 — 기기 에뮬레이션도 입력을 터치로 바꿔 마우스를
+   올려도 :hover가 발생하지 않는다(2026-10-20 사용자 지적 '모바일에서 파란줄이
+   안 뜬다'). 누르는 순간(:active)에도 hover와 같은 파란 밑줄을 그어 모바일에서도
+   PC와 같은 반응을 보이게 한다 — 실기기 탭·에뮬레이터 길게 누르기 모두 이 규칙 */
 .feature-card:hover h3,
+.feature-card:active h3,
 .feature-card:focus-visible h3 {
   text-decoration: underline;
   text-decoration-thickness: 2px;
@@ -454,16 +459,14 @@
 }
 
 @media (max-width: 760px) {
-  /* 좁은 화면에서는 지그재그 낙차를 낼 폭이 없다 — 한 줄 왼쪽 정렬로 돌아간다 */
+  /* 모바일도 PC와 같은 지그재그 — 2026-10-20 사용자 요청('지그재그 보이도록').
+     기본 폭 min(560px, 100%)는 좁은 화면에서 컨테이너 폭 전부라 홀수 항목(왼쪽)과
+     짝수 항목(오른쪽)의 시작점이 같아져 낙차가 보이지 않는다 — 폭을 줄여 낙차를
+     만든다. 짝수 항목의 오른쪽 끌기(align-self: flex-end, 405행)·우측 정렬
+     (text-align: right, 418행)은 기본 규칙을 그대로 받는다 */
   .feature-item,
   .feature-item:nth-child(even) {
-    width: 100%;
-    align-self: stretch;
-  }
-
-  .feature-card,
-  .feature-item:nth-child(even) .feature-card {
-    text-align: left;
+    width: 78%;
   }
 }
 
@@ -578,9 +581,10 @@
 @media (max-width: 720px) {
   /* 히어로↔마키 간격 — PC 160px를 좁은 화면에 맞게 56px로 줄였다가,
      2026-10-19 사용자 요청 '모바일에서 히어로와 마키 간격 더 넓혀줘'로
-     96px로 다시 벌린다(히어로 padding-bottom 16px와 합쳐 112px) */
+     96px, 2026-10-20 '마키를 화면 아래쪽으로 더 내려줘'로 160px —
+     히어로 padding-bottom 16px와 합쳐 176px 간격 */
   .home-marquee-band {
-    padding-top: 96px;
+    padding-top: 160px;
   }
 
   /* 기능 소개 위 간격 — PC 300px를 110px로, 항목 간 150px를 64px로 */
@@ -592,7 +596,9 @@
     gap: 64px;
   }
 
+  /* 지그재그가 좁은 화면에서도 읽히도록 제목을 PC 28px→19px로 줄인다
+     (2026-10-20 사용자 요청 '글씨 사이즈 줄여주고') */
   .feature-card h3 {
-    font-size: 22px;
+    font-size: 19px;
   }
 }
