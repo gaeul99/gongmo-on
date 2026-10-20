@@ -84,7 +84,7 @@ function HomePage({
           data-reveal — 탐색 화면처럼 화면 진입 때 스르륵 떠오르는 효과(홈 버튼도 같은 효과) */}
       <section className="hero">
         <div className="hero-copy" data-reveal>
-          <h1 className="hero-title">공모온</h1>
+          <h1 className="hero-title">공모ON</h1>
           <p className="tagline" aria-label={TYPING_TEXT}>
             막막한 아이디어에도 방향이 있습니다.
             <br />

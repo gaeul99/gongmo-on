@@ -1,0 +1,58 @@
+/* 모바일 전용 스크롤바 알약 — 정밀 포인터(PC 마우스) 환경은 브라우저 커스텀
+   스크롤바(index.css ::-webkit-scrollbar)가 이미 있어 숨긴다. 손가락 환경인
+   좁은 화면(폰·기기 모드)에서만 오른쪽 끝에 그린다. 트랙은 CSS로 뷰포트에
+   고정(top/bottom 14px) — 알약 크기·위치는 JS가 트랙에 대한 백분율로 정해
+   축척(zoom)과 무관하게 화면에 맞는다. 하단 고정 바(z-index 50) 뒤로
+   지나가게 45 */
+.mobile-scroll-pill {
+  display: none;
+  position: fixed;
+  top: 14px;
+  bottom: 14px;
+  right: 3px;
+  width: 7px;
+  pointer-events: none;
+  z-index: 45;
+}
+
+.mobile-scroll-pill-thumb {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  border-radius: 999px;
+  background: var(--text-2);
+  opacity: 0;
+}
+
+/* 트랙 — PC 트랙(index.css ::-webkit-scrollbar-track)과 같은 구슬 줄.
+   배경색은 칠하지 않는다: 모바일 트랙은 레이아웃 자리를 쓰지 않는
+   오버레이라 --bg를 칠하면 본문을 가린다 */
+.mobile-scroll-pill-track {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-image: radial-gradient(circle, var(--border) 1.1px, transparent 1.6px);
+  background-size: 3px 9px;
+  background-repeat: repeat-y;
+  background-position: center;
+}
+
+@media (max-width: 768px) and (pointer: coarse) {
+  .mobile-scroll-pill {
+    display: block;
+  }
+
+  /* 브라우저 스크롤바(모바일에선 오버레이)는 index.css의 커스텀 스타일을
+     그대로 받아 알약과 겹쳐 두 개로 보인다(2026-10-20 사용자 제보) —
+     알약이 그려지는 같은 조건에서 브라우저 스크롤바를 숨겨 하나만 남긴다 */
+  html {
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+}

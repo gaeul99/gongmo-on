@@ -11,6 +11,7 @@ import PracticeNotePage from './pages/PracticeNotePage'
 import type { NotePrefill } from './pages/PracticeNotePage'
 import TopNav from './components/TopNav'
 import SiteFooter from './components/SiteFooter'
+import MobileScrollPill from './components/MobileScrollPill'
 import type {
   AppliedContest,
   AuthResult,
@@ -1093,6 +1094,7 @@ function App() {
         </div>
       )}
       <SiteFooter />
+      <MobileScrollPill />
     </>
   )
 }

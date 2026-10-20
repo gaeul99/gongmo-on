@@ -421,16 +421,39 @@
 }
 
 @media (max-width: 640px) {
-  .detail-hero {
-    flex-direction: column;
+  .detail-inner {
+    padding: 20px 16px 64px;
   }
 
+  .detail-hero {
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 12px;
+  }
+
+  /* 포스터 — 전체 폭이면 390px 화면의 4할 가까이를 이미지가 먹어 제목·정보가
+     첫 화면에서 밀려난다(2026-10-19 모바일 축적 정비). 폭을 줄이고 가운데 띄운다 */
   .detail-image {
     width: 100%;
-    max-width: 280px;
+    max-width: 224px;
+    margin: 0 auto;
+  }
+
+  .detail-hero-text h1 {
+    font-size: 20px;
   }
 
   .detail-facts {
     grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 18px;
+  }
+
+  .detail-inner section {
+    margin-top: 32px;
+  }
+
+  .detail-actions {
+    margin-top: 24px;
   }
 }

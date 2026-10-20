@@ -702,7 +702,9 @@ a.kpi-card:hover {
   color: var(--text);
 }
 
-/* 모바일: 페이지 버튼·탭·제목 링크를 손가락 탭 크기로 키운다 */
+/* 모바일: 페이지 버튼·탭·제목 링크를 손가락 탭 크기로 키운다.
+   패널·KPI 행 아래 간격(48px)도 그림자 높이를 고려한 PC 값이라 좁은 화면에서는
+   화면 비율에 맞게 줄인다(2026-10-19 모바일 축적 정비) */
 @media (max-width: 640px) {
   .pager-btn {
     padding: 8px 12px;
@@ -715,5 +717,13 @@ a.kpi-card:hover {
   .archive-title {
     display: inline-block;
     padding: 5px 0;
+  }
+
+  .kpi-row {
+    margin-bottom: 32px;
+  }
+
+  .dash-panel {
+    margin-bottom: 32px;
   }
 }

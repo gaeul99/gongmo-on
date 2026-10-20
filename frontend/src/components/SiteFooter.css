@@ -136,6 +136,15 @@
   transform: translate(-50%, 0);
 }
 
+/* 모바일 — PC용 위 여백 240px는 390px 화면에서 푸터 앞 대공백이 되므로
+   화면 비율에 맞춰 줄인다(2026-10-19 모바일 축적 정비). 아래 여백은 하단 고정 바
+   (약 51px)가 푸터 글줄을 가리지 않는 최소한만 남긴다 */
+@media (max-width: 768px) {
+  .site-footer {
+    padding: 88px 0 84px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .site-footer-toast {
     transition: none;

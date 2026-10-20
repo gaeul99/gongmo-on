@@ -945,6 +945,15 @@ section h2 {
   .profile-edit-grid {
     grid-template-columns: 1fr;
   }
+
+  /* 제목·로그인 카드 — 화면 비율에 맞춘 크기(2026-10-19 모바일 축적 정비) */
+  .mypage-header h1 {
+    font-size: 22px;
+  }
+
+  .login-card {
+    padding: 20px 18px;
+  }
 }
 
 /* 대시보드 '내 응모'·'내 관심'·'보관한 아이디어' 카드(/mypage?section=)에서 바로

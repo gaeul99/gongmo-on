@@ -685,3 +685,12 @@
   font-size: 12.5px;
   color: var(--accent-text);
 }
+
+/* 모바일 — 시작·분석 CTA의 33% 폭은 390px 화면에서 손가락 탭 크기에 못 미치므로
+   한 줄 전체 폭으로 넓힌다(2026-10-19 모바일 축적 정비) */
+@media (max-width: 640px) {
+  .type-test-start,
+  .type-test-analyze {
+    width: 100%;
+  }
+}
