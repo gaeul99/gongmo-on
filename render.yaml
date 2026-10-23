@@ -1,14 +1,7 @@
-# Render Blueprint — 공모온 단일 서비스(Docker): 백엔드 FastAPI + 프론트 SPA
-# 동시 서빙. DB도 블루프릿 안에서 함께 만들어 DATABASE_URL로 자동 연결한다.
-# 단, Render 무료 PostgreSQL은 생성 30일 후 만료되므로 상시 서비스에는
-# Neon 등 관리형 PostgreSQL 접속 문자열로 DATABASE_URL을 교체해 넣는다.
-# Render 대시보드에서 New + → Blueprint로 이 리포지토리를 고르면 서비스가
-# 만들어진다. sync: false 항목은 생성 과정에서 직접 입력하는 비밀값이다.
-databases:
-  - name: gongmo-on-db
-    databaseName: gongmo_on
-    plan: free
-
+# 공모온: Render 무료 Docker 웹서비스 + 외부 Neon PostgreSQL
+# 이 Blueprint는 Render PostgreSQL을 생성하지 않습니다.
+# Neon 무료 프로젝트에서 연결 문자열을 복사해 DATABASE_URL에 입력하세요.
+# DATABASE_URL 등 비밀값은 GitHub에 커밋하지 마세요.
 services:
   - type: web
     name: gongmo-on
@@ -19,9 +12,7 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: gongmo-on-db
-          property: connectionString
+        sync: false
       - key: OPENAI_API_KEY
         sync: false
       - key: OPENAI_BASE_URL
