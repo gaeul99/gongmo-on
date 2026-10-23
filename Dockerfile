@@ -19,6 +19,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/ ./
 COPY --from=web /app/frontend/dist /app/static
 ENV STATIC_DIR=/app/static \
-    OPENAI_MODEL=openai/gpt-5.6-luna
+    OPENAI_MODEL=openai/gpt-6-luna
 EXPOSE 3000
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-3000}"]

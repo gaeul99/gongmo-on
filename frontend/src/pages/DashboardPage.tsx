@@ -7,7 +7,7 @@ import { pageItems } from '../utils/pagination'
 import {
   DATA_AS_OF,
   buildActivityCounts,
-  buildChallengeHistory,
+  buildPortfolioModel,
   buildDeadlineRows,
   buildRoadmapCandidates,
 } from '../data/dashboard.js'
@@ -16,6 +16,7 @@ import {
   loadRoadmapChecks,
   saveRoadmapChecks,
 } from '../data/roadmap.js'
+import { downloadPortfolioCard } from '../utils/portfolioCard.js'
 import type { User } from './MyPage'
 import './DashboardPage.css'
 
@@ -210,11 +211,12 @@ function DashboardPage({
   // 복원처럼 화면에 머물러 일어난 기록 변화가 반영되지 않으므로, 데이터가 작은 만큼
   // 매 렌더 다시 계산한다(App.tsx의 알림 계산과 같은 패턴).
   const activity = buildActivityCounts()
-  // 도전 히스토리 — 내 응모 기록을 수상·탈락·진행 중으로 요약한 '성장의 증거'
-  const challenge = buildChallengeHistory(contests)
+  // 도전 히스토리 — 내 응모 기록을 수상·탈락·진행 중으로 요약한 '성장의 증거'.
+  // 포트폴리오 카드(이미지) 재료까지 한 번에 만든다(2026-10-23).
+  const portfolio = buildPortfolioModel(contests, user?.nickname)
   // 출품 로드맵 후보 — 내 응모·관심 중 아직 마감하지 않은 공모전
   const roadmapCandidates = buildRoadmapCandidates()
-  const maxChallengeField = Math.max(...challenge.fields.map((bar) => bar.count), 1)
+  const maxChallengeField = Math.max(...portfolio.fields.map((bar) => bar.count), 1)
 
   // 아직 마감하지 않은 공모전 중 가장 빠른 마감일 (KPI 보조 문구용)
   const soonest = deadlineRows.find((row) => row.status.tone !== 'closed' && row.status.left !== null)
@@ -362,9 +364,22 @@ function DashboardPage({
       <section className="dash-panel" aria-label="도전 히스토리" data-reveal>
         <div className="panel-head">
           <h2>도전 히스토리</h2>
-          <span className="panel-hint">수상·탈락·진행 중은 마이페이지 응모 기록에서 바꿔요</span>
+          <div className="panel-head-side">
+            <span className="panel-hint">수상·탈락·진행 중은 마이페이지 응모 기록에서 바꿔요</span>
+            {/* 포트폴리오 카드 — 도전 기록을 공유용 이미지(PNG)로 내려받는다(2026-10-23) */}
+            {portfolio.total > 0 && (
+              <button
+                type="button"
+                className="panel-link"
+                onClick={() => downloadPortfolioCard(portfolio)}
+                title="도전 기록을 SNS에 올릴 수 있는 이미지 카드(PNG)로 내려받아요"
+              >
+                포트폴리오 카드 저장 (PNG)
+              </button>
+            )}
+          </div>
         </div>
-        {challenge.total === 0 ? (
+        {portfolio.total === 0 ? (
           <div className="panel-empty-group">
             <p className="panel-empty">
               아직 응모 기록이 없어요. 분석 결과에서 공모전에 응모하면 도전 기록이 이곳에 쌓여요.
@@ -377,26 +392,26 @@ function DashboardPage({
           <div className="challenge-layout">
             <div className="challenge-counts">
               <div className="challenge-count is-total">
-                <span className="challenge-num">{challenge.total}</span>
+                <span className="challenge-num">{portfolio.total}</span>
                 <span className="challenge-label">누적 도전</span>
               </div>
               <div className="challenge-count is-progress">
-                <span className="challenge-num">{challenge.progress}</span>
+                <span className="challenge-num">{portfolio.progress}</span>
                 <span className="challenge-label">진행 중</span>
               </div>
               <div className="challenge-count is-won">
-                <span className="challenge-num">{challenge.won}</span>
+                <span className="challenge-num">{portfolio.won}</span>
                 <span className="challenge-label">수상</span>
               </div>
               <div className="challenge-count is-lost">
-                <span className="challenge-num">{challenge.lost}</span>
+                <span className="challenge-num">{portfolio.lost}</span>
                 <span className="challenge-label">탈락</span>
               </div>
             </div>
-            {challenge.fields.length > 0 && (
+            {portfolio.fields.length > 0 && (
               <div className="challenge-fields">
                 <p className="challenge-fields-title">도전한 분야</p>
-                {challenge.fields.map((bar) => (
+                {portfolio.fields.map((bar) => (
                   <div key={bar.name} className="field-row">
                     <span className="field-name">{bar.name}</span>
                     <span className="field-track">

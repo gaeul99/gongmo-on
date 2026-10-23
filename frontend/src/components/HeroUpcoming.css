@@ -76,16 +76,17 @@
   padding: 3px 9px;
 }
 
-/* 오늘 시작 / 시작 전 — 마감 패널의 빨강과 구별되는 청록 톤(보라 메인컬러 대신) */
+/* 오늘 시작 / 시작 전 — 2026-10-23 사용자 요청으로 마감 패널과 같은 연하늘색
+   칩(--hue-sky-*)으로 통일. '오늘 시작'은 채움, 'D-x 시작'은 연한 톤으로 구분 */
 .upcoming-badge.tone-today {
-  color: var(--accent-ink);
-  background: var(--hue-teal);
+  color: var(--hue-sky-ink);
+  background: var(--hue-sky-bg);
 }
 
 .upcoming-badge.tone-soon {
-  color: var(--hue-teal);
-  background: var(--hue-teal-bg);
-  border: 1px solid var(--hue-teal-border);
+  color: var(--hue-sky-ink);
+  background: var(--hue-sky-bg-soft);
+  border: 1px solid var(--hue-sky-border);
 }
 
 .upcoming-info {

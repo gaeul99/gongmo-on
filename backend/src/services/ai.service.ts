@@ -405,11 +405,11 @@ async function streamChatJSON(
   userPrompt: string,
   maxOutputTokens: number,
 ): Promise<string> {
-  // gpt-5 계열은 temperature 기본값(1)만 허용하고 max_tokens 대신
-  // max_completion_tokens를 쓴다. 모델명이 'openai/gpt-5.6-luna'처럼
-  // 접두사를 가질 수 있어 마지막 조각으로 판정한다.
+  // gpt-5·gpt-6 계열은 temperature 기본값(1)만 허용하고 max_tokens 대신
+  // max_completion_tokens를 쓴다(2026-10-23 게이트웨이가 gpt-6-luna로 갈아탐).
+  // 모델명이 'openai/gpt-6-luna'처럼 접두사를 가질 수 있어 마지막 조각으로 판정한다.
   const bareModel = model.split("/").pop() ?? model;
-  const isGpt5Family = bareModel.startsWith("gpt-5");
+  const isGpt5Family = bareModel.startsWith("gpt-5") || bareModel.startsWith("gpt-6");
   const stream = await client.chat.completions.create({
     model,
     response_format: { type: "json_object" },
@@ -561,6 +561,145 @@ export async function analyzeIdea(
   const analysis = normalizeAnalysis(coreParsed, scoreParsed, body);
   setCachedAnalysis(cacheKey, analysis);
   return analysis;
+}
+
+// ==========================================================
+// 심사 시뮬레이션 — 제출 전 제안서 초안을 심사 기준별로 채점합니다.
+// 분석 화면에서 만든 심사 기준(judgePoints, '심사 기준 — 내용' 형식)을
+// 그대로 기준으로 쓰므로, 분석 결과와 같은 화면 흐름 안에서 완결됩니다.
+// ==========================================================
+
+export type JudgeSimulationRequest = {
+  proposal: string;
+  judgePoints: string[];
+  contestTitle?: string;
+  ideaTitle?: string;
+};
+
+export type JudgePointScore = {
+  point: string;
+  score: number;
+  comment: string;
+};
+
+export type JudgeSimulationResult = {
+  total: number;
+  verdict: string;
+  items: JudgePointScore[];
+};
+
+const JUDGE_SYSTEM_PROMPT = `당신은 대한민국 공모전 심사위원입니다. 제안서 초안과 심사 기준 목록을 받아 각 기준별로 채점해 아래 JSON 형식으로만 답하세요.
+
+{
+  "total": 0부터 100 사이 정수,
+  "verdict": "총평 1~2문장",
+  "items": [
+    { "point": "심사 기준 원문 그대로", "score": 0부터 100 사이 정수, "comment": "근거가 담긴 정확히 한 문장" }
+  ]
+}
+
+규칙:
+- items에는 전달된 모든 심사 기준을 빠짐없이 포함하고, point는 전달된 기준 문장을 원문 그대로 쓰세요.
+- total은 items 점수의 평균을 반올림한 값으로 쓰세요.
+- comment는 제안서의 실제 문장을 인용하거나 빠진 내용을 짚어 주는, 근거가 있는 한 문장으로 쓰세요. 한국어로.
+- 점수가 60 이하인 기준의 comment에는 무엇을 어떻게 보완하면 좋은지 다음 단계처럼 알려 주세요.
+- 제안서에 없는 사실(실존 서비스·통계·수상 내역)을 만들어 내지 마세요.
+- verdict에서는 가장 약한 기준 하나를 골라 제출 전에 무엇을 고치면 좋은지 말하세요.`;
+
+function buildJudgeUserPrompt(body: JudgeSimulationRequest): string {
+  return [
+    body.ideaTitle ? `[아이디어 제목] ${body.ideaTitle}` : "",
+    body.contestTitle ? `[출품 공모전] ${body.contestTitle}` : "",
+    "[심사 기준 목록]",
+    JSON.stringify(body.judgePoints, null, 2),
+    "",
+    "[제안서 초안]",
+    body.proposal,
+  ]
+    .filter((line) => line !== "")
+    .join("\n");
+}
+
+// AI 응답을 요청한 기준 목록에 맞게 보정합니다. 누락·형식 오류가 있어도
+// 클라이언트가 바로 그릴 수 있는 완전한 형태로 만들어 돌려줍니다.
+function normalizeJudgeResult(
+  raw: unknown,
+  body: JudgeSimulationRequest,
+): JudgeSimulationResult {
+  const root = (
+    typeof raw === "object" && raw !== null ? raw : {}
+  ) as Record<string, unknown>;
+  const rawItems = Array.isArray(root.items) ? root.items : [];
+
+  const items: JudgePointScore[] = body.judgePoints.map((point, index) => {
+    // 기준 문장이 원문 그대로 돌아오면 point로 찾고, 그렇지 않으면 순서로 보정한다.
+    const byPoint = rawItems.find(
+      (item) =>
+        typeof item === "object" &&
+        item !== null &&
+        (item as Record<string, unknown>).point === point,
+    );
+    const entry = (byPoint ?? rawItems[index]) as
+      | Record<string, unknown>
+      | undefined;
+    const score = clampScore(entry?.score, 60);
+    const fallbackComment =
+      score >= 80
+        ? "제안서에서 이 기준을 뒷받침하는 내용이 잘 드러나요."
+        : score >= 60
+          ? "이 기준의 근거를 한 문장 더 보강하면 강해져요."
+          : "이 기준에 맞는 내용이 부족해요. 근거와 수치를 채워 넣으세요.";
+    return {
+      point,
+      score,
+      comment: asText(entry?.comment, fallbackComment),
+    };
+  });
+
+  const total = clampScore(
+    root.total,
+    items.length
+      ? Math.round(items.reduce((sum, item) => sum + item.score, 0) / items.length)
+      : 0,
+  );
+
+  return {
+    total,
+    verdict: asText(
+      root.verdict,
+      "각 기준의 코멘트를 참고해 제출 전에 보완할 부분을 정해 보세요.",
+    ),
+    items,
+  };
+}
+
+const JUDGE_MAX_OUTPUT_TOKENS = 1_200;
+
+export async function simulateJudging(
+  body: JudgeSimulationRequest,
+): Promise<JudgeSimulationResult> {
+  if (!isAiConfigured()) {
+    throw new AiNotConfiguredError();
+  }
+  const AI_MODEL = process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini";
+  const client = getClient();
+  const content = await streamChatJSON(
+    client,
+    AI_MODEL,
+    JUDGE_SYSTEM_PROMPT,
+    buildJudgeUserPrompt(body),
+    JUDGE_MAX_OUTPUT_TOKENS,
+  );
+  if (!content) {
+    throw new AiUpstreamError("모델 응답이 비어 있습니다.");
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch {
+    throw new AiUpstreamError("모델 응답을 JSON으로 해석하지 못했습니다.");
+  }
+  return normalizeJudgeResult(parsed, body);
 }
 
 // 게이트웨이 토큰(JWT)의 만료일을 읽어 서버 시작 로그로 알려준다.

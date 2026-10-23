@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { buildMockAnalysis } from '../services/mockAnalysis.js'
 import { requestAiAnalysis } from '../services/aiAnalysis.js'
+import { requestJudgeSimulation, buildMockJudging } from '../services/judgeSimulation.js'
 import { buildProposalDraft, proposalFileName, proposalToText } from '../services/proposalDraft.js'
 import { deadlineStatus } from '../utils/contestAlerts.js'
 import AppLink from '../components/AppLink'
 import InlineAuthPanel from '../components/InlineAuthPanel'
-import { referenceCases, winnerArchives } from '../data/mockData.js'
+import { referenceCases, winnerArchives, winnerArchiveSearchUrl } from '../data/mockData.js'
 import { useContestPool } from '../data/contestPool.js'
 import type { IdeaInput } from './IdeaInputPage'
 import type { AppliedContest, AuthResult, User, WishlistContest } from './MyPage'
@@ -47,6 +48,13 @@ type ProposalDraft = {
   metaLines: string[]
   sections: Array<{ heading: string; lines: string[] }>
   note: string
+}
+
+// AI 심사 시뮬레이션 응답 — 백엔드와 데모 채점이 같은 형태를 돌려준다.
+type JudgeSimResult = {
+  total: number
+  verdict: string
+  items: Array<{ point: string; score: number; comment: string }>
 }
 
 function loadChecklist(): Record<string, boolean> {
@@ -260,6 +268,41 @@ function ResultPage({
       intent: idea.description,
       diff: '',
     })
+  }
+
+  // --- AI 심사 시뮬레이션 (2026-10-23) ---
+  // 제안서 초안을 분석 때 만든 심사 포인트(judgePoints) 기준으로 미리 채점합니다.
+  // 백엔드 AI가 실패하면 데모 채점으로 대체해 흐름이 끊기지 않게 합니다.
+  const [judgeProposal, setJudgeProposal] = useState('')
+  const [judgeRunning, setJudgeRunning] = useState(false)
+  const [judgeResult, setJudgeResult] = useState<JudgeSimResult | null>(null)
+  const [judgeDemo, setJudgeDemo] = useState(false)
+  const judgePoints = analysis?.detail.judgePoints ?? []
+
+  const handleFillJudgeFromDraft = () => {
+    if (!proposalDraft) return
+    setJudgeProposal(proposalToText(proposalDraft))
+  }
+
+  const handleRunJudging = () => {
+    if (judgeRunning || judgeProposal.trim() === '' || judgePoints.length === 0) return
+    setJudgeRunning(true)
+    requestJudgeSimulation({
+      proposal: judgeProposal,
+      judgePoints,
+      contestTitle: analysis?.contests[0]?.title ?? '',
+      ideaTitle: idea.title,
+    })
+      .then((data) => {
+        setJudgeResult(data as JudgeSimResult)
+        setJudgeDemo(false)
+      })
+      .catch(() => {
+        // 분석과 같은 규칙 — 서버가 꺼져 있어도 데모 채점으로 보여 준다.
+        setJudgeResult(buildMockJudging({ proposal: judgeProposal, judgePoints }))
+        setJudgeDemo(true)
+      })
+      .finally(() => setJudgeRunning(false))
   }
 
   useEffect(() => {
@@ -609,6 +652,88 @@ function ResultPage({
         )}
       </section>
 
+      <section className="result-section judge-section" aria-labelledby="judge-sim-title" data-reveal>
+        <h2 id="judge-sim-title">AI 심사 시뮬레이션</h2>
+        {analysis === null || judgePoints.length === 0 ? (
+          <p className="judge-waiting">
+            분석이 끝나면 심사 기준이 만들어지고, 제안서 초안을 미리 채점해 볼 수 있어요.
+          </p>
+        ) : (
+          <>
+            <p className="judge-intro">
+              위에서 뽑은 <strong>심사 포인트를 기준 삼아</strong> 제안서를 미리 채점해 봐요.
+              점수가 낮은 기준부터 채워 제출하세요.
+            </p>
+            <div className="judge-criteria">
+              {judgePoints.map((point) => (
+                <span key={point} className="judge-criteria-chip">
+                  {point}
+                </span>
+              ))}
+            </div>
+            <label className="judge-proposal-label" htmlFor="judge-proposal">
+              제안서 초안 (최대 6,000자)
+            </label>
+            <textarea
+              id="judge-proposal"
+              className="judge-proposal"
+              rows={7}
+              value={judgeProposal}
+              maxLength={6_000}
+              onChange={(event) => setJudgeProposal(event.target.value)}
+              placeholder="제안서 본문이나 초안을 붙여 넣으세요. 아래 '제안서 초안으로 채우기'를 누르면 위에서 만든 초안이 그대로 채워져요."
+            />
+            <div className="judge-actions">
+              {proposalDraft && (
+                <button type="button" className="judge-fill" onClick={handleFillJudgeFromDraft}>
+                  제안서 초안으로 채우기
+                </button>
+              )}
+              <button
+                type="button"
+                className="judge-run"
+                onClick={handleRunJudging}
+                disabled={judgeRunning || judgeProposal.trim() === ''}
+              >
+                {judgeRunning ? '심사 중…' : 'AI 심사 시작'}
+              </button>
+            </div>
+            {judgeResult && (
+              <div className="judge-result">
+                <div className="judge-total">
+                  <span className="judge-total-label">
+                    {judgeDemo ? '데모 채점' : 'AI 채점'} 총점
+                  </span>
+                  <span className="judge-total-num">{judgeResult.total}</span>
+                  <span className="judge-total-max">/ 100</span>
+                </div>
+                <p className="judge-verdict">{judgeResult.verdict}</p>
+                {judgeDemo && (
+                  <p className="judge-demo-note">
+                    백엔드 AI에 연결하지 못해 만든 참고 채점이에요. AI에 연결되면 아이디어에 맞춰
+                    더 정확히 채점돼요.
+                  </p>
+                )}
+                <ul className="judge-items">
+                  {judgeResult.items.map((item) => (
+                    <li key={item.point} className="judge-item">
+                      <div className="judge-item-head">
+                        <span className="judge-item-point">{item.point}</span>
+                        <span className="judge-item-score">{item.score}점</span>
+                      </div>
+                      <div className="judge-item-bar" aria-hidden="true">
+                        <span style={{ width: `${item.score}%` }} />
+                      </div>
+                      <p className="judge-item-comment">{item.comment}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
       <div className="similar-layout">
         <section className="result-section similar-main" aria-labelledby="similar-title" data-reveal>
           <h2 id="similar-title">유사 아이디어·수상작</h2>
@@ -688,6 +813,16 @@ function ResultPage({
               </li>
             ))}
           </ul>
+          {/* 수상작 아카이브와 아이디어 분석을 잇는 고리(2026-10-23) —
+              관심 분야·아이디어 제목으로 지난 수상작을 바로 찾아 본다 */}
+          <a
+            className="archive-search"
+            href={winnerArchiveSearchUrl(idea.category || idea.title)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            내 아이디어 분야 수상작 검색 ↗
+          </a>
         </aside>
       </div>
 

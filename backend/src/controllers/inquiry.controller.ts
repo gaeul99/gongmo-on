@@ -7,7 +7,7 @@ import { appendInquiry } from '../services/inquiryStore'
 import { sendEmail, type SendResult } from '../services/notificationSenders'
 
 // 문의를 받을 담당자 이메일. 배포 시 CONTACT_EMAIL 환경변수로 바꿀 수 있다.
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL ?? 'rkf111122@gmail.com'
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL ?? 'kkgee115@gmail.com'
 
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/
 

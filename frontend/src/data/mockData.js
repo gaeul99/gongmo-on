@@ -7329,12 +7329,14 @@ export const referenceCases = [
 // 지난 공모전 수상작 공개 페이지 (2026-10-01 기준 접속 확인)
 // 제목·주최·내용·링크는 실제 자료이며, 활용 팁 문구는
 // services/mockAnalysis.js가 입력 아이디어에 맞게 생성합니다.
+// fields — 공모전 분야 문장과 겹쳐 볼 태그. winnerArchivesForField가 씁니다(2026-10-23).
 export const winnerArchives = [
   {
     id: 1,
     title: '국가데이터 활용대회 수상작 모음',
     organizer: '통계데이터센터 (국가데이터처)',
     domain: '데이터 분석·정책 아이디어',
+    fields: ['데이터', 'AI', '정책', '공공'],
     contents:
       '2026년 국가데이터 활용대회 최우수상·우수상·장려상 보고서와 포스터를 파일로 공개합니다.',
     url: 'https://data.kostat.go.kr/sbchome/bbs/boardList.do?boardId=SBCSBBS_000000017002&curMenuNo=OPT_08_06_00_0',
@@ -7344,6 +7346,7 @@ export const winnerArchives = [
     title: '경기도 공공데이터·AI 활용 창업경진대회 수상작 공개',
     organizer: '소통혁신24 (경기도경제과학진흥원)',
     domain: '공공데이터·AI 창업 아이디어',
+    fields: ['데이터', 'AI', '창업', '소프트웨어', '공공'],
     contents: '아이디어 기획·제품 및 서비스 개발 부문 수상작 제목과 수상 내역을 공개합니다.',
     url: 'https://sotong.go.kr/front/epilogue/epilogueRsltViewPage.do?bbs_id=b5c6fe25990e40a291ed1d986b6ede73',
   },
@@ -7352,7 +7355,31 @@ export const winnerArchives = [
     title: '농림축산식품 공공데이터 창업경진대회 수상작 보기',
     organizer: '농림축산식품부 (농식품공공데이터 오아시스)',
     domain: '농식품 공공데이터 창업',
+    fields: ['데이터', '농업', '창업', '공공'],
     contents: '연도별 창업경진대회 수상작의 작품 이미지와 작품명을 확인할 수 있습니다.',
     url: 'https://data.mafra.go.kr/contest/winnerListNew.do',
   },
 ]
+
+// 공모전 분야와 관련 있는 수상작 자료를 골라 준다(2026-10-23 수상작 아카이브).
+// 분야 문장('데이터·AI (빅데이터·공공데이터)' 등)에서 의미 단어를 뽑아
+// 자료의 fields 태그와 겹치는 것을 고른다. 겹치는 게 없으면 빈 배열 —
+// 호출한 화면이 '아직 준비 중' 안내와 검색 링크로 대신 보여 준다.
+export function winnerArchivesForField(field) {
+  const tokens = new Set(
+    String(field ?? '')
+      .toLowerCase()
+      .split(/[^\p{L}\p{N}]+/u)
+      .filter((token) => token.length >= 2),
+  )
+  return winnerArchives.filter((archive) =>
+    archive.fields.some((tag) => tokens.has(tag.toLowerCase())),
+  )
+}
+
+// 분야 수상작을 찾아 볼 외부 검색 주소 — 위비티·캠퍼스픽 아카이브를
+// 구글 site 검색으로 연다(TopNav의 외부 검색과 같은 규칙).
+export function winnerArchiveSearchUrl(query) {
+  const q = `${query} 공모전 수상작`
+  return `https://www.google.com/search?q=${encodeURIComponent(`${q} site:wevity.com OR site:campuspick.com`)}`
+}

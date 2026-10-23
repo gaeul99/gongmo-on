@@ -133,13 +133,13 @@
   padding: 3px 9px;
 }
 
-/* 오늘 마감 / 7일 이내 / 그 이후 — 3단 톤. 2026-10-13 흑백 언어 통일:
-   '임박'(오늘·7일 이내)만 강조 채움으로 표시하고, 여유는 인셋 회색 칩으로 조용하게.
-   채움은 2026-10-14 '파란색이 너무 많다' 요청로 정보성 D-day는 진회색(--accent-dark) */
+/* 오늘 마감 / 7일 이내 / 그 이후 — 3단 톤. '임박'(오늘·7일 이내) 칩은
+   2026-10-23 사용자 요청으로 진회색에서 연하늘색 채움으로 바꿨고(--hue-sky-*),
+   여유는 인셋 회색 칩으로 조용하게 유지 */
 .tone-today,
 .tone-urgent {
-  color: var(--accent-ink);
-  background: var(--accent-dark);
+  color: var(--hue-sky-ink);
+  background: var(--hue-sky-bg);
 }
 
 .tone-upcoming {

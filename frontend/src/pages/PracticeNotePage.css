@@ -236,6 +236,35 @@
   border-color: var(--error);
 }
 
+/* 카드 안의 행동 버튼 묶음 — '새 공모전 찾기'(재매칭)와 삭제를 세로로 나란히.
+   아이디어 재매칭 입구(2026-10-23 사용자 요청) */
+.note-card-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.note-card-match {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.note-card-match:hover {
+  background: var(--hover-bg);
+  border-color: var(--accent);
+}
+
 /* 작성 화면 */
 .note-editor {
   margin-top: 6px;

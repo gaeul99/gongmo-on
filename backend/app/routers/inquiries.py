@@ -12,7 +12,7 @@ from app.stores import inquiry_store
 from app.services.notification_senders import send_email
 
 # 문의를 받을 담당자 이메일. 배포 시 CONTACT_EMAIL 환경변수로 바꿀 수 있다.
-CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL") or "rkf111122@gmail.com"
+CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL") or "kkgee115@gmail.com"
 
 EMAIL_PATTERN = re.compile(r"^\S+@\S+\.\S+$")
 

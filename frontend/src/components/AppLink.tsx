@@ -1,4 +1,5 @@
 import type { MouseEvent, ReactNode } from 'react'
+import { hrefFor } from '../utils/routes.js'
 
 type Props = {
   // 브라우저가 실제로 이동할 주소. 우클릭 메뉴의 '새 탭에서 열기'·가운데
@@ -36,7 +37,8 @@ function AppLink({
 
   return (
     <a
-      href={href}
+      // 논리 경로에 base를 붙여 실제 주소로 — Pages 하위 경로 배포 대응(2026-10-23)
+      href={hrefFor(href)}
       className={className ? `app-link ${className}` : 'app-link'}
       title={title}
       aria-label={ariaLabel}

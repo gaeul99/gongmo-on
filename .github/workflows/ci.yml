@@ -1,0 +1,45 @@
+# ==========================================================
+# CI — GitHub 푸시·PR 때 프론트 빌드·테스트와 백엔드 테스트를 돌린다.
+# 배포 자체는 Render가 저장소를 지켜보다가 main 푸시에 자동으로 한다
+# (Render 서비스 설정의 Auto-Deploy). 여기서는 배포 전 검증만 담당.
+# ==========================================================
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  frontend:
+    name: 프론트 빌드·테스트
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test
+      - run: npm run lint
+
+  backend:
+    name: 백엔드 테스트
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q

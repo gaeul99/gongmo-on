@@ -52,6 +52,9 @@ type Props = {
   // 준비 현황·출품 로드맵이 모인 대시보드로 이어지는 출구 — 기획 흐름
   // (연습 노트 → 대시보드)의 마지막 고리다.
   onGoDashboard: () => void
+  // 아이디어 재매칭 — 노트 내용으로 분석을 다시 돌려 지금 접수 중인
+  // 공모전 추천을 받습니다(2026-10-23 사용자 요청).
+  onRematch: (note: PracticeNote) => void
 }
 
 function loadNotes(): PracticeNote[] {
@@ -86,7 +89,15 @@ const PRACTICE_TIPS = [
   '면접·발표가 없는 공모전은 답변을 기획서에 들어갈 문장으로 옮겨 보세요. 질문에 답했다는 건 그 의문을 이미 해결했다는 뜻이에요.',
 ]
 
-function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, onBack, onGoInput, onGoDashboard }: Props) {
+function PracticeNotePage({
+  dataVersion,
+  onNotesChanged,
+  initialDraft = null,
+  onBack,
+  onGoInput,
+  onGoDashboard,
+  onRematch,
+}: Props) {
   // 분석 결과에서 넘어오면 초안(title·intent)이 채워진 작성 화면으로 바로 시작합니다.
   const [notes, setNotes] = useState<PracticeNote[]>(loadNotes)
   // null이면 목록 화면, 값이면 작성·수정 화면입니다.
@@ -303,7 +314,8 @@ function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, on
         <p>
           실제 응모 전에 미리 준비해 두는 노트예요. 기획 의도·차별점·예상 질문을
           노트로 만들어 두면 심사위원이 기획서에서 확인할 문장이 되고, 발표·면접이
-          있는 공모전은 그대로 답변으로 쓸 수 있습니다.
+          있는 공모전은 그대로 답변으로 쓸 수 있습니다. 노트마다 '새 공모전 찾기'를
+          누르면 노트 내용으로 분석을 다시 돌려 지금 접수 중인 공모전 추천을 받아요.
         </p>
       </header>
 
@@ -348,14 +360,25 @@ function PracticeNotePage({ dataVersion, onNotesChanged, initialDraft = null, on
                   {note.updatedAt} 수정 · 예상 질문 {answeredCount(note.qa)}개 답변 준비
                 </span>
               </button>
-              <button
-                type="button"
-                className="note-card-delete"
-                onClick={() => handleDelete(note.id)}
-                aria-label={`${note.title} 노트 삭제`}
-              >
-                삭제
-              </button>
+              {/* 카드 안의 행동 버튼들 — 노트 열기(main)와 구분해 오른쪽에 세로로 둔다 */}
+              <div className="note-card-actions">
+                <button
+                  type="button"
+                  className="note-card-match"
+                  onClick={() => onRematch(note)}
+                  title="노트 내용으로 분석을 다시 돌려 지금 접수 중인 공모전 추천을 받아요"
+                >
+                  새 공모전 찾기
+                </button>
+                <button
+                  type="button"
+                  className="note-card-delete"
+                  onClick={() => handleDelete(note.id)}
+                  aria-label={`${note.title} 노트 삭제`}
+                >
+                  삭제
+                </button>
+              </div>
             </li>
           ))}
         </ul>

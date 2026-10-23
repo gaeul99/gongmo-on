@@ -55,6 +55,13 @@
   --hue-teal: #555555;
   --hue-teal-bg: #ffffff;
   --hue-teal-border: #555555;
+  /* 2026-10-23 사용자 요청 '히어로 두 박스(곧 마감·곧 시작)의 D-day 칩을
+     연하늘색으로' — 진회색 정보 마커와 파랑 행동 요소 사이에서 일자·일정
+     마커 전용 연하늘 톤. 채움 #d9ecff 위 글자 #2b5a8c 대비 5.9:1 */
+  --hue-sky-bg: #d9ecff;
+  --hue-sky-bg-soft: #eaf4ff;
+  --hue-sky-border: #b7d8f7;
+  --hue-sky-ink: #2b5a8c;
   --hue-blue: #555555;
   --hue-blue-bg: #ffffff;
   --hue-blue-border: #555555;

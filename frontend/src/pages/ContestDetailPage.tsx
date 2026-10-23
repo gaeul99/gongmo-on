@@ -3,6 +3,7 @@ import type { AppliedContest, AuthResult, User, WishlistContest } from './MyPage
 import AppLink from '../components/AppLink'
 import InlineAuthPanel from '../components/InlineAuthPanel'
 import { getContestPoolState, useContestPool } from '../data/contestPool.js'
+import { winnerArchivesForField, winnerArchiveSearchUrl } from '../data/mockData.js'
 import './ContestDetailPage.css'
 
 type Props = {
@@ -97,6 +98,9 @@ function ContestDetailPage({
   const badge = deadlineBadge(left)
   const applied = appliedContestIds.includes(contest.id)
   const wished = wishlistedContestIds.includes(contest.id)
+  // 이 공모전 분야와 관련 있는 수상작 자료 — 수상작 아카이브(2026-10-23).
+  // 겹치는 자료가 없으면 '아직 준비 중' 안내 + 외부 검색 링크로 대신 보여 준다.
+  const fieldArchives = winnerArchivesForField(contest.field)
 
   return (
     <div className="page">
@@ -165,6 +169,38 @@ function ContestDetailPage({
               <li key={step}>{step}</li>
             ))}
           </ol>
+        </section>
+
+        {/* 수상작 아카이브 — 이 공모전 분야의 지난 수상작 자료(2026-10-23).
+            출품 전에 어떤 작품이 높은 점수를 받았는지 훔쳐보는 참고 자료다 */}
+        <section aria-labelledby="detail-archive-title" data-reveal>
+          <h2 id="detail-archive-title">이 분야의 지난 수상작</h2>
+          {fieldArchives.length > 0 ? (
+            <ul className="detail-archive-list">
+              {fieldArchives.map((archive) => (
+                <li key={archive.id} className="detail-archive-item">
+                  <a href={archive.url} target="_blank" rel="noreferrer">
+                    <span className="detail-archive-title">{archive.title}</span>
+                    <span className="detail-archive-organizer">{archive.organizer}</span>
+                    <span className="detail-archive-contents">{archive.contents}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="detail-archive-empty">
+              이 분야의 공개 수상작 자료는 아직 모아 두지 않았어요. 아래 검색으로 지난 수상작을
+              찾아 참고해 보세요.
+            </p>
+          )}
+          <a
+            className="detail-archive-search"
+            href={winnerArchiveSearchUrl(contest.field)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            이 분야 수상작 검색하기 ↗
+          </a>
         </section>
 
         <div className="detail-actions" data-reveal>

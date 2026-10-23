@@ -106,3 +106,81 @@ def post_idea_analysis(body: dict = Depends(json_body)):
     except Exception as error:
         print(f"[ai] 알 수 없는 오류: {error!r}")
         return _error(500, "INTERNAL", "서버 내부 오류가 발생했어요.")
+
+
+# 심사 시뮬레이션용 입력 상한 — 제안서는 분석 설명보다 길어도 되지만
+# 토큰 비용 폭탄을 막기 위해 상한을 둔다.
+MAX_PROPOSAL_LENGTH = 6_000
+MAX_JUDGE_POINTS = 6
+MAX_JUDGE_POINT_LENGTH = 200
+
+
+@router.post("/judge")
+def post_idea_judging(body: dict = Depends(json_body)):
+    proposal = body.get("proposal")
+    judge_points = body.get("judgePoints")
+
+    if not isinstance(proposal, str) or proposal.strip() == "":
+        return _error(400, "INVALID_REQUEST", "채점할 제안서 내용을 입력해 주세요.")
+    if len(proposal) > MAX_PROPOSAL_LENGTH:
+        return _error(
+            400,
+            "INVALID_REQUEST",
+            f"제안서는 {MAX_PROPOSAL_LENGTH:,}자 이내로 입력해 주세요.",
+        )
+    if (
+        not isinstance(judge_points, list)
+        or len(judge_points) == 0
+        or not all(isinstance(point, str) and point.strip() != "" for point in judge_points)
+    ):
+        return _error(
+            400,
+            "INVALID_REQUEST",
+            "심사 기준 목록이 필요해요. 분석 결과에서 심사 포인트를 확인해 주세요.",
+        )
+    if len(judge_points) > MAX_JUDGE_POINTS:
+        return _error(
+            400,
+            "INVALID_REQUEST",
+            f"심사 기준은 최대 {MAX_JUDGE_POINTS}개까지 채점할 수 있어요.",
+        )
+    if not ai_service.is_ai_configured():
+        return _error(
+            503,
+            "AI_NOT_CONFIGURED",
+            "OpenAI API 키가 설정되지 않았어요. backend/.env에 키를 넣은 뒤 서버를 다시 시작해 주세요.",
+        )
+
+    try:
+        data = ai_service.simulate_judging(
+            {
+                "proposal": proposal.strip()[:MAX_PROPOSAL_LENGTH],
+                "judgePoints": [
+                    point.strip()[:MAX_JUDGE_POINT_LENGTH] for point in judge_points
+                ][:MAX_JUDGE_POINTS],
+                "contestTitle": body.get("contestTitle").strip()[:MAX_TITLE_LENGTH]
+                if isinstance(body.get("contestTitle"), str)
+                else "",
+                "ideaTitle": body.get("ideaTitle").strip()[:MAX_TITLE_LENGTH]
+                if isinstance(body.get("ideaTitle"), str)
+                else "",
+            }
+        )
+        return {"success": True, "data": data}
+    except ai_service.AiNotConfiguredError:
+        return _error(503, "AI_NOT_CONFIGURED", "OpenAI API 키가 설정되지 않았어요.")
+    except ai_service.AiKeyExpiredError:
+        print(
+            "[ai] AI 인증 토큰이 만료되었습니다. mlapi.run에서 토큰을 재발급해 backend/.env의 OPENAI_API_KEY를 교체한 뒤 서버를 재시작하세요."
+        )
+        return _error(
+            503,
+            "AI_TOKEN_EXPIRED",
+            "AI 인증 토큰이 만료되었어요. 토큰이 갱신되면 다시 채점할 수 있어요.",
+        )
+    except ai_service.AiUpstreamError as error:
+        print(f"[ai] 심사 시뮬레이션 실패: {error}")
+        return _error(502, "AI_UPSTREAM", "AI 채점 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.")
+    except Exception as error:
+        print(f"[ai] 알 수 없는 오류: {error!r}")
+        return _error(500, "INTERNAL", "서버 내부 오류가 발생했어요.")

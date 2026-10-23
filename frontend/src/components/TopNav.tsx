@@ -484,6 +484,9 @@ function TopNav({
               role="dialog"
               aria-label="바로가기 메뉴"
             >
+              {/* 바로가기 순서 — 사용자 여정(연관성) 순: 나를 파악(유형 검사) →
+                  아이디어 분석 → 연습 노트 → 출품처 찾기(공모전 탐색) → 기록·성과(대시보드).
+                  2026-10-23 사용자 요청으로 연관 기능끼리 이어지게 재배치했다. */}
               <AppLink
                 className="nav-menu-item"
                 href="/test"
@@ -516,16 +519,6 @@ function TopNav({
               </AppLink>
               <AppLink
                 className="nav-menu-item"
-                href="/dashboard"
-                onNavigate={() => {
-                  setMenuOpen(false);
-                  onDashboard();
-                }}
-              >
-                대시보드
-              </AppLink>
-              <AppLink
-                className="nav-menu-item"
                 href="/contest"
                 onNavigate={() => {
                   setMenuOpen(false);
@@ -533,6 +526,16 @@ function TopNav({
                 }}
               >
                 공모전 탐색
+              </AppLink>
+              <AppLink
+                className="nav-menu-item"
+                href="/dashboard"
+                onNavigate={() => {
+                  setMenuOpen(false);
+                  onDashboard();
+                }}
+              >
+                대시보드
               </AppLink>
             </div>
           )}

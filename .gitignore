@@ -1,6 +1,11 @@
 # 종속성
 node_modules/
 
+# Python 가상환경·캐시 (백엔드 실행 도구 — 저장소에 올리지 않는다)
+.venv/
+__pycache__/
+.pytest_cache/
+
 # 빌드 산출물
 dist/
 

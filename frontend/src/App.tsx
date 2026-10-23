@@ -28,6 +28,7 @@ import { pullUserData, pushUserData } from './services/userDataSync.js'
 import { mergeImportedData, writeLocalOnlyData, EXPORT_KIND, EXPORT_VERSION } from './utils/dataPortability.js'
 import { loadSyncedContests } from './data/contestPool.js'
 import { STORAGE_KEYS } from './utils/storageKeys.js'
+import { hrefFor, pathFromLocation } from './utils/routes.js'
 import { useScrollReveal } from './utils/scrollReveal'
 import {
   buildContestAlerts,
@@ -223,7 +224,8 @@ function exploreFilterFromLocation(): StatusFilter {
 
 // 주소에 맞는 화면을 판별합니다. 결과 화면은 저장된 아이디어가 없으면 입력 화면으로 돌아갑니다.
 function screenFromLocation(): Screen {
-  const { pathname } = window.location
+  // Pages 하위 경로 배포 대응 — 주소에서 base를 떼어 낸 논리 경로로 판별한다.
+  const pathname = pathFromLocation()
   if (pathname === PATH_BY_SCREEN.result) {
     return loadStoredIdea() ? 'result' : 'input'
   }
@@ -254,7 +256,8 @@ function screenFromLocation(): Screen {
 
 // /contest/:id 주소에서 공모전 id를 뽑아 냅니다. 없는 형태면 0(=못 찾음)으로 돌려 줍니다.
 function contestIdFromLocation(): number {
-  const match = /^\/contest\/(\d+)/.exec(window.location.pathname)
+  // Pages 하위 경로 배포 대응 — base를 떼어 낸 논리 경로에서 찾는다.
+  const match = /^\/contest\/(\d+)/.exec(pathFromLocation())
   return match ? Number(match[1]) : 0
 }
 
@@ -424,14 +427,15 @@ function App() {
 
   // 결과 화면 주소인데 저장된 아이디어가 없으면 주소를 입력 화면에 맞춰 둡니다.
   useEffect(() => {
-    if (window.location.pathname === PATH_BY_SCREEN.result && !loadStoredIdea()) {
-      window.history.replaceState(null, '', PATH_BY_SCREEN.input)
+    if (pathFromLocation() === PATH_BY_SCREEN.result && !loadStoredIdea()) {
+      window.history.replaceState(null, '', hrefFor(PATH_BY_SCREEN.input))
     }
   }, [])
 
   // query에는 '?status=upcoming'처럼 주소 뒤에 붙일 문자열을 넘깁니다.
   const navigate = (next: Screen, query = '') => {
-    window.history.pushState(null, '', PATH_BY_SCREEN[next] + query)
+    // hrefFor로 base를 붙여 실제 주소를 만든다(Pages 하위 경로 배포 대응).
+    window.history.pushState(null, '', hrefFor(PATH_BY_SCREEN[next]) + query)
     setScreen(next)
   }
 
@@ -841,7 +845,7 @@ function App() {
   // 상세 화면을 이미 보고 있을 때 다른 공모전을 열어도 id가 바로 바뀌게
   // 상태로 함께 갱신합니다.
   const openContest = (id: number) => {
-    window.history.pushState(null, '', `/contest/${id}`)
+    window.history.pushState(null, '', hrefFor(`/contest/${id}`))
     setScreen('contest')
     setContestId(id)
   }
@@ -1044,6 +1048,20 @@ function App() {
             navigate('input')
           }}
           onGoDashboard={() => navigate('dashboard')}
+          // 아이디어 재매칭 — 노트의 기획 의도·차별점을 아이디어 설명으로 삼아
+          // 분석 화면으로 보낸다. 결과 화면의 '추천 공모전'이 재매칭 결과가 된다.
+          onRematch={(note) => {
+            const description = [note.intent, note.diff]
+              .map((line) => line.trim())
+              .filter((line) => line !== '')
+              .join('\n\n')
+              .slice(0, 2000)
+            handleAnalyze({
+              title: note.title,
+              description: description || note.title,
+              category: '',
+            })
+          }}
         />
       )}
       {screen === 'mypage' && (

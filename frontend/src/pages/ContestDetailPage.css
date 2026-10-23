@@ -457,3 +457,72 @@
     margin-top: 24px;
   }
 }
+
+/* --- 수상작 아카이브 (2026-10-23) ---
+   이 공모전 분야의 지난 수상작 자료. 소개·응모 방법과 같은 본문 톤을 쓴다 */
+.detail-archive-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-archive-item a {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.detail-archive-item a:hover {
+  border-color: var(--accent-border);
+  background: var(--hover-bg);
+}
+
+.detail-archive-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-h);
+  word-break: keep-all;
+}
+
+.detail-archive-organizer {
+  font-size: 12px;
+  color: var(--accent-text);
+}
+
+.detail-archive-contents {
+  font-size: 12.5px;
+  line-height: 165%;
+  color: var(--text-2);
+  word-break: keep-all;
+}
+
+.detail-archive-empty {
+  margin: 0;
+  font-size: 13px;
+  line-height: 170%;
+  color: var(--text-2);
+  word-break: keep-all;
+}
+
+.detail-archive-search {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent-text);
+  text-decoration: none;
+}
+
+.detail-archive-search:hover {
+  text-decoration: underline;
+}

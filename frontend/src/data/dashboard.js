@@ -167,6 +167,26 @@ export function buildChallengeHistory(pool = getAllContests()) {
   }
 }
 
+// 포트폴리오 카드 재료 — 도전 히스토리 요약에 수상작 목록을 더한 형태.
+// 그림으로 그리는 일은 utils/portfolioCard.js가 담당한다(2026-10-23).
+export function buildPortfolioModel(pool = getAllContests(), nickname = '') {
+  const history = buildChallengeHistory(pool)
+  const wonItems = readStoredList(MY_CONTESTS_STORAGE_KEY)
+    .filter((row) => row.result === 'won')
+    .map((row) => ({
+      title: String(
+        pool.find((contest) => contest.id === row.id)?.title ?? row.title ?? '이름 없는 공모전',
+      ),
+      resultAt: String(row.resultAt ?? ''),
+    }))
+    .slice(0, 3)
+  return {
+    ...history,
+    nickname: String(nickname || '').trim() || '공모온 도전자',
+    wonItems,
+  }
+}
+
 // 아이디어 스파크 콘텐츠 규모.
 // '하루에 하나' 규칙(날 수로 나눈 나머지)을 따릅니다.
 export function buildSparkStats(now = new Date()) {

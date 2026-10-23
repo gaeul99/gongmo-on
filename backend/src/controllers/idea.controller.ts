@@ -10,9 +10,11 @@ import {
   AiUpstreamError,
   analyzeIdea,
   isAiConfigured,
+  simulateJudging,
   type AnalyzeContest,
   type AnalyzeReferenceCase,
   type AnalyzeRequestBody,
+  type JudgeSimulationRequest,
 } from "../services/ai.service";
 import { sendError } from "../utils/apiValidation";
 
@@ -166,6 +168,123 @@ export async function postIdeaAnalysis(
         502,
         "AI_UPSTREAM",
         "AI 분석 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.",
+      );
+      return;
+    }
+    console.error("[ai] 알 수 없는 오류:", error);
+    sendError(res, 500, "INTERNAL", "서버 내부 오류가 발생했어요.");
+  }
+}
+
+// 심사 시뮬레이션용 입력 상한 — 제안서는 분석 설명보다 길어도 되지만
+// 토큰 비용 폭탄을 막기 위해 상한을 둔다.
+const MAX_PROPOSAL_LENGTH = 6_000;
+const MAX_JUDGE_POINTS = 6;
+const MAX_JUDGE_POINT_LENGTH = 200;
+
+export async function postIdeaJudging(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const body = req.body as Partial<JudgeSimulationRequest>;
+
+  if (
+    !body ||
+    typeof body.proposal !== "string" ||
+    body.proposal.trim() === ""
+  ) {
+    sendError(
+      res,
+      400,
+      "INVALID_REQUEST",
+      "채점할 제안서 내용을 입력해 주세요.",
+    );
+    return;
+  }
+  if (body.proposal.length > MAX_PROPOSAL_LENGTH) {
+    sendError(
+      res,
+      400,
+      "INVALID_REQUEST",
+      `제안서는 ${MAX_PROPOSAL_LENGTH.toLocaleString()}자 이내로 입력해 주세요.`,
+    );
+    return;
+  }
+  if (
+    !Array.isArray(body.judgePoints) ||
+    body.judgePoints.length === 0 ||
+    !body.judgePoints.every(
+      (point) => typeof point === "string" && point.trim() !== "",
+    )
+  ) {
+    sendError(
+      res,
+      400,
+      "INVALID_REQUEST",
+      "심사 기준 목록이 필요해요. 분석 결과에서 심사 포인트를 확인해 주세요.",
+    );
+    return;
+  }
+  if (body.judgePoints.length > MAX_JUDGE_POINTS) {
+    sendError(
+      res,
+      400,
+      "INVALID_REQUEST",
+      `심사 기준은 최대 ${MAX_JUDGE_POINTS}개까지 채점할 수 있어요.`,
+    );
+    return;
+  }
+  if (!isAiConfigured()) {
+    sendError(
+      res,
+      503,
+      "AI_NOT_CONFIGURED",
+      "OpenAI API 키가 설정되지 않았어요. backend/.env에 키를 넣은 뒤 서버를 다시 시작해 주세요.",
+    );
+    return;
+  }
+
+  try {
+    const data = await simulateJudging({
+      proposal: body.proposal.trim().slice(0, MAX_PROPOSAL_LENGTH),
+      judgePoints: body.judgePoints
+        .map((point) => point.trim().slice(0, MAX_JUDGE_POINT_LENGTH))
+        .slice(0, MAX_JUDGE_POINTS),
+      contestTitle:
+        typeof body.contestTitle === "string"
+          ? body.contestTitle.trim().slice(0, MAX_TITLE_LENGTH)
+          : "",
+      ideaTitle:
+        typeof body.ideaTitle === "string"
+          ? body.ideaTitle.trim().slice(0, MAX_TITLE_LENGTH)
+          : "",
+    });
+    res.json({ success: true, data });
+  } catch (error) {
+    // 오류 분기는 분석 엔드포인트와 같은 규칙을 쓴다.
+    if (error instanceof AiNotConfiguredError) {
+      sendError(res, 503, "AI_NOT_CONFIGURED", "OpenAI API 키가 설정되지 않았어요.");
+      return;
+    }
+    if (error instanceof AiKeyExpiredError) {
+      console.error(
+        "[ai] AI 인증 토큰이 만료되었습니다. mlapi.run에서 토큰을 재발급해 backend/.env의 OPENAI_API_KEY를 교체한 뒤 서버를 재시작하세요.",
+      );
+      sendError(
+        res,
+        503,
+        "AI_TOKEN_EXPIRED",
+        "AI 인증 토큰이 만료되었어요. 토큰이 갱신되면 다시 채점할 수 있어요.",
+      );
+      return;
+    }
+    if (error instanceof AiUpstreamError) {
+      console.error("[ai] 심사 시뮬레이션 실패:", error.message);
+      sendError(
+        res,
+        502,
+        "AI_UPSTREAM",
+        "AI 채점 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.",
       );
       return;
     }

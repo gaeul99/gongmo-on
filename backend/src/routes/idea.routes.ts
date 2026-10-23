@@ -1,6 +1,7 @@
 import { Router } from 'express'
-import { postIdeaAnalysis } from '../controllers/idea.controller'
+import { postIdeaAnalysis, postIdeaJudging } from '../controllers/idea.controller'
 
 export const ideaRouter = Router()
 
 ideaRouter.post('/analyze', postIdeaAnalysis)
+ideaRouter.post('/judge', postIdeaJudging)

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import ContactModal from './ContactModal'
 import './SiteFooter.css'
 
-const CONTACT_EMAIL = 'rkf111122@gmail.com'
+const CONTACT_EMAIL = 'kkgee115@gmail.com'
 
 // 모든 화면 맨 아래에서 문의 이메일을 안내하는 공통 푸터입니다.
 function SiteFooter() {
