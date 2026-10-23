@@ -159,23 +159,7 @@ function HomePage({
         </div>
       </section>
 
-      {/* 기능 소개 다음은 '곧 마감'·'곧 시작' 두 패널 — '접수 중인 공모전' 마키는
-          2026-10-15 사용자 요청으로 히어로 다음으로 옮겨 갔다 */}
-      <Reveal className="reveal--block">
-        <div className="home-deadlines">
-          <HeroDeadlines onOpenExplore={onExplore} onOpenContest={onOpenContest} />
-          <HeroUpcoming onOpenExplore={onExploreUpcoming} onOpenContest={onOpenContest} />
-        </div>
-      </Reveal>
-
-      {/* 공모온 강점 — 푸터 바로 위(2026-10-14 사용자 요청). 기능 소개가 아니라
-          사용자가 이 사이트를 거치며 발전되는 흐름(아이디어→전략→도전→기록→
-          자신감)을 보여 준다. 첫 항목 '막막함이 아이디어로'는 같은 날
-          '이 문장은 지워줘' 요청으로 삭제했다. 섹션 제목은 같은 날 '글자 지워주고'
-          요청으로 빼고 aria-label로만 남겼다. 큰 문장+한 줄 설명의 크기 대비 — 같은 날
-          사용자 요청 '글자 크기 대비 효과를 더 극대화'. 배경은 섹션을 칠하지 않아
-          회색 캔버스 그라데이션이 그대로 푸터까지 내려온다(2026-10-14 사용자 요청
-          '연하늘빛 그레이 그라데이션이 푸터까지 내려오게' — 흰 전환은 푸터가 담당) */}
+      {/* 공모온 강점 — 공모전 일정 패널 위에 배치한다. */}
       <section className="strengths" aria-label="공모온이 특별한 이유">
         <div className="strengths-grid">
           <Reveal as="article" className="strength-item">
@@ -192,6 +176,17 @@ function HomePage({
           </Reveal>
         </div>
       </section>
+
+      {/* 공모온 강점 다음은 '곧 마감'·'곧 시작' 두 패널 — '접수 중인 공모전' 마키는
+          2026-10-15 사용자 요청으로 히어로 다음으로 옮겨 갔다 */}
+      <Reveal className="reveal--block">
+        <div className="home-deadlines">
+          <HeroDeadlines onOpenExplore={onExplore} onOpenContest={onOpenContest} />
+          <HeroUpcoming onOpenExplore={onExploreUpcoming} onOpenContest={onOpenContest} />
+        </div>
+      </Reveal>
+
+
     </div>
   )
 }
