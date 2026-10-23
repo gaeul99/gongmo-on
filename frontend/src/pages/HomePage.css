@@ -544,11 +544,24 @@
 }
 
 .strength-item {
+  padding: 32px 28px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow: 0 14px 36px rgba(25, 39, 61, 0.12), 0 4px 12px rgba(25, 39, 61, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   /* 2026-10-14 사용자 요청 '이 섹션 화면 중앙에 배치' — 그리드 자체는 이미 중앙
      (max-width 1040px·margin auto)인데 항목 글자가 왼쪽 정렬이라 짧은 문장이
      칸의 왼쪽에 붙어 섹션 전체가 좌측으로 쏠려 보였다. 항목 안 글자를 가운데
      정렬해 두 열이 화면 중앙을 기준으로 대칭을 이루게 한다 */
   text-align: center;
+}
+
+.strength-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 44px rgba(25, 39, 61, 0.16), 0 6px 14px rgba(25, 39, 61, 0.08);
 }
 
 .strength-item h3 {
@@ -595,7 +608,7 @@
   }
 
   .feature-grid {
-    gap: 64px;
+    gap: 120px;
   }
 
   /* 지그재그가 좁은 화면에서도 읽히도록 제목을 PC 28px→19px로 줄인다
