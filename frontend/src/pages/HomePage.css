@@ -836,3 +836,68 @@
   }
   .home .strength-item h3 { font-size: 19px; }
 }
+
+/* 곧 마감 공모전은 페이지 패널 대신 요청 시 열리는 미니멀 팝업으로 표시 */
+.home .home-deadlines { grid-template-columns: minmax(0, 1fr); }
+.home-deadline-trigger {
+  position: fixed;
+  right: 24px;
+  bottom: 28px;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 18px;
+  border: 1px solid #dbe1e9;
+  border-radius: 999px;
+  background: #fff;
+  color: #283344;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(22,32,48,.12);
+}
+.home-deadline-trigger:hover { border-color: #9aa9be; }
+.home-deadline-trigger-dot { width: 7px; height: 7px; border-radius: 50%; background: #2563eb; }
+.home-deadline-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background: rgba(18,26,39,.35);
+}
+.home-deadline-dialog {
+  position: relative;
+  width: min(560px, 100%);
+  max-height: min(80vh, 700px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 32px 28px 28px;
+  border: 1px solid #e7eaf0;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 72px rgba(18,26,39,.18);
+}
+.home-deadline-dialog .hero-panel-col { width: 100%; }
+.home-deadline-dialog .deadline-head { padding-right: 32px; }
+.home-deadline-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  border: 0;
+  background: transparent;
+  color: #667085;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+@media (max-width: 720px) {
+  .home-deadline-trigger { right: 16px; bottom: 78px; font-size: 12px; padding: 12px 15px; }
+  .home-deadline-overlay { padding: 16px; }
+  .home-deadline-dialog { padding: 30px 18px 20px; border-radius: 16px; }
+}
