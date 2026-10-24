@@ -70,6 +70,16 @@ function HomePage({
   onDashboard,
 }: Props) {
   const { typed, done } = useTypewriter(TYPING_TEXT, 75)
+  const [deadlineOpen, setDeadlineOpen] = useState(false)
+
+  useEffect(() => {
+    if (!deadlineOpen) return
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setDeadlineOpen(false)
+    }
+    window.addEventListener('keydown', onEscape)
+    return () => window.removeEventListener('keydown', onEscape)
+  }, [deadlineOpen])
 
   return (
     <div className="page home">
@@ -179,11 +189,26 @@ function HomePage({
         </div>
       </section>
 
+      <button className="home-deadline-trigger" type="button" onClick={() => setDeadlineOpen(true)} aria-haspopup="dialog">
+        <span className="home-deadline-trigger-dot" aria-hidden="true" />
+        곧 마감되는 공모전
+      </button>
+      {deadlineOpen && (
+        <div className="home-deadline-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setDeadlineOpen(false) }}>
+          <div className="home-deadline-dialog" role="dialog" aria-modal="true" aria-label="곧 마감되는 공모전">
+            <button className="home-deadline-close" type="button" aria-label="팝업 닫기" onClick={() => setDeadlineOpen(false)}>×</button>
+            <HeroDeadlines
+              onOpenExplore={() => { setDeadlineOpen(false); onExplore() }}
+              onOpenContest={(id) => { setDeadlineOpen(false); onOpenContest(id) }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* 공모온 강점 다음은 '곧 마감'·'곧 시작' 두 패널 — '접수 중인 공모전' 마키는
           2026-10-15 사용자 요청으로 히어로 다음으로 옮겨 갔다 */}
       <Reveal className="reveal--block">
         <div className="home-deadlines">
-          <HeroDeadlines onOpenExplore={onExplore} onOpenContest={onOpenContest} />
           <HeroUpcoming onOpenExplore={onExploreUpcoming} onOpenContest={onOpenContest} />
         </div>
       </Reveal>
