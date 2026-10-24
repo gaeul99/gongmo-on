@@ -106,19 +106,13 @@ function HomePage({
         </div>
       </section>
 
-      {/* 히어로 바로 다음은 '접수 중인 공모전' 마키 — 2026-10-15 사용자 요청으로
-          기능 소개(.features) 앞으로 순서를 바꿨다. 히어로와 같은 흰 캔버스 위에
-          마키 카드(흰)가 뜬다 */}
-      <Reveal className="reveal--block home-marquee-band">
-        <ContestMarquee onOpenContest={onOpenContest} />
-      </Reveal>
-
       {/* 서비스 바로가기 탭은 메뉴바로 흡수됐다(2026-10-13) — 마키 다음은
           '이렇게 도와드립니다'(2026-10-14에 마키 앞으로 옮겼다가 2026-10-15
           사용자 요청으로 마키 뒤로 되돌림) */}
       {/* 섹션 제목('이렇게 도와드립니다')은 2026-10-14 사용자 요청 '글자 지워주고'로
           빼고 aria-label로만 남겼다 — 강점 섹션(.strengths)과 같은 처리다 */}
-      <section className="features" aria-label="이렇게 도와드립니다">
+      <section className="features" aria-label="서비스 바로가기">
+        <div className="home-section-heading"><span className="home-eyebrow">QUICK START</span><h2>필요한 기능부터 시작하세요</h2></div>
         <div className="feature-grid">
           {/* 2026-10-14 사용자 요청 '이 지그재그 설명란을 메뉴탭으로 이용해서 클릭하면
               바로 갈 수 있게' — 3개 설명을 바로가기 5개 메뉴로 바꾸고 각 항목을
@@ -159,8 +153,16 @@ function HomePage({
         </div>
       </section>
 
+      {/* 히어로 바로 다음은 '접수 중인 공모전' 마키 — 2026-10-15 사용자 요청으로
+          기능 소개(.features) 앞으로 순서를 바꿨다. 히어로와 같은 흰 캔버스 위에
+          마키 카드(흰)가 뜬다 */}
+      <Reveal className="reveal--block home-marquee-band">
+        <ContestMarquee onOpenContest={onOpenContest} />
+      </Reveal>
+
       {/* 공모온 강점 — 공모전 일정 패널 위에 배치한다. */}
       <section className="strengths" aria-label="공모온이 특별한 이유">
+        <div className="home-section-heading"><span className="home-eyebrow">HOW IT WORKS</span><h2>아이디어부터 다음 도전까지</h2></div>
         <div className="strengths-grid">
           <Reveal as="article" className="strength-item">
             <h3>아이디어가 전략으로</h3>
