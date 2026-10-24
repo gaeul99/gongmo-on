@@ -738,3 +738,101 @@
   .home .strength-item { padding: 24px 22px; }
   .home .home-deadlines { padding: 68px 20px 72px; }
 }
+
+/* 홈 시각 위계 정리 — 기능 링크 / 설명 카드 / 실시간 공모전의 성격을 구분 */
+.home {
+  --home-layout-width: var(--content-width);
+  --home-card-radius: 14px;
+}
+.home .home-section-heading,
+.home .feature-grid,
+.home .strengths-grid {
+  width: 100%;
+  max-width: var(--home-layout-width);
+  box-sizing: border-box;
+  margin-left: auto;
+  margin-right: auto;
+}
+.home .hero-copy { max-width: var(--home-layout-width); }
+.home .home-section-heading h2 { letter-spacing: -0.035em; }
+.home .home-eyebrow { color: #6b7280; }
+
+/* 기능 바로가기: 클릭 가능한 메뉴는 선명한 흰 카드와 방향 표시 */
+.home .feature-card,
+.home .feature-item:nth-child(even) .feature-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 160px;
+  padding: 28px 48px 28px 26px;
+  border-radius: var(--home-card-radius);
+  background: #fff;
+}
+.home .feature-card::after {
+  content: '↗';
+  position: absolute;
+  right: 22px;
+  top: 22px;
+  font-size: 18px;
+  font-weight: 400;
+  color: #9ca3af;
+  transition: transform .2s, color .2s;
+}
+.home .feature-card:hover::after,
+.home .feature-card:focus-visible::after {
+  transform: translate(2px, -2px);
+  color: var(--brand);
+}
+.home .feature-card h3 { font-size: 18px; line-height: 1.4; }
+.home .feature-card p { max-width: 36ch; color: var(--text-2); }
+.home .feature-item:nth-child(2) .feature-card {
+  border-color: #c8d9ff;
+  background: #f7faff;
+}
+.home .feature-item:nth-child(2) .feature-card::after { color: var(--brand); }
+
+/* 서비스 가치 설명: 비클릭 정보 카드는 더 부드러운 중립 톤으로 구분 */
+.home .strength-item,
+.home .strength-item:last-child:nth-child(odd) {
+  min-width: 0;
+  min-height: 156px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid #e9ebef;
+  border-radius: var(--home-card-radius);
+  background: #f8f9fb;
+  box-shadow: none;
+}
+.home .strength-item:hover { box-shadow: none; }
+.home .strength-item h3 { color: #343b47; font-size: 20px; }
+.home .strength-item p { color: #6b7280; line-height: 1.75; }
+
+/* 공모전 정보 영역은 기능 링크와 별개로 섹션 폭을 동일하게 정렬 */
+.home .home-deadlines {
+  width: 100%;
+  max-width: calc(var(--home-layout-width) + 48px);
+  box-sizing: border-box;
+}
+.home .hero-cta-primary:focus-visible,
+.home .hero-cta-secondary:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+@media (max-width: 720px) {
+  .home .feature-card,
+  .home .feature-item:nth-child(even) .feature-card {
+    min-height: 0;
+    padding: 24px 48px 24px 22px;
+  }
+  .home .feature-card::after { right: 20px; top: 20px; }
+  .home .strength-item,
+  .home .strength-item:last-child:nth-child(odd) {
+    min-height: 0;
+    padding: 25px 22px;
+  }
+  .home .strength-item h3 { font-size: 19px; }
+}
