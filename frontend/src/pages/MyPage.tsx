@@ -625,6 +625,8 @@ function MyPage({
           </form>
         )}
 
+        {user && (
+          <>
         <GrowthTimeline myContests={myContests} savedIdeas={savedIdeas} />
 
         <section
@@ -755,6 +757,8 @@ function MyPage({
             </p>
           )}
         </section>
+          </>
+        )}
       </div>
     </div>
   );

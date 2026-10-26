@@ -70,6 +70,16 @@ function HomePage({
   onDashboard,
 }: Props) {
   const { typed, done } = useTypewriter(TYPING_TEXT, 75)
+  const [deadlineOpen, setDeadlineOpen] = useState(false)
+
+  useEffect(() => {
+    if (!deadlineOpen) return
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setDeadlineOpen(false)
+    }
+    window.addEventListener('keydown', onEscape)
+    return () => window.removeEventListener('keydown', onEscape)
+  }, [deadlineOpen])
 
   return (
     <div className="page home">
@@ -106,19 +116,13 @@ function HomePage({
         </div>
       </section>
 
-      {/* 히어로 바로 다음은 '접수 중인 공모전' 마키 — 2026-10-15 사용자 요청으로
-          기능 소개(.features) 앞으로 순서를 바꿨다. 히어로와 같은 흰 캔버스 위에
-          마키 카드(흰)가 뜬다 */}
-      <Reveal className="reveal--block home-marquee-band">
-        <ContestMarquee onOpenContest={onOpenContest} />
-      </Reveal>
-
       {/* 서비스 바로가기 탭은 메뉴바로 흡수됐다(2026-10-13) — 마키 다음은
           '이렇게 도와드립니다'(2026-10-14에 마키 앞으로 옮겼다가 2026-10-15
           사용자 요청으로 마키 뒤로 되돌림) */}
       {/* 섹션 제목('이렇게 도와드립니다')은 2026-10-14 사용자 요청 '글자 지워주고'로
           빼고 aria-label로만 남겼다 — 강점 섹션(.strengths)과 같은 처리다 */}
-      <section className="features" aria-label="이렇게 도와드립니다">
+      <section className="features" aria-label="서비스 바로가기">
+        <div className="home-section-heading"><span className="home-eyebrow">QUICK START</span><h2>필요한 기능부터 시작하세요</h2></div>
         <div className="feature-grid">
           {/* 2026-10-14 사용자 요청 '이 지그재그 설명란을 메뉴탭으로 이용해서 클릭하면
               바로 갈 수 있게' — 3개 설명을 바로가기 5개 메뉴로 바꾸고 각 항목을
@@ -159,24 +163,16 @@ function HomePage({
         </div>
       </section>
 
-      {/* 기능 소개 다음은 '곧 마감'·'곧 시작' 두 패널 — '접수 중인 공모전' 마키는
-          2026-10-15 사용자 요청으로 히어로 다음으로 옮겨 갔다 */}
-      <Reveal className="reveal--block">
-        <div className="home-deadlines">
-          <HeroDeadlines onOpenExplore={onExplore} onOpenContest={onOpenContest} />
-          <HeroUpcoming onOpenExplore={onExploreUpcoming} onOpenContest={onOpenContest} />
-        </div>
+      {/* 히어로 바로 다음은 '접수 중인 공모전' 마키 — 2026-10-15 사용자 요청으로
+          기능 소개(.features) 앞으로 순서를 바꿨다. 히어로와 같은 흰 캔버스 위에
+          마키 카드(흰)가 뜬다 */}
+      <Reveal className="reveal--block home-marquee-band">
+        <ContestMarquee onOpenContest={onOpenContest} />
       </Reveal>
 
-      {/* 공모온 강점 — 푸터 바로 위(2026-10-14 사용자 요청). 기능 소개가 아니라
-          사용자가 이 사이트를 거치며 발전되는 흐름(아이디어→전략→도전→기록→
-          자신감)을 보여 준다. 첫 항목 '막막함이 아이디어로'는 같은 날
-          '이 문장은 지워줘' 요청으로 삭제했다. 섹션 제목은 같은 날 '글자 지워주고'
-          요청으로 빼고 aria-label로만 남겼다. 큰 문장+한 줄 설명의 크기 대비 — 같은 날
-          사용자 요청 '글자 크기 대비 효과를 더 극대화'. 배경은 섹션을 칠하지 않아
-          회색 캔버스 그라데이션이 그대로 푸터까지 내려온다(2026-10-14 사용자 요청
-          '연하늘빛 그레이 그라데이션이 푸터까지 내려오게' — 흰 전환은 푸터가 담당) */}
+      {/* 공모온 강점 — 공모전 일정 패널 위에 배치한다. */}
       <section className="strengths" aria-label="공모온이 특별한 이유">
+        <div className="home-section-heading"><span className="home-eyebrow">HOW IT WORKS</span><h2>아이디어부터 다음 도전까지</h2></div>
         <div className="strengths-grid">
           <Reveal as="article" className="strength-item">
             <h3>아이디어가 전략으로</h3>
@@ -192,6 +188,32 @@ function HomePage({
           </Reveal>
         </div>
       </section>
+
+      <button className="home-deadline-trigger" type="button" onClick={() => setDeadlineOpen(true)} aria-haspopup="dialog">
+        <span className="home-deadline-trigger-dot" aria-hidden="true" />
+        곧 마감되는 공모전
+      </button>
+      {deadlineOpen && (
+        <div className="home-deadline-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) setDeadlineOpen(false) }}>
+          <div className="home-deadline-dialog" role="dialog" aria-modal="true" aria-label="곧 마감되는 공모전">
+            <button className="home-deadline-close" type="button" aria-label="팝업 닫기" onClick={() => setDeadlineOpen(false)}>×</button>
+            <HeroDeadlines
+              onOpenExplore={() => { setDeadlineOpen(false); onExplore() }}
+              onOpenContest={(id) => { setDeadlineOpen(false); onOpenContest(id) }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 공모온 강점 다음은 '곧 마감'·'곧 시작' 두 패널 — '접수 중인 공모전' 마키는
+          2026-10-15 사용자 요청으로 히어로 다음으로 옮겨 갔다 */}
+      <Reveal className="reveal--block">
+        <div className="home-deadlines">
+          <HeroUpcoming onOpenExplore={onExploreUpcoming} onOpenContest={onOpenContest} />
+        </div>
+      </Reveal>
+
+
     </div>
   )
 }

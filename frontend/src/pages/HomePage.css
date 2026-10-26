@@ -544,11 +544,24 @@
 }
 
 .strength-item {
+  padding: 32px 28px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow: 0 14px 36px rgba(25, 39, 61, 0.12), 0 4px 12px rgba(25, 39, 61, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   /* 2026-10-14 사용자 요청 '이 섹션 화면 중앙에 배치' — 그리드 자체는 이미 중앙
      (max-width 1040px·margin auto)인데 항목 글자가 왼쪽 정렬이라 짧은 문장이
      칸의 왼쪽에 붙어 섹션 전체가 좌측으로 쏠려 보였다. 항목 안 글자를 가운데
      정렬해 두 열이 화면 중앙을 기준으로 대칭을 이루게 한다 */
   text-align: center;
+}
+
+.strength-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 44px rgba(25, 39, 61, 0.16), 0 6px 14px rgba(25, 39, 61, 0.08);
 }
 
 .strength-item h3 {
@@ -595,7 +608,7 @@
   }
 
   .feature-grid {
-    gap: 64px;
+    gap: 120px;
   }
 
   /* 지그재그가 좁은 화면에서도 읽히도록 제목을 PC 28px→19px로 줄인다
@@ -603,4 +616,288 @@
   .feature-card h3 {
     font-size: 19px;
   }
+}
+
+/* 미니멀 홈 리디자인: 넓은 공백 대신 일정한 섹션 리듬과 단정한 카드 그리드 */
+.home .hero {
+  min-height: 0;
+  padding: 108px 24px 92px;
+}
+.home .hero-copy { max-width: 760px; gap: 20px; }
+.home .hero-title { font-size: clamp(40px, 5vw, 58px); letter-spacing: -0.035em; }
+.home .tagline { margin: 12px 0 0; font-size: 16px; line-height: 1.8; }
+.home .hero-cta { margin-top: 12px; gap: 12px; }
+.home .hero-cta-primary {
+  background: var(--brand);
+  color: #fff;
+  border-radius: 12px;
+  padding: 14px 22px;
+}
+.home .hero-cta-primary:hover { background: #1d4ed8; }
+.home .hero-cta-secondary { padding: 12px; text-decoration: none; }
+.home .hero-cta-secondary:hover { text-decoration: underline; }
+
+.home .features,
+.home .strengths {
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+  padding: 72px 24px 0;
+  margin: 0;
+}
+.home .home-section-heading {
+  max-width: var(--content-width);
+  margin: 0 auto 30px;
+}
+.home .home-eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-3);
+  margin-bottom: 10px;
+}
+.home .home-section-heading h2 {
+  font-size: clamp(22px, 2.8vw, 30px);
+  line-height: 1.35;
+  margin: 0;
+  color: var(--text-h);
+}
+.home .feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: var(--content-width);
+  gap: 14px;
+}
+.home .feature-item,
+.home .feature-item:nth-child(even) {
+  width: auto;
+  min-width: 0;
+  align-self: stretch;
+}
+.home .feature-card,
+.home .feature-item:nth-child(even) .feature-card {
+  height: 100%;
+  box-sizing: border-box;
+  text-align: left;
+  padding: 25px 24px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 3px 14px rgba(16, 18, 22, 0.035);
+  transition: border-color .2s, box-shadow .2s, transform .2s;
+}
+.home .feature-card:hover,
+.home .feature-card:focus-visible {
+  border-color: #aab8d2;
+  box-shadow: 0 9px 22px rgba(16, 18, 22, .08);
+  transform: translateY(-2px);
+}
+.home .feature-card h3 { font-size: 19px; margin-bottom: 10px; }
+.home .feature-card p { margin: 0; font-size: 13px; line-height: 1.7; }
+.home .home-marquee-band { padding-top: 80px; }
+.home .strengths { padding-top: 92px; }
+.home .strengths-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: var(--content-width);
+  gap: 16px;
+}
+.home .strength-item,
+.home .strength-item:last-child:nth-child(odd) {
+  grid-column: auto;
+  text-align: left;
+  padding: 30px 26px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255,255,255,.75);
+  box-shadow: 0 4px 18px rgba(16,18,22,.045);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.home .strength-item:hover { transform: none; box-shadow: 0 4px 18px rgba(16,18,22,.045); }
+.home .strength-item h3 { font-size: 21px; margin-bottom: 12px; }
+.home .strength-item p { font-size: 13px; }
+.home .home-deadlines { margin: 0 auto; padding: 96px 24px 100px; gap: 20px; }
+
+@media (max-width: 900px) {
+  .home .feature-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .home .strengths-grid { grid-template-columns: 1fr; gap: 14px; }
+  .home .home-deadlines { grid-template-columns: 1fr; padding-top: 72px; }
+}
+@media (max-width: 720px) {
+  .home .hero { padding: 76px 22px 62px; }
+  .home .hero-title { font-size: 40px; }
+  .home .tagline { margin-top: 4px; font-size: 14px; }
+  .home .hero-cta { flex-direction: column; }
+  .home .features, .home .strengths { padding: 56px 20px 0; }
+  .home .home-section-heading { margin-bottom: 22px; }
+  .home .feature-grid { grid-template-columns: 1fr; gap: 12px; }
+  .home .feature-card, .home .feature-item:nth-child(even) .feature-card { padding: 22px; }
+  .home .feature-card h3 { font-size: 18px; }
+  .home .home-marquee-band { padding-top: 64px; }
+  .home .strength-item { padding: 24px 22px; }
+  .home .home-deadlines { padding: 68px 20px 72px; }
+}
+
+/* 홈 시각 위계 정리 — 기능 링크 / 설명 카드 / 실시간 공모전의 성격을 구분 */
+.home {
+  --home-layout-width: var(--content-width);
+  --home-card-radius: 14px;
+}
+.home .home-section-heading,
+.home .feature-grid,
+.home .strengths-grid {
+  width: 100%;
+  max-width: var(--home-layout-width);
+  box-sizing: border-box;
+  margin-left: auto;
+  margin-right: auto;
+}
+.home .hero-copy { max-width: var(--home-layout-width); }
+.home .home-section-heading h2 { letter-spacing: -0.035em; }
+.home .home-eyebrow { color: #6b7280; }
+
+/* 기능 바로가기: 클릭 가능한 메뉴는 선명한 흰 카드와 방향 표시 */
+.home .feature-card,
+.home .feature-item:nth-child(even) .feature-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 160px;
+  padding: 28px 48px 28px 26px;
+  border-radius: var(--home-card-radius);
+  background: #fff;
+}
+.home .feature-card::after {
+  content: '↗';
+  position: absolute;
+  right: 22px;
+  top: 22px;
+  font-size: 18px;
+  font-weight: 400;
+  color: #9ca3af;
+  transition: transform .2s, color .2s;
+}
+.home .feature-card:hover::after,
+.home .feature-card:focus-visible::after {
+  transform: translate(2px, -2px);
+  color: var(--brand);
+}
+.home .feature-card h3 { font-size: 18px; line-height: 1.4; }
+.home .feature-card p { max-width: 36ch; color: var(--text-2); }
+.home .feature-item:nth-child(2) .feature-card {
+  border-color: #c8d9ff;
+  background: #f7faff;
+}
+.home .feature-item:nth-child(2) .feature-card::after { color: var(--brand); }
+
+/* 서비스 가치 설명: 비클릭 정보 카드는 더 부드러운 중립 톤으로 구분 */
+.home .strength-item,
+.home .strength-item:last-child:nth-child(odd) {
+  min-width: 0;
+  min-height: 156px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border: 1px solid #e9ebef;
+  border-radius: var(--home-card-radius);
+  background: #f8f9fb;
+  box-shadow: none;
+}
+.home .strength-item:hover { box-shadow: none; }
+.home .strength-item h3 { color: #343b47; font-size: 20px; }
+.home .strength-item p { color: #6b7280; line-height: 1.75; }
+
+/* 공모전 정보 영역은 기능 링크와 별개로 섹션 폭을 동일하게 정렬 */
+.home .home-deadlines {
+  width: 100%;
+  max-width: calc(var(--home-layout-width) + 48px);
+  box-sizing: border-box;
+}
+.home .hero-cta-primary:focus-visible,
+.home .hero-cta-secondary:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+@media (max-width: 720px) {
+  .home .feature-card,
+  .home .feature-item:nth-child(even) .feature-card {
+    min-height: 0;
+    padding: 24px 48px 24px 22px;
+  }
+  .home .feature-card::after { right: 20px; top: 20px; }
+  .home .strength-item,
+  .home .strength-item:last-child:nth-child(odd) {
+    min-height: 0;
+    padding: 25px 22px;
+  }
+  .home .strength-item h3 { font-size: 19px; }
+}
+
+/* 곧 마감 공모전은 페이지 패널 대신 요청 시 열리는 미니멀 팝업으로 표시 */
+.home .home-deadlines { grid-template-columns: minmax(0, 1fr); }
+.home-deadline-trigger {
+  position: fixed;
+  right: 24px;
+  bottom: 28px;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 18px;
+  border: 1px solid #dbe1e9;
+  border-radius: 999px;
+  background: #fff;
+  color: #283344;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(22,32,48,.12);
+}
+.home-deadline-trigger:hover { border-color: #9aa9be; }
+.home-deadline-trigger-dot { width: 7px; height: 7px; border-radius: 50%; background: #2563eb; }
+.home-deadline-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background: rgba(18,26,39,.35);
+}
+.home-deadline-dialog {
+  position: relative;
+  width: min(560px, 100%);
+  max-height: min(80vh, 700px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 32px 28px 28px;
+  border: 1px solid #e7eaf0;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 72px rgba(18,26,39,.18);
+}
+.home-deadline-dialog .hero-panel-col { width: 100%; }
+.home-deadline-dialog .deadline-head { padding-right: 32px; }
+.home-deadline-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  border: 0;
+  background: transparent;
+  color: #667085;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+@media (max-width: 720px) {
+  .home-deadline-trigger { right: 16px; bottom: 78px; font-size: 12px; padding: 12px 15px; }
+  .home-deadline-overlay { padding: 16px; }
+  .home-deadline-dialog { padding: 30px 18px 20px; border-radius: 16px; }
 }
