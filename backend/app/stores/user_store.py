@@ -9,6 +9,8 @@ import json
 import secrets
 from datetime import datetime, timedelta, timezone
 
+from psycopg import Connection
+
 from app.db.pool import get_pool
 from app.utils.timeutil import iso_utc
 
