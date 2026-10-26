@@ -44,7 +44,10 @@ jobs:
           # https://<계정>.github.io/<저장소 이름>/ 하위에 뜨므로 base를 저장소 이름으로 잡는다.
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
           # 백엔드 주소 — 저장소 변수 VITE_API_BASE_URL에서 가져온다.
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          # 변수가 비어 있으면 빈 문자열이 env로 들어가 앱의 ?? 폴백(localhost)도
+          # 작동하지 않아 Pages에서 API가 전부 깨진다(2026-10-26 확인) —
+          # Render 주소를 기본값으로 폴백시킨다. 변수를 설정하면 그 값이 이긴다.
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'https://gongmo-on.onrender.com' }}
       # SPA 깊은 주소(/contest/5 등)로 새 탭·새로고침에 들어오면 Pages가
       # 404.html을 대신 서빙한다 — index.html 복제본으로 모든 깊은 주소가 앱으로 들어오게.
       - name: SPA 깊은 주소용 404 대체 파일
