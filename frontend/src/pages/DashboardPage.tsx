@@ -366,15 +366,16 @@ function DashboardPage({
           <h2>도전 히스토리</h2>
           <div className="panel-head-side">
             <span className="panel-hint">수상·탈락·진행 중은 마이페이지 응모 기록에서 바꿔요</span>
-            {/* 포트폴리오 카드 — 도전 기록을 공유용 이미지(PNG)로 내려받는다(2026-10-23) */}
+            {/* 포트폴리오 카드 — 도전 기록을 공유용 이미지(PNG)로 내려받는다(2026-10-23).
+                2026-10-26 사용자 요청으로 링크 대신 눈에 띄는 포인트 버튼으로 바꿨다. */}
             {portfolio.total > 0 && (
               <button
                 type="button"
-                className="panel-link"
+                className="portfolio-save-button"
                 onClick={() => downloadPortfolioCard(portfolio)}
                 title="도전 기록을 SNS에 올릴 수 있는 이미지 카드(PNG)로 내려받아요"
               >
-                포트폴리오 카드 저장 (PNG)
+                포트폴리오 카드 저장 (PNG) ↓
               </button>
             )}
           </div>
@@ -416,7 +417,12 @@ function DashboardPage({
                     <span className="field-name">{bar.name}</span>
                     <span className="field-track">
                       <span
-                        className="field-fill"
+                        className={
+                          // '기타'는 실제 분야가 아니므로 파란 강조 대신 연회색 알약으로(2026-10-26 사용자 요청).
+                          bar.name === "기타"
+                            ? "field-fill field-fill--muted"
+                            : "field-fill"
+                        }
                         style={{
                           width: `${Math.round((bar.count / maxChallengeField) * 100)}%`,
                         }}

@@ -678,11 +678,24 @@ _sync_lock = threading.Lock()
 _sync_in_flight = False
 
 
+def _dup_key(contest: dict) -> tuple[str, str]:
+    # 위비티·콘테스트코리아가 같은 공모전을 각각 올린다 — 제목(공백 정규화)과
+    # 마감일이 같으면 같은 공모전으로 보고 한 건만 등록한다.
+    return (re.sub(r"\s+", " ", contest["title"]).strip(), contest["deadline"])
+
+
 def sync_contests(force: bool = False) -> dict:
     global _sync_in_flight
     with _sync_lock:
         if _sync_in_flight:
-            return {"added": 0, "refreshed": 0, "pruned": 0, "skippedDetailFail": 0, "total": 0}
+            return {
+                "added": 0,
+                "refreshed": 0,
+                "pruned": 0,
+                "skippedDetailFail": 0,
+                "duplicates": 0,
+                "total": 0,
+            }
         # 재시작 직후 중복 실행 방지 — DB의 마지막 동기화 시각만 가볍게 읽는다.
         with get_pool().connection() as conn:
             gate_row = conn.execute(
@@ -700,6 +713,7 @@ def sync_contests(force: bool = False) -> dict:
                     "refreshed": 0,
                     "pruned": 0,
                     "skippedDetailFail": 0,
+                    "duplicates": 0,
                     "total": total_now,
                     "lastSync": iso_utc(last_sync),
                 }
@@ -731,6 +745,10 @@ def _run_sync() -> dict:
     detail_fetches = 0
 
     contests_by_id = {contest["id"]: contest for contest in state["contests"]}
+    contests_by_dup_key: dict[tuple[str, str], dict] = {}
+    for contest in state["contests"]:
+        contests_by_dup_key.setdefault(_dup_key(contest), contest)
+    duplicates_skipped = 0
     for candidate in candidates:
         key = f"{candidate['source']}:{candidate['sourceId']}"
         known = state["registry"].get(key)
@@ -768,6 +786,14 @@ def _run_sync() -> dict:
                 skipped_detail_fail += 1
             continue
 
+        # 이미 등록된 같은 공모전(다른 소스 게시물)이면 등록하지 않고, registry
+        # 포인터를 본체 id로 걸어 다음 동기화 때도 등록 대상에서 제외되게 한다.
+        twin = contests_by_dup_key.get(_dup_key(probe))
+        if twin is not None:
+            state["registry"][key] = {"id": twin["id"]}
+            duplicates_skipped += 1
+            continue
+
         known_id = known.get("id", 0) if known else 0
         contest_id = known_id if known_id > 0 else state["nextId"]
         if not known_id > 0:
@@ -776,6 +802,7 @@ def _run_sync() -> dict:
         state["registry"][key] = {"id": contest_id}
         state["contests"].append(contest)
         contests_by_id[contest_id] = contest
+        contests_by_dup_key.setdefault(_dup_key(contest), contest)
         if known and known.get("pruned"):
             refreshed += 1
         else:
@@ -802,11 +829,15 @@ def _run_sync() -> dict:
         "refreshed": refreshed,
         "pruned": pruned,
         "skippedDetailFail": skipped_detail_fail,
+        "duplicates": duplicates_skipped,
         "total": len(kept),
     }
     if state.get("lastSync"):
         summary["lastSync"] = state["lastSync"]
-    print(f"[contestSync] 동기화 완료 — 신규 {added}, 재등록 {refreshed}, 정리 {pruned}, 보관 {len(kept)}건")
+    print(
+        f"[contestSync] 동기화 완료 — 신규 {added}, 재등록 {refreshed}, 정리 {pruned}, "
+        f"중복 제외 {duplicates_skipped}, 보관 {len(kept)}건"
+    )
     return summary
 
 

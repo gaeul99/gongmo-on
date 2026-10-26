@@ -8,6 +8,8 @@ import TypeTestPage from './pages/TypeTestPage'
 import ContestDetailPage from './pages/ContestDetailPage'
 import ContestListPage, { type SortMode, type StatusFilter } from './pages/ContestListPage'
 import PracticeNotePage from './pages/PracticeNotePage'
+import WishlistPage from './pages/WishlistPage'
+import ArchivePage from './pages/ArchivePage'
 import type { NotePrefill } from './pages/PracticeNotePage'
 import TopNav from './components/TopNav'
 import SiteFooter from './components/SiteFooter'
@@ -52,6 +54,8 @@ type Screen =
   | 'contests'
   | 'contest'
   | 'notes'
+  | 'wishlist'
+  | 'archive'
 
 const PATH_BY_SCREEN: Record<Screen, string> = {
   home: '/',
@@ -63,6 +67,8 @@ const PATH_BY_SCREEN: Record<Screen, string> = {
   contests: '/contest',
   contest: '/contest',
   notes: '/notes',
+  wishlist: '/wishlist',
+  archive: '/archive',
 }
 
 const IDEA_STORAGE_KEY = 'gongmo-on:idea'
@@ -250,6 +256,14 @@ function screenFromLocation(): Screen {
   }
   if (pathname === PATH_BY_SCREEN.notes) {
     return 'notes'
+  }
+  // 찜한 공모전 전용 화면 — 마이페이지의 '찜한 공모전 보기'로만 연결된다.
+  if (pathname === PATH_BY_SCREEN.wishlist) {
+    return 'wishlist'
+  }
+  // 아이디어 보관함 전용 화면 — 마이페이지의 '보관함 열어보기'로만 연결된다.
+  if (pathname === PATH_BY_SCREEN.archive) {
+    return 'archive'
   }
   return 'home'
 }
@@ -697,6 +711,7 @@ function App() {
     persistList(WISHLIST_STORAGE_KEY, next)
   }
 
+  // 찜한 공모전 페이지의 '관심 해제' — 목록에서 바로 지웁니다.
   const handleRemoveWish = (id: number) => {
     const next = wishlist.filter((contest) => contest.id !== id)
     setWishlist(next)
@@ -1078,12 +1093,6 @@ function App() {
           onToggleNotifOptIn={handleToggleNotifOptIn}
           onCancelApply={handleCancelApply}
           onContestResult={handleContestResult}
-          onApplyWish={handleApplyContest}
-          onRemoveWish={handleRemoveWish}
-          onOpenIdea={handleOpenIdea}
-          onDeleteIdea={handleDeleteIdea}
-          onAddIdea={handleSaveIdea}
-          onUpdateIdea={handleUpdateIdea}
           onImportLists={handleImportLists}
           onBack={() => navigate('home')}
           onGoInput={() => {
@@ -1091,6 +1100,43 @@ function App() {
             setTypeHints(null)
             navigate('input')
           }}
+          onGoExplore={() => {
+            setExploreFilter('all')
+            setExploreInitialSort(undefined)
+            navigate('contests')
+          }}
+          // 마이페이지 관심 공모전 → 찜한 공모전 전용 화면(2026-10-26 사용자 요청.
+          // 탐색 화면과는 연결하지 않는다)
+          onGoWishlistPage={() => navigate('wishlist')}
+          // 마이페이지 아이디어 보관함 → 보관함 전용 화면(2026-10-26 사용자 요청.
+          // 마이페이지의 목록은 없애고 전용 화면에서 본다)
+          onGoArchivePage={() => navigate('archive')}
+        />
+      )}
+      {/* 아이디어 보관함 전용 화면 — 마이페이지의 '보관함 열어보기'로만 연결된다 */}
+      {screen === 'archive' && (
+        <ArchivePage
+          savedIdeas={savedIdeas}
+          onOpenIdea={handleOpenIdea}
+          onDeleteIdea={handleDeleteIdea}
+          onAddIdea={handleSaveIdea}
+          onUpdateIdea={handleUpdateIdea}
+          onBack={() => navigate('mypage')}
+          onGoInput={() => {
+            setPrefill(null)
+            setTypeHints(null)
+            navigate('input')
+          }}
+        />
+      )}
+      {/* 찜한 공모전 전용 화면 — 마이페이지의 '찜한 공모전 보기'로만 연결된다 */}
+      {screen === 'wishlist' && (
+        <WishlistPage
+          user={user}
+          wishlist={wishlist}
+          onRemoveWish={handleRemoveWish}
+          onApplyWish={handleApplyContest}
+          onBack={() => navigate('mypage')}
           onGoExplore={() => {
             setExploreFilter('all')
             setExploreInitialSort(undefined)

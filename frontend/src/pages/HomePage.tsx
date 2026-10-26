@@ -94,13 +94,13 @@ function HomePage({
           <RotatingExample />
           {/* 히어로 첫 행동 CTA — 기획 흐름(유형 검사 → 아이디어 입력)의 시작을
               히어로에서 바로 연다(2026-10-19 화면 흐름 점검). 주 CTA는 검사,
-              바로 분석하러 온 사용자를 위한 보조 링크를 나란히 둔다 */}
+              2026-10-26 사용자 요청으로 보조 링크는 공모전 탐색으로 바꿨다 */}
           <div className="hero-cta">
             <AppLink className="hero-cta-primary" href="/test" onNavigate={onTypeTest}>
               유형 검사로 시작하기
             </AppLink>
-            <AppLink className="hero-cta-secondary" href="/input" onNavigate={onStart}>
-              아이디어 바로 분석 →
+            <AppLink className="hero-cta-secondary" href="/contest" onNavigate={onExplore}>
+              공모전 탐색 →
             </AppLink>
           </div>
         </div>

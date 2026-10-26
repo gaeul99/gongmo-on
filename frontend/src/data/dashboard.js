@@ -167,23 +167,47 @@ export function buildChallengeHistory(pool = getAllContests()) {
   }
 }
 
-// 포트폴리오 카드 재료 — 도전 히스토리 요약에 수상작 목록을 더한 형태.
-// 그림으로 그리는 일은 utils/portfolioCard.js가 담당한다(2026-10-23).
+// 포트폴리오 카드 재료 — 도전 히스토리 요약에 수상작·최근 도전·응모 기간·수상률을
+// 더한 형태. 그림으로 그리는 일은 utils/portfolioCard.js가 담당한다(2026-10-23).
 export function buildPortfolioModel(pool = getAllContests(), nickname = '') {
+  const rows = readStoredList(MY_CONTESTS_STORAGE_KEY)
   const history = buildChallengeHistory(pool)
-  const wonItems = readStoredList(MY_CONTESTS_STORAGE_KEY)
+  const titleOf = (row) =>
+    String(pool.find((contest) => contest.id === row.id)?.title ?? row.title ?? '이름 없는 공모전')
+  const wonItems = rows
     .filter((row) => row.result === 'won')
     .map((row) => ({
-      title: String(
-        pool.find((contest) => contest.id === row.id)?.title ?? row.title ?? '이름 없는 공모전',
-      ),
+      title: titleOf(row),
       resultAt: String(row.resultAt ?? ''),
     }))
+    .slice(0, 2)
+  // 최근 도전 — 응모한 시점의 내림차순 3건. 카드에 '지금 어떤 공모전을 돌고 있는지'를 보여 준다.
+  const recentItems = [...rows]
+    .sort((a, b) => String(b.appliedAt ?? '').localeCompare(String(a.appliedAt ?? '')))
     .slice(0, 3)
+    .map((row) => ({
+      title: titleOf(row),
+      result: row.result === 'won' ? 'won' : row.result === 'lost' ? 'lost' : 'progress',
+      appliedAt: String(row.appliedAt ?? ''),
+    }))
+  // 응모 기간 — 처음 응모한 날부터 가장 최근 응모까지.
+  const appliedDates = rows
+    .map((row) => String(row.appliedAt ?? ''))
+    .filter(Boolean)
+    .sort()
+  const period = appliedDates.length
+    ? { from: appliedDates[0], to: appliedDates[appliedDates.length - 1] }
+    : null
+  // 수상률 — 결과가 확정된(수상+탈락) 도전 중 수상의 비율. 확정된 게 없으면 null.
+  const decided = history.won + history.lost
+  const winRate = decided > 0 ? Math.round((history.won / decided) * 100) : null
   return {
     ...history,
     nickname: String(nickname || '').trim() || '공모온 도전자',
     wonItems,
+    recentItems,
+    period,
+    winRate,
   }
 }
 

@@ -224,6 +224,10 @@ function ResultPage({
   // proposalDraft.js는 JS 모듈이라 화면 쪽에서 표시용 형태를 타입으로 고정합니다.
   const [proposalOpen, setProposalOpen] = useState(false)
   const [proposalCopied, setProposalCopied] = useState(false)
+  // TXT 내려받기는 로그인한 회원만 가능합니다(2026-10-26 사용자 요청). 비로그인
+  // 상태에서 내려받기를 누르면 이 값이 켜져 인라인 로그인 패널이 열리고,
+  // 로그인에 성공하면 내려받기를 이어서 실행합니다. 복사·미리보기는 누구나 씁니다.
+  const [proposalAuthOpen, setProposalAuthOpen] = useState(false)
   const proposalDraft = useMemo<ProposalDraft | null>(
     () => (analysis ? (buildProposalDraft({ idea, analysis }) as ProposalDraft) : null),
     [idea, analysis],
@@ -613,7 +617,17 @@ function ResultPage({
               <button type="button" className="proposal-copy" onClick={handleCopyProposal}>
                 {proposalCopied ? '복사 완료!' : '초안 복사하기'}
               </button>
-              <button type="button" className="proposal-download" onClick={handleDownloadProposal}>
+              <button
+                type="button"
+                className="proposal-download"
+                onClick={() => {
+                  if (user) {
+                    handleDownloadProposal()
+                  } else {
+                    setProposalAuthOpen(true)
+                  }
+                }}
+              >
                 TXT 내려받기
               </button>
               <button
@@ -625,6 +639,22 @@ function ResultPage({
                 미리보기 {proposalOpen ? '▲' : '▼'}
               </button>
             </div>
+            {!user && (
+              <p className="proposal-login-hint">
+                TXT 내려받기는 로그인한 회원만 쓸 수 있어요. 복사·미리보기는 그대로 쓸 수 있어요.
+              </p>
+            )}
+            {!user && proposalAuthOpen && (
+              <InlineAuthPanel
+                onSignIn={onSignIn}
+                onSignUp={onSignUp}
+                contextNote="TXT 내려받기는 로그인한 회원만 쓸 수 있어요. 로그인하면 바로 내려받아 드릴게요."
+                onAuthed={() => {
+                  setProposalAuthOpen(false)
+                  handleDownloadProposal()
+                }}
+              />
+            )}
             {proposalOpen && (
               <div className="proposal-preview">
                 <p className="proposal-title-line">[제안서 초안] {proposalDraft.title}</p>

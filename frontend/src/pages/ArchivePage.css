@@ -1,0 +1,41 @@
+/* ==========================================================
+   아이디어 보관함 페이지 스타일
+   화면 셸만 여기서 정의하고, 목록·폼은 MyPage.css의 공용 클래스
+   (idea-form·my-contest-list·idea-add-button 등)를 재사용한다.
+   ========================================================== */
+
+.archive-page {
+  flex: 1;
+}
+
+.archive-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px 88px;
+}
+
+.archive-page-header {
+  margin: 24px 0 28px;
+}
+
+.archive-page-header h1 {
+  margin: 0 0 10px;
+  font-size: clamp(20px, 4.5vw, 26px);
+  color: var(--text-h);
+}
+
+/* 목록 제목 + 기록 폼 토글(+) 한 줄 — MyPage의 archive-header와 같은 배치 */
+.archive-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+}
+
+.archive-toolbar h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-h);
+}

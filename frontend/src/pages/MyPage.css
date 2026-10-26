@@ -548,6 +548,52 @@ section h2 {
   padding: 18px 20px;
 }
 
+/* 관심 공모전·아이디어 보관함 안내 박스 — 같은 사이즈로 나란히 배치한다
+   (2026-10-26 사용자 요청). 좌우 2열이고, 좁은 화면에서는 위아래로 쌓인다. */
+.mypage-duo {
+  margin-top: 84px;
+  display: flex;
+  align-items: stretch;
+  gap: 20px;
+}
+
+/* .mypage-duo가 div라 section + section 규칙이 적용되지 않아 직접 간격을 낸다 */
+.mypage-duo + section {
+  margin-top: 84px;
+}
+
+.mypage-duo-box {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* .mypage-inner section + section 간격 규칙이 듀오의 오른쪽 박스에도 물들어
+   오른쪽 박스만 84px 아래로 밀려 '두 박스 높이가 다르다'는 제보(2026-10-26)가
+   있었다 — 듀오 안에서는 나란히 놓이므로 그 세로 간격을 끈다. */
+.mypage-duo .mypage-duo-box + .mypage-duo-box {
+  margin-top: 0;
+}
+
+/* 두 안내 박스가 항상 같은 폭·높이를 갖게 열을 가득 채운다 */
+.mypage-duo-box .wishlist-teaser {
+  width: 100%;
+  flex: 1;
+}
+
+@media (max-width: 560px) {
+  .mypage-duo {
+    flex-direction: column;
+  }
+}
+
+/* 관심 공모전·보관함 안내 박스 수식 클래스 — .wishlist-empty를 보관함 빈 상태와
+   공유하므로 구분용으로만 남긴다(크기는 .mypage-duo-box가 결정한다) */
+.wishlist-teaser {
+  box-sizing: border-box;
+}
+
 /* 빈 상태 안내문 안의 다음 행동 버튼 — display가 p가 아니라 div라 버튼을 담는다 */
 .empty-cta-button {
   display: block;
@@ -588,73 +634,6 @@ section h2 {
 .apply-from-wish-button:hover {
   transform: translateY(-1px);
   opacity: 0.92;
-}
-
-.wish-login-hint {
-  font-size: 11.5px;
-  color: var(--text-2);
-}
-
-/* 관심 목록 응모 2단계 확인 — 상세 화면(.detail-apply-confirm)과 같은 원칙·색을 쓴다.
-   my-contest-item이 flex-wrap이라 flex-basis 100%로 새 줄을 차지한다 */
-.wish-apply-confirm {
-  flex-basis: 100%;
-  box-sizing: border-box;
-  border: 1px solid var(--brand-border);
-  border-radius: 12px;
-  background: var(--brand-bg);
-  padding: 14px 16px;
-}
-
-.wish-apply-confirm-title {
-  margin: 0 0 6px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-h);
-  word-break: keep-all;
-}
-
-.wish-apply-confirm-steps {
-  margin: 0 0 10px;
-  padding-left: 18px;
-  font-size: 13px;
-  line-height: 1.65;
-  color: var(--text);
-  word-break: keep-all;
-}
-
-.wish-apply-confirm-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.wish-apply-confirm-site {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--accent-text);
-  text-decoration: none;
-}
-
-.wish-apply-confirm-site:hover {
-  text-decoration: underline;
-}
-
-.wish-apply-confirm-cancel {
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  background: none;
-  border: none;
-  padding: 2px 4px;
-  cursor: pointer;
-}
-
-.wish-apply-confirm-cancel:hover {
-  color: var(--text-h);
-  text-decoration: underline;
 }
 
 /* 아이디어 보관함 직접 기록 폼 */

@@ -172,6 +172,34 @@ a.kpi-card:hover {
   text-decoration: underline;
 }
 
+/* 포트폴리오 카드 저장 — 조용한 링크 대신 눈에 띄는 포인트 버튼
+   (2026-10-26 사용자 요청). 도전 히스토리가 있을 때만 머리글에 나온다. */
+.portfolio-save-button {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.portfolio-save-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.portfolio-save-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
+}
+
 /* 빈 상태 안내문 + 다음 행동 버튼 */
 .panel-empty-group {
   display: flex;
@@ -353,6 +381,12 @@ a.kpi-card:hover {
   height: 100%;
   border-radius: 999px;
   background: var(--accent);
+}
+
+/* '기타' 행 — 분야가 아니라 잡동사니라서 파란 강조 대신 연회색 알약(2026-10-26).
+   트랙(--code-bg #f4f5f7)보다 한 단계 짙은 회색이라 막대가 여전히 보인다. */
+.field-fill--muted {
+  background: var(--border);
 }
 
 .field-count {

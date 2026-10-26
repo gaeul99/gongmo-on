@@ -30,7 +30,6 @@ type Props = {
 }
 
 type ContestStatus = 'open' | 'upcoming' | 'closed'
-
 // 데이터 풀(목업 + 자동 등록)의 공모전이 모두 갖춘 최소 형태 — 목업·자동 등록
 // 어느 쪽이든 이 필드는 존재한다(startDate만 자동 등록 쪽에서도 없을 수 있다).
 type ContestRow = {
@@ -407,7 +406,7 @@ function ContestListPage({
                     title={
                       wished
                         ? '관심 목록에서 해제'
-                        : '관심 목록에 추가 (마이페이지에서 볼 수 있어요)'
+                        : '관심 목록에 추가 (찜한 공모전 화면에서 볼 수 있어요)'
                     }
                     onClick={() =>
                       onToggleWish({

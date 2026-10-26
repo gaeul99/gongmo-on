@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import AppLink from "../components/AppLink";
-import CategorySelect from "../components/CategorySelect";
 import GrowthTimeline from "../components/GrowthTimeline";
 import MyContestCalendar from "../components/MyContestCalendar";
 import ToggleSwitch from "../components/ToggleSwitch";
@@ -95,16 +94,6 @@ type Props = {
   onCancelApply: (id: number) => void;
   /** 응모 결과(진행 중·수상·탈락)를 기록 — 대시보드 도전 히스토리의 재료가 됩니다. */
   onContestResult: (id: number, result: "progress" | "won" | "lost") => void;
-  onApplyWish: (target: Omit<WishlistContest, "addedAt">) => void;
-  onRemoveWish: (id: number) => void;
-  onOpenIdea: (idea: SavedIdea) => void;
-  onDeleteIdea: (id: string) => void;
-  onAddIdea: (target: Omit<SavedIdea, "id" | "savedAt">) => boolean;
-  /** 보관함 아이디어 수정 — 같은 내용의 아이디어가 이미 있으면 false를 돌려줍니다. */
-  onUpdateIdea: (
-    id: string,
-    patch: { title: string; description: string; category: string },
-  ) => boolean;
   /** 내보내기 파일에서 가져온 목록을 앱 상태·저장소에 반영합니다. */
   onImportLists: (
     myContests: AppliedContest[],
@@ -115,10 +104,14 @@ type Props = {
   onGoInput: () => void;
   // 공모전 탐색 화면으로 보내는 콜백 — 관심 목록 빈 상태에서 씁니다.
   onGoExplore: () => void;
+  // 찜한 공모전 전용 화면으로 보내는 콜백 — 관심 공모전 안내에서 씁니다.
+  // 찜한 목록은 이 전용 화면에서 한 번에 본다(2026-10-26 사용자 요청).
+  // 대시보드의 onGoWishlist(마이페이지 섹션 이동)와는 다릅니다.
+  onGoWishlistPage: () => void;
+  // 아이디어 보관함 전용 화면으로 보내는 콜백 — 보관함 안내에서 씁니다.
+  // 아이디어 목록·기록 폼은 마이페이지에서 없애고 전용 화면에서 본다(2026-10-26 사용자 요청).
+  onGoArchivePage: () => void;
 };
-
-// 입력 화면과 같은 관심 분야 목록
-const CATEGORIES = ["환경", "교육", "안전", "복지", "교통", "생활", "기타"];
 
 // 응모 결과 옵션 — 마이페이지 배지와 대시보드 도전 히스토리가 같은 값을 씁니다.
 const RESULT_OPTIONS: Array<{
@@ -145,15 +138,6 @@ function validateNicknameForForm(value: string): string | null {
   return null;
 }
 
-// 마감까지 남은 일수(마감 지남은 음수). ContestDetailPage와 같은 계산으로,
-// 관심 목록 응모 확인 문구를 마감 여부에 맞게 분기할 때 씁니다.
-function daysLeft(deadline: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const end = new Date(`${deadline}T00:00:00`);
-  return Math.round((end.getTime() - today.getTime()) / 86400000);
-}
-
 function MyPage({
   user,
   myContests,
@@ -167,16 +151,12 @@ function MyPage({
   onToggleNotifOptIn,
   onCancelApply,
   onContestResult,
-  onApplyWish,
-  onRemoveWish,
-  onOpenIdea,
-  onDeleteIdea,
-  onAddIdea,
-  onUpdateIdea,
   onImportLists,
   onBack,
   onGoInput,
   onGoExplore,
+  onGoWishlistPage,
+  onGoArchivePage,
 }: Props) {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [nickname, setNickname] = useState("");
@@ -239,79 +219,6 @@ function MyPage({
       });
     } else {
       setProfileStatus({ tone: "error", text: result.error });
-    }
-  };
-
-  // 보관함에 아이디어를 직접 기록하는 폼 상태
-  const [ideaTitle, setIdeaTitle] = useState("");
-  const [ideaDescription, setIdeaDescription] = useState("");
-  const [ideaCategory, setIdeaCategory] = useState("");
-  const [ideaFormMessage, setIdeaFormMessage] = useState<string | null>(null);
-  const [ideaFormOpen, setIdeaFormOpen] = useState(false);
-  // 수정 중인 보관함 아이디어 — 폼이 '직접 기록하기' 대신 '아이디어 수정'으로 바뀝니다.
-  const [editingIdeaId, setEditingIdeaId] = useState<string | null>(null);
-  // 관심 목록 '응모하기'의 2단계 확인 — 상세·결과 화면과 같은 원칙으로,
-  // 확인 박스를 연 공모전 id를 기억합니다(한 번에 하나만 열립니다).
-  const [confirmingWishId, setConfirmingWishId] = useState<number | null>(null);
-
-  // 보관함 항목 '수정' — 기록 폼을 수정 모드로 전환하고 값을 채워 넣습니다.
-  const startIdeaEdit = (idea: SavedIdea) => {
-    setEditingIdeaId(idea.id);
-    setIdeaTitle(idea.title);
-    setIdeaDescription(idea.description);
-    setIdeaCategory(idea.category);
-    setIdeaFormMessage(null);
-    setIdeaFormOpen(true);
-  };
-
-  // 수정 모드를 끝내고 폼을 비웁니다('기록하기'로 되돌아갑니다).
-  const cancelIdeaEdit = () => {
-    setEditingIdeaId(null);
-    setIdeaTitle("");
-    setIdeaDescription("");
-    setIdeaCategory("");
-    setIdeaFormMessage(null);
-  };
-
-  const handleIdeaSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    const title = ideaTitle.trim();
-    if (!title) {
-      setIdeaFormMessage("제목을 입력해 주세요.");
-      return;
-    }
-    if (editingIdeaId) {
-      const updated = onUpdateIdea(editingIdeaId, {
-        title,
-        description: ideaDescription.trim(),
-        category: ideaCategory,
-      });
-      if (updated) {
-        cancelIdeaEdit();
-        setIdeaFormMessage(
-          "아이디어를 수정했어요. 저장된 분석 결과는 지워져서, 다시 보기 때 새로 분석해요.",
-        );
-      } else {
-        setIdeaFormMessage(
-          "제목·설명·분야가 같은 아이디어가 이미 보관함에 있어요.",
-        );
-      }
-      return;
-    }
-    const added = onAddIdea({
-      title,
-      description: ideaDescription.trim(),
-      category: ideaCategory,
-    });
-    if (added) {
-      setIdeaTitle("");
-      setIdeaDescription("");
-      setIdeaCategory("");
-      setIdeaFormMessage("보관함에 기록했어요.");
-    } else {
-      setIdeaFormMessage(
-        "제목·설명·분야가 같은 아이디어가 이미 보관함에 있어요.",
-      );
     }
   };
 
@@ -754,300 +661,60 @@ function MyPage({
 
         <MyContestCalendar myContests={myContests} wishlist={wishlist} />
 
-        <section aria-labelledby="wishlist-title" data-reveal>
-          <h2 id="wishlist-title">
-            관심 공모전{" "}
-            <span className="contest-count">{wishlist.length}개</span>
-          </h2>
-          {wishlist.length === 0 ? (
-            <div className="wishlist-empty">
-              아직 관심 공모전이 없어요. 분석 결과에서 '☆ 관심 목록에 추가'를
-              눌러 저장해 보세요.
-              <AppLink
-                className="empty-cta-button"
-                href="/contest"
-                onNavigate={onGoExplore}
-              >
-                공모전 둘러보기 →
-              </AppLink>
-            </div>
-          ) : (
-            <ul className="my-contest-list">
-              {wishlist.map((contest) => {
-                const confirming = confirmingWishId === contest.id;
-                return (
-                  <li key={contest.id} className="my-contest-item">
-                    <div className="my-contest-info">
-                      <h3>{contest.title}</h3>
-                      <p className="my-contest-meta">
-                        {contest.organizer} · 마감 {contest.deadline}
-                      </p>
-                      <p className="my-contest-applied">
-                        {contest.addedAt} 관심 추가
-                      </p>
-                    </div>
-                    <div className="my-contest-actions">
-                      <a href={contest.url} target="_blank" rel="noreferrer">
-                        공모전 페이지 ↗
-                      </a>
-                      {user ? (
-                        <button
-                          type="button"
-                          className="apply-from-wish-button"
-                          aria-expanded={confirming}
-                          onClick={() =>
-                            setConfirmingWishId(confirming ? null : contest.id)
-                          }
-                        >
-                          응모하기
-                        </button>
-                      ) : (
-                        <span className="wish-login-hint">
-                          로그인하면 응모할 수 있어요
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        className="cancel-apply-button"
-                        onClick={() => onRemoveWish(contest.id)}
-                      >
-                        관심 해제
-                      </button>
-                    </div>
-                    {/* 응모 기록은 상세·결과 화면과 같은 2단계 확인을 거친다 —
-                        실제 응모는 공모전 사이트에서 진행되므로 확인 단계에서
-                        사이트로 먼저 보낸다(핵심 설계 원칙). */}
-                    {confirming && (
-                      <div
-                        className="wish-apply-confirm"
-                        role="group"
-                        aria-label="응모 확인"
-                      >
-                        <p className="wish-apply-confirm-title">
-                          {daysLeft(contest.deadline) < 0
-                            ? "이미 마감된 공모전이에요. 실제로 제출을 마친 경우에만 기록해 주세요."
-                            : "실제 응모는 공모전 사이트에서 제출해요."}
-                        </p>
-                        <ol className="wish-apply-confirm-steps">
-                          {daysLeft(contest.deadline) < 0 ? (
-                            <li>
-                              제출을 마친 응모라면 '제출했어요'를 눌러 내 응모
-                              목록과 마감 달력에 기록하세요.
-                            </li>
-                          ) : (
-                            <>
-                              <li>
-                                먼저 공모전 사이트에 접속해 제출을 마쳐 주세요.
-                              </li>
-                              <li>
-                                제출이 끝나면 '제출했어요'를 눌러 내 응모 목록에
-                                기록하세요.
-                              </li>
-                            </>
-                          )}
-                        </ol>
-                        <div className="wish-apply-confirm-actions">
-                          <a
-                            className="wish-apply-confirm-site"
-                            href={contest.url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            공모전 사이트 열기 ↗
-                          </a>
-                          <button
-                            type="button"
-                            className="apply-from-wish-button"
-                            onClick={() => {
-                              onApplyWish({
-                                id: contest.id,
-                                title: contest.title,
-                                organizer: contest.organizer,
-                                deadline: contest.deadline,
-                                url: contest.url,
-                              });
-                              setConfirmingWishId(null);
-                            }}
-                          >
-                            제출했어요 — 완료로 표시
-                          </button>
-                          <button
-                            type="button"
-                            className="wish-apply-confirm-cancel"
-                            onClick={() => setConfirmingWishId(null)}
-                          >
-                            취소
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
-
-        <section aria-labelledby="archive-title" data-reveal>
-          <div className="archive-header">
-            <div className="archive-title-group">
-              <h2 id="archive-title">
-                아이디어 보관함{" "}
-                <span className="contest-count">{savedIdeas.length}개</span>
-              </h2>
-              <button
-                type="button"
-                className="idea-add-button"
-                aria-expanded={ideaFormOpen}
-                aria-controls="idea-record-form"
-                aria-label={
-                  ideaFormOpen
-                    ? "아이디어 기록 폼 닫기"
-                    : "아이디어 직접 기록하기"
-                }
-                onClick={() => {
-                  // 폼을 닫으면 수정 모드도 함께 끝냅니다 — 다시 열면 기록 모드.
-                  if (ideaFormOpen) {
-                    setIdeaFormOpen(false);
-                    setEditingIdeaId(null);
-                  } else {
-                    setIdeaFormOpen(true);
-                  }
-                }}
-              >
-                +
-              </button>
-            </div>
-          </div>
-          <form
-            className={
-              ideaFormOpen ? "idea-form" : "idea-form idea-form-hidden"
-            }
-            id="idea-record-form"
-            onSubmit={handleIdeaSubmit}
-          >
-            <p className="idea-form-title">
-              {editingIdeaId ? "아이디어 수정" : "직접 기록하기"}
-            </p>
-            {editingIdeaId && (
-              <p className="idea-form-hint">
-                내용을 바꾸면 저장된 분석 결과는 지워져요. '다시 보기' 때 새로
-                분석해요.
-              </p>
-            )}
-            <input
-              type="text"
-              value={ideaTitle}
-              onChange={(event) => {
-                setIdeaTitle(event.target.value);
-                setIdeaFormMessage(null);
-              }}
-              placeholder="아이디어 제목"
-              aria-label="아이디어 제목"
-              maxLength={60}
-            />
-            <textarea
-              value={ideaDescription}
-              onChange={(event) => {
-                setIdeaDescription(event.target.value);
-                setIdeaFormMessage(null);
-              }}
-              placeholder="어떤 아이디어인지 간단히 적어 보세요. (선택)"
-              aria-label="아이디어 설명"
-              rows={2}
-              maxLength={500}
-            />
-            <div className="idea-form-row">
-              <CategorySelect
-                id="idea-form-category"
-                options={CATEGORIES}
-                value={ideaCategory}
-                onChange={(value) => {
-                  setIdeaCategory(value);
-                  setIdeaFormMessage(null);
-                }}
-              />
-              <button type="submit" className="idea-form-submit">
-                {editingIdeaId ? "수정 완료" : "기록하기"}
-              </button>
-              {editingIdeaId && (
-                <button
-                  type="button"
-                  className="idea-form-cancel"
-                  onClick={cancelIdeaEdit}
+        {/* 관심 공모전·아이디어 보관함 안내 — 같은 사이즈 박스를 나란히 배치한다
+            (2026-10-26 사용자 요청). 두 목록 모두 전용 화면(/wishlist, /archive)에서
+            본다 — 마이페이지에는 목록을 두지 않는다. */}
+        <div className="mypage-duo" data-reveal>
+          <section className="mypage-duo-box" aria-labelledby="wishlist-title">
+            <h2 id="wishlist-title">
+              관심 공모전{" "}
+              <span className="contest-count">{wishlist.length}개</span>
+            </h2>
+            <div className="wishlist-empty wishlist-teaser">
+              {wishlist.length === 0
+                ? "아직 관심 공모전이 없어요. 분석 결과나 탐색 화면에서 '☆'를 눌러 저장해 보세요."
+                : "찜한 공모전은 전용 화면에서 한 번에 볼 수 있어요. 화면에서 관심을 해제하거나 응모를 기록할 수 있어요."}
+              {wishlist.length === 0 ? (
+                <AppLink
+                  className="empty-cta-button"
+                  href="/contest"
+                  onNavigate={onGoExplore}
                 >
-                  취소
-                </button>
+                  공모전 둘러보기 →
+                </AppLink>
+              ) : (
+                <AppLink
+                  className="empty-cta-button"
+                  href="/wishlist"
+                  onNavigate={onGoWishlistPage}
+                >
+                  찜한 공모전 보기 →
+                </AppLink>
               )}
             </div>
-            {ideaFormMessage && (
-              <p className="idea-form-message" role="status">
-                {ideaFormMessage}
-              </p>
-            )}
-          </form>
-          {savedIdeas.length === 0 ? (
-            <p className="wishlist-empty">
-              저장된 아이디어가 없어요. 분석 결과 화면의 '보관함에 저장'이나
-              제목 옆 + 버튼으로 기록해 보세요.
-            </p>
-          ) : (
-            <ul className="my-contest-list">
-              {savedIdeas.map((idea) => (
-                <li
-                  key={idea.id}
-                  className={
-                    editingIdeaId === idea.id
-                      ? "my-contest-item my-contest-item--editing"
-                      : "my-contest-item"
-                  }
-                >
-                  <div className="my-contest-info">
-                    <h3>{idea.title}</h3>
-                    {idea.category && (
-                      <p className="my-contest-meta">
-                        관심 분야: {idea.category}
-                      </p>
-                    )}
-                    <p className="my-contest-applied">{idea.savedAt} 저장</p>
-                  </div>
-                  <div className="my-contest-actions">
-                    <button
-                      type="button"
-                      className="apply-from-wish-button"
-                      onClick={() => onOpenIdea(idea)}
-                    >
-                      다시 보기
-                    </button>
-                    <button
-                      type="button"
-                      className="cancel-apply-button"
-                      onClick={() => startIdeaEdit(idea)}
-                    >
-                      수정
-                    </button>
-                    <button
-                      type="button"
-                      className="cancel-apply-button"
-                      onClick={() => {
-                        if (
-                          !window.confirm(
-                            `'${idea.title}' 아이디어를 삭제할까요? 저장된 분석 결과도 함께 사라져요.`,
-                          )
-                        ) {
-                          return;
-                        }
-                        onDeleteIdea(idea.id);
-                      }}
-                    >
-                      삭제
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+          </section>
+          <section
+            className="mypage-duo-box"
+            aria-labelledby="archive-teaser-title"
+          >
+            <h2 id="archive-teaser-title">
+              아이디어 보관함{" "}
+              <span className="contest-count">{savedIdeas.length}개</span>
+            </h2>
+            <div className="wishlist-empty wishlist-teaser">
+              {savedIdeas.length === 0
+                ? "저장된 아이디어가 없어요. 분석 결과 화면의 '보관함에 저장'으로 옮기거나 직접 기록해 보세요."
+                : "분석 결과와 메모를 보관함에 모아 두었어요. 전용 화면에서 다시 보거나 수정할 수 있어요."}
+              <AppLink
+                className="empty-cta-button"
+                href="/archive"
+                onNavigate={onGoArchivePage}
+              >
+                보관함 열어보기 →
+              </AppLink>
+            </div>
+          </section>
+        </div>
 
         <section
           aria-labelledby="data-title"

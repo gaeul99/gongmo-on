@@ -166,6 +166,15 @@
   font-weight: 700;
 }
 
+/* TXT 내려받기 로그인 안내 — 복사·미리보기는 누구나 쓸 수 있음을 함께 알린다 */
+.proposal-login-hint {
+  margin: -6px 0 14px;
+  font-size: 12.5px;
+  line-height: 160%;
+  color: var(--text);
+  word-break: keep-all;
+}
+
 .proposal-preview {
   background: var(--bg);
   border: 1px solid var(--border);
