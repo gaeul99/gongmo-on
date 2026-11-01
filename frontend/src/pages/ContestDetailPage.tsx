@@ -1,3 +1,4 @@
+import { assetUrl } from '../utils/assetUrl.js'
 import { useState } from 'react'
 import type { AppliedContest, AuthResult, User, WishlistContest } from './MyPage'
 import AppLink from '../components/AppLink'
@@ -50,7 +51,7 @@ function handleImageError(event: React.SyntheticEvent<HTMLImageElement>) {
   const img = event.currentTarget
   if (img.dataset.fallback) return
   img.dataset.fallback = '1'
-  img.src = '/contest/ck/placeholder.svg'
+  img.src = assetUrl('/contest/ck/placeholder.svg')
 }
 
 // 이 공모전과 비슷한 공모전 — 같은 분야(+2)·같은 주최(+1)에 가점하고, 겹치는
@@ -154,14 +155,14 @@ function ContestDetailPage({
         <header className="detail-hero" data-reveal>
           <img
             className="detail-image"
-            src={contest.image}
+            src={assetUrl(contest.image)}
             alt={`${contest.title} 공모전 포스터`}
             onError={(event) => {
               // 자동 등록 공모전의 포스터는 원본 사이트 주소라 사라질 수 있다 — placeholder로 대체
               const img = event.currentTarget
               if (img.dataset.fallback) return
               img.dataset.fallback = '1'
-              img.src = '/contest/ck/placeholder.svg'
+              img.src = assetUrl('/contest/ck/placeholder.svg')
             }}
           />
           <div className="detail-hero-text">
@@ -352,7 +353,7 @@ function ContestDetailPage({
                     >
                       <span className="detail-similar-thumb">
                         <img
-                          src={item.image}
+                          src={assetUrl(item.image)}
                           alt=""
                           loading="lazy"
                           onError={handleImageError}

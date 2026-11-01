@@ -1,3 +1,4 @@
+import { assetUrl } from '../utils/assetUrl.js'
 // 공모전 탐색 — 앱이 소개하는 전체 공모전을 한 화면에서 검색·필터·정렬로
 // 둘러보는 페이지. 카드를 누르면 공모전 상세 화면으로 이동하고, 카드에서
 // 바로 관심 목록(찜)에 담을 수도 있다. 접수 중·곧 시작·마감 판정과 D-x
@@ -98,7 +99,7 @@ function handleImageError(event: React.SyntheticEvent<HTMLImageElement>) {
   const img = event.currentTarget
   if (img.dataset.fallback) return
   img.dataset.fallback = '1'
-  img.src = '/contest/ck/placeholder.svg'
+  img.src = assetUrl('/contest/ck/placeholder.svg')
 }
 
 function ContestListPage({
@@ -391,7 +392,7 @@ function ContestListPage({
                   >
                     <span className="explore-thumb">
                       <img
-                        src={contest.image}
+                        src={assetUrl(contest.image)}
                         alt=""
                         loading="lazy"
                         onError={handleImageError}

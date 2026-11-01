@@ -1,3 +1,4 @@
+import { assetUrl } from '../utils/assetUrl.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { buildMockAnalysis } from '../services/mockAnalysis.js'
 import { requestAiAnalysis, requestContestRecommendation } from '../services/aiAnalysis.js'
@@ -872,7 +873,7 @@ function ResultPage({
                     </div>
                     <img
                       className="case-image"
-                      src={item.image}
+                      src={assetUrl(item.image)}
                       alt={`${item.title} 공모전 포스터`}
                       loading="lazy"
                     />
@@ -1108,7 +1109,7 @@ function ResultPage({
                 <div className="case-media">
                   <img
                     className="case-image"
-                    src={contest.image}
+                    src={assetUrl(contest.image)}
                     alt={`${contest.title} 공모전 포스터`}
                     loading="lazy"
                   />

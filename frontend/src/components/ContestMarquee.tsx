@@ -1,3 +1,4 @@
+import { assetUrl } from '../utils/assetUrl.js'
 // ==========================================================
 // 첫화면 광고 배너 — 접수 중인 공모전 포스터가 왼쪽으로 계속
 // 흐르는 마키(strip). 카드를 누르면 앱 안의 공모전 상세 페이지로
@@ -143,7 +144,7 @@ function ContestMarquee({ onOpenContest }: Props) {
                   >
                     <span className="marquee-thumb">
                       <img
-                        src={contest.image}
+                        src={assetUrl(contest.image)}
                         alt=""
                         loading="lazy"
                         onError={(event) => {
@@ -151,7 +152,7 @@ function ContestMarquee({ onOpenContest }: Props) {
                           const img = event.currentTarget
                           if (img.dataset.fallback) return
                           img.dataset.fallback = '1'
-                          img.src = '/contest/ck/placeholder.svg'
+                          img.src = assetUrl('/contest/ck/placeholder.svg')
                         }}
                       />
                       <span className={`marquee-badge tone-${status.tone}`}>{status.label}</span>
