@@ -4,6 +4,7 @@ import { useContestPool } from "../data/contestPool.js";
 import type { ContestAlert, WishlistContest } from "../pages/MyPage";
 import { alertDismissKey } from "../utils/contestAlerts.js";
 import AppLink from "./AppLink";
+import { normalizeSearchHistory, readSearchHistory, saveSearchHistory } from "../services/searchHistory";
 import "./TopNav.css";
 
 type Props = {
@@ -127,6 +128,14 @@ function TopNav({
   const [notifOpen, setNotifOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [searchHistory, setSearchHistory] = useState(readSearchHistory);
+  useEffect(() => {
+    saveSearchHistory(searchHistory);
+  }, [searchHistory]);
+  const rememberSearch = (term: string) => {
+    if (!term.trim()) return;
+    setSearchHistory((history) => normalizeSearchHistory([term, ...history]));
+  };
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const searchBoxRef = useRef<HTMLDivElement | null>(null);
   // 종 아이콘 + 알림 패널을 함께 감싸는 래퍼 — 패널을 아이콘 바로 밑에 붙이고,
@@ -218,7 +227,9 @@ function TopNav({
             onChange={(event) => setQuery(event.target.value)}
             onFocus={() => setSearchOpen(true)}
             onKeyDown={(event) => {
-              if (event.key !== "Enter" || !trimmed) return;
+              if (event.key !== "Enter" || event.nativeEvent.isComposing || !trimmed) return;
+              event.preventDefault();
+              rememberSearch(trimmed);
               // 앱 내 공모전 결과가 있으면 Enter로 그 공모전 상세 화면을 바로 엽니다.
               const contestHit = results.find(
                 (item) => item.kind === "contest" && item.contestId !== undefined,
@@ -237,6 +248,9 @@ function TopNav({
             }}
             placeholder="공모전·수상작 검색"
             aria-label="검색어"
+            autoComplete="off"
+            aria-expanded={searchOpen}
+            aria-controls={searchOpen ? "nav-search-dropdown" : undefined}
             maxLength={40}
           />
           {query && (
@@ -276,10 +290,36 @@ function TopNav({
           {searchOpen && (
             <div
               className="search-dropdown"
+              id="nav-search-dropdown"
               role="dialog"
               aria-label="공모전 자료 검색"
             >
               <div className="search-dropdown-scroll">
+              {trimmed === "" && searchHistory.length > 0 && (
+                <section className="search-history" aria-label="최근 검색어">
+                  <div className="search-history-heading">
+                    <h2>최근 검색어</h2>
+                    <button type="button" onClick={() => setSearchHistory([])}>전체 삭제</button>
+                  </div>
+                  <ul>
+                    {searchHistory.map((term) => (
+                      <li key={term}>
+                        <button type="button" className="search-history-term" onClick={() => {
+                          setQuery(term);
+                          rememberSearch(term);
+                          searchInputRef.current?.focus();
+                        }}>
+                          <span aria-hidden="true" className="search-history-icon">↶</span>
+                          <span>{term}</span>
+                        </button>
+                        <button type="button" className="search-history-delete" aria-label={`${term} 검색 기록 삭제`} onClick={() => {
+                          setSearchHistory((history) => history.filter((entry) => entry !== term));
+                        }}>×</button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
               {trimmed === "" ? (
                 <p className="search-hint">
                   앱 속 자료와 국내 공모전 전체를 검색해 보세요.
@@ -307,6 +347,7 @@ function TopNav({
                                   href={`/contest/${item.contestId}`}
                                   onNavigate={() => {
                                     if (item.contestId === undefined) return;
+                                    rememberSearch(trimmed);
                                     setSearchOpen(false);
                                     onOpenContest(item.contestId);
                                   }}
@@ -324,6 +365,7 @@ function TopNav({
                                   href={item.url}
                                   target="_blank"
                                   rel="noreferrer"
+                                  onClick={() => rememberSearch(trimmed)}
                                 >
                                   <span className="search-result-title">
                                     {item.title}
@@ -380,6 +422,7 @@ function TopNav({
                       <li key={engine.label}>
                         <a
                           href={engine.build(trimmed)}
+                          onClick={() => rememberSearch(trimmed)}
                           target="_blank"
                           rel="noreferrer"
                         >

@@ -4,6 +4,7 @@
 export const STORAGE_KEYS = {
   typeTest: 'gongmo-on:type-test',
   seenContests: 'gongmo-on:seen-contests',
+  searchHistory: 'gongmo-on:search-history',
 }
 
 // 예전 'idea-navigation:' 키 → 새 'gongmo-on:' 키.
