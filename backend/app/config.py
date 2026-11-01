@@ -19,5 +19,7 @@ def database_url() -> str:
 
 
 def client_origins() -> list[str]:
-    raw = os.getenv("CLIENT_ORIGIN") or "http://localhost:5173,http://127.0.0.1:5173"
+    raw = os.getenv("CLIENT_ORIGIN") or (
+        "http://localhost:5173,http://127.0.0.1:5173,https://gaeul99.github.io"
+    )
     return [value.strip() for value in raw.split(",") if value.strip()]
