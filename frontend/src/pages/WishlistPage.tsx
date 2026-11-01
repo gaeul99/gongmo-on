@@ -17,6 +17,8 @@ type Props = {
   onRemoveWish: (id: number) => void
   /** 응모 기록 — 확인 단계의 '제출했어요'로 내 응모 목록에 옮깁니다. */
   onApplyWish: (target: Omit<WishlistContest, 'addedAt'>) => void
+  /** 찜한 공모전을 앱 안의 상세 화면으로 열 때 씁니다. */
+  onOpenContest: (id: number) => void
   onBack: () => void
   // 찜이 비었을 때 공모전을 담으러 가는 안내 링크가 씁니다.
   onGoExplore: () => void
@@ -35,6 +37,7 @@ function WishlistPage({
   wishlist,
   onRemoveWish,
   onApplyWish,
+  onOpenContest,
   onBack,
   onGoExplore,
 }: Props) {
@@ -79,7 +82,17 @@ function WishlistPage({
               return (
                 <li key={contest.id} className="wishlist-item">
                   <div className="wishlist-info">
-                    <h3>{contest.title}</h3>
+                    <h3>
+                      {/* 제목을 누르면 앱 안의 공모전 상세 화면으로 — 외부 사이트
+                          링크(공모전 페이지 ↗)는 그대로 옆에 둔다 */}
+                      <AppLink
+                        className="wishlist-title-link"
+                        href={`/contest/${contest.id}`}
+                        onNavigate={() => onOpenContest(contest.id)}
+                      >
+                        {contest.title}
+                      </AppLink>
+                    </h3>
                     <p className="wishlist-meta">
                       {contest.organizer} · 마감 {contest.deadline}
                     </p>

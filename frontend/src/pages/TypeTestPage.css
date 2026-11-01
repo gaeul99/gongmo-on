@@ -622,6 +622,29 @@
   color: var(--text-2);
 }
 
+/* '다른 공모전 추천받기' — 본 추천을 제외해 다음 후보를 보여 주는 버튼.
+   결과 화면(.recommend-again-button)과 같은 모양으로 통일했다. */
+.type-test-recommend-again {
+  margin: 14px 0 0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--panel);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.type-test-recommend-again:hover {
+  background: var(--hover-bg);
+  border-color: var(--accent);
+}
+
 .type-test-actions {
   display: flex;
   flex-direction: column;

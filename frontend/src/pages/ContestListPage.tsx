@@ -6,7 +6,7 @@
 // 정렬과 카드 뱃지가 생기고, 아직 분석 전이면 그 자리에 안내 한 줄이 보인다.
 import { useEffect, useMemo, useState } from 'react'
 import AppLink from '../components/AppLink'
-import { useContestPool, getSyncedContestCount } from '../data/contestPool.js'
+import { useContestPool, getSyncedContestCount, getPopularityById } from '../data/contestPool.js'
 import { pageItems } from '../utils/pagination'
 import { deadlineStatus, isApplicationOpen } from '../utils/contestAlerts.js'
 import type { WishlistContest } from './MyPage'
@@ -20,7 +20,7 @@ type Props = {
   // 홈 '곧 시작되는 공모전' 전체 보기로 들어오면 'upcoming'이 초기값이 된다.
   initialStatusFilter?: StatusFilter
   // 결과 화면 '적합도순으로 전체 공모전 둘러보기'로 들어오면 'fit'이 초기값이 된다.
-  // 점수표(fitScores)가 비어 있으면 정렬 옵션 자체가 없으므로 기본값으로 되돌린다.
+  // 점수표(fitScores)가 비어 있으면 'fit'이 임박순과 같아지므로 기본값으로 되돌린다.
   initialSort?: SortMode
   // 마지막 아이디어 분석의 공모전별 적합도 점수(App.tsx가 스냅숏에서 뽑아 준다).
   // 있으면 '적합도순' 정렬과 카드 점수 뱃지가 생긴다. null이면 아직 분석 전이다.
@@ -47,7 +47,10 @@ type ContestRow = {
 
 // '곧 시작되는 공모전' 전체 보기처럼 다른 화면에서 필터를 정해 두고 들어올 수 있게 내보낸다.
 export type StatusFilter = 'all' | ContestStatus
-export type SortMode = 'soon' | 'far' | 'fit'
+// 'fit'(적합도순)은 아이디어 분석 점수표가 있을 때 실제 효과가 있다 — 없으면
+// 마감 임박순과 같은 순서가 되고, 목록 위 안내 문구가 분석을 유도한다.
+// 'popular'(인기도순)는 서버가 집계한 찜 사용자 수 기준이다.
+export type SortMode = 'soon' | 'far' | 'fit' | 'popular'
 
 // 연령 필터 — mockData의 ageGroups('teen'·'adult')를 기준으로 삼는다.
 // '청소년'은 청소년(미성년)이 참여할 수 있는, '성인'은 성인이 참여할 수 있는
@@ -131,6 +134,9 @@ function ContestListPage({
   // 목업 + 백엔드 자동 등록이 합쳐진 공모전 풀. 자동 등록분은 앱 시작 직후 도착하며,
   // 도착하면 이 화면이 다시 그려져 목록에 합쳐져 보인다.
   const contests = useContestPool()
+  // 공모전별 찜 사용자 수(인기도) — 인기도순 정렬과 카드 뱃지가 함께 쓴다.
+  // 풀과 같은 버전 신호를 구독하므로(위 useContestPool) 집계가 늦게 도착해도 다시 그려진다.
+  const popularityById = getPopularityById()
 
   // 아이디어 분석의 적합도 점수표 — 카드 뱃지와 '적합도순' 정렬이 함께 쓴다.
   const fitScoreById = useMemo(() => {
@@ -167,7 +173,8 @@ function ContestListPage({
 
   // 마감 임박순(기본)은 접수 중·곧 시작을 마감일 가까운 순으로, 마감된 공모전은
   // 맨 뒤에 최근에 닫힌 순으로 보낸다. 마감 여유순은 그 반대. 적합도순은 아이디어
-  // 분석 점수가 높은 순이며, 점수가 같으면 마감이 가까운 쪽을 앞으로 보낸다.
+  // 분석 점수가 높은 순이고, 인기도순은 찜 사용자가 많은 순이다. 어느 쪽이든
+  // 점수·찜 수가 같으면 마감이 가까운 쪽을 앞으로 보낸다.
   const rows = useMemo(() => {
     const closed = (status: ContestStatus) => (status === 'closed' ? 1 : 0)
     return [...filtered].sort((a, b) => {
@@ -178,10 +185,15 @@ function ContestListPage({
           (fitScoreById.get(b.contest.id) ?? -1) - (fitScoreById.get(a.contest.id) ?? -1)
         if (fitDiff !== 0) return fitDiff
       }
+      if (sort === 'popular') {
+        const popDiff =
+          (popularityById[b.contest.id] ?? 0) - (popularityById[a.contest.id] ?? 0)
+        if (popDiff !== 0) return popDiff
+      }
       const [front, back] = sort === 'far' ? [b, a] : [a, b]
       return String(front.contest.deadline).localeCompare(String(back.contest.deadline))
     })
-  }, [filtered, sort, fitScoreById])
+  }, [filtered, sort, fitScoreById, popularityById])
 
   const hasFilters =
     appliedQuery.trim() !== '' ||
@@ -332,7 +344,10 @@ function ContestListPage({
               >
                 <option value="soon">마감 임박순</option>
                 <option value="far">마감 여유순</option>
-                {hasFitScores && <option value="fit">적합도순</option>}
+                <option value="popular">인기도순</option>
+                {/* 적합도순은 항상 보여 준다(2026-10-28 요청) — 점수표가 없으면
+                    임박순과 같은 순서가 되고, 아래 안내 문구가 분석을 유도한다 */}
+                <option value="fit">적합도순</option>
               </select>
             </label>
           </div>
@@ -345,7 +360,9 @@ function ContestListPage({
               title="아이디어 분석 시작하기"
               onNavigate={onGoInput}
             >
-              아이디어를 분석하면 이 화면도 내 아이디어에 맞춰 정렬돼요 →
+              {sort === 'fit'
+                ? '아이디어 분석을 마치면 적합도순 정렬이 켜져요. 지금은 마감 임박순으로 보여 드려요 →'
+                : '아이디어를 분석하면 이 화면도 내 아이디어에 맞춰 정렬돼요 →'}
             </AppLink>
           </p>
         )}
@@ -388,6 +405,11 @@ function ContestListPage({
                       {fitScoreById.has(contest.id) && (
                         <span className="explore-fit">
                           적합도 {fitScoreById.get(contest.id)}%
+                        </span>
+                      )}
+                      {sort === 'popular' && (popularityById[contest.id] ?? 0) > 0 && (
+                        <span className="explore-fit">
+                          ♡ {popularityById[contest.id]}명이 관심
                         </span>
                       )}
                       <span className="explore-meta">{contest.organizer}</span>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { buildMockAnalysis } from '../services/mockAnalysis.js'
-import { requestAiAnalysis } from '../services/aiAnalysis.js'
+import { requestAiAnalysis, requestContestRecommendation } from '../services/aiAnalysis.js'
 import { requestJudgeSimulation, buildMockJudging } from '../services/judgeSimulation.js'
 import { buildProposalDraft, proposalFileName, proposalToText } from '../services/proposalDraft.js'
 import { deadlineStatus } from '../utils/contestAlerts.js'
@@ -192,6 +192,12 @@ function ResultPage({
   const [attempt, setAttempt] = useState(0)
   // 자동으로 다시 시도할 남은 횟수 — 데모 배너의 자동 재시도 안내에 씁니다.
   const [autoRetriesLeft, setAutoRetriesLeft] = useState(0)
+  // '다른 공모전 추천받기' — 지금까지 보여 준 추천 id를 쌓아 두고 다음 라운드에서 제외합니다.
+  const [excludedRecommendIds, setExcludedRecommendIds] = useState<number[]>([])
+  const [recommending, setRecommending] = useState(false)
+  // AI 새 추천을 받지 못해 기존 점수의 다음 순위로 넘어갔을 때 안내 문구를 켜는 플래그
+  const [recommendFallback, setRecommendFallback] = useState(false)
+  const [recommendRound, setRecommendRound] = useState(0)
   // 실제 응모 안내(2단계)를 보여 주는 추천 공모전 id. 확정·취소하면 null로 돌아갑니다.
   const [confirmingApplyId, setConfirmingApplyId] = useState<number | null>(null)
   // 차별화 포인트 '예시로 따라해 보기' 패널 펼침 상태
@@ -316,9 +322,13 @@ function ResultPage({
 
     const fallback = buildMockAnalysis(idea)
 
-    // 새 분석 결과로 갈아끼웁니다.
+    // 새 분석 결과로 갈아끼웁니다. 분석을 새로 하면 추천 라운드도 처음부터 —
+    // '다른 공모전 추천받기'로 쌓인 제외 목록·안내 문구를 함께 되돌립니다.
     const apply = (merged: Analysis) => {
       setAnalysis(merged)
+      setExcludedRecommendIds([])
+      setRecommendRound(0)
+      setRecommendFallback(false)
       settledRef.current?.(merged)
     }
 
@@ -380,6 +390,56 @@ function ResultPage({
     setAnalysis(null)
     setConfirmingApplyId(null)
     setAttempt((n) => n + 1)
+  }
+
+  // --- 다른 공모전 추천받기 (2026-10-27) ---
+  // 이미 본 추천을 후보에서 제외해 공모전 적합도만 새로 매긴 뒤 상위 목록을 갈아끼운다.
+  // 제외한 추천은 점수와 문구를 그대로 남기고 목록 맨 뒤로 밀어 둔다 — 다시
+  // 추천받기를 여러 번 눌러도 같은 공모전이 반복해서 나오지 않습니다.
+  const applyRecommendation = (
+    freshScores: Array<{ id: number; matchScore: number; matchReason: string }>,
+    excluded: number[],
+  ) => {
+    if (!analysis) return
+    const freshById = new Map(freshScores.map((item) => [item.id, item]))
+    const seenIds = new Set(excluded)
+    const contests = [...analysis.contests]
+      .map((contest) => {
+        const fresh = freshById.get(contest.id)
+        return fresh
+          ? { ...contest, matchScore: fresh.matchScore, matchReason: fresh.matchReason }
+          : contest
+      })
+      .sort((a, b) => {
+        const aSeen = seenIds.has(a.id)
+        const bSeen = seenIds.has(b.id)
+        if (aSeen !== bSeen) return aSeen ? 1 : -1
+        return b.matchScore - a.matchScore
+      })
+    const merged = { ...analysis, contests }
+    setAnalysis(merged)
+    settledRef.current?.(merged)
+  }
+
+  const handleRecommendAgain = () => {
+    if (recommending || analysis === null) return
+    const shownIds = recommendedContests.map((contest) => contest.id)
+    if (shownIds.length === 0) return
+    const excluded = [...new Set([...excludedRecommendIds, ...shownIds])]
+    setRecommending(true)
+    setRecommendFallback(false)
+    setExcludedRecommendIds(excluded)
+    setRecommendRound((n) => n + 1)
+    requestContestRecommendation(idea, contests, excluded)
+      .then((freshScores) => {
+        applyRecommendation(freshScores, excluded)
+      })
+      .catch(() => {
+        // AI 요청 실패 — 새 점수 없이 현재 점수 기준 다음 순위를 보여 준다.
+        applyRecommendation([], excluded)
+        setRecommendFallback(true)
+      })
+      .finally(() => setRecommending(false))
   }
 
   return (
@@ -868,6 +928,23 @@ function ResultPage({
           </div>
         ) : (
           <>
+          <div className="recommend-again">
+            <button
+              type="button"
+              className="recommend-again-button"
+              onClick={handleRecommendAgain}
+              disabled={recommending}
+            >
+              {recommending ? '새 추천을 고르는 중…' : '다른 공모전 추천받기'}
+            </button>
+            {recommendFallback ? (
+              <p className="recommend-again-note">
+                AI 새 추천을 받지 못해 그다음 순위의 공모전을 보여 드려요.
+              </p>
+            ) : recommendRound > 0 ? (
+              <p className="recommend-again-note">이미 본 추천을 제외하고 새로 골랐어요.</p>
+            ) : null}
+          </div>
           <div className="case-list">
             {recommendedContests.map((contest, index) => (
             <article

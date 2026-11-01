@@ -92,6 +92,29 @@ class TestUserStore:
         assert loaded["myContests"] == [{"id": 1, "title": "테스트 공모전"}]
         assert loaded["typeTest"]["typeId"] == "planner"
 
+    def test_wishlist_counts_aggregates_distinct_users(self):
+        # 찜이 아직 없는 id 11·12의 현재 집계를 받아 둔다 — 개발 DB에 다른
+        # 사용자의 찜이 섞여 있어도 증가분만으로 판정하게 하기 위함이다.
+        before = user_store.wishlist_counts()
+        before_11 = before.get(11, 0)
+        before_12 = before.get(12, 0)
+
+        wishlists = {
+            "db-test-pop-a": [{"id": 11, "title": "인기"}, {"id": 12, "title": "차순위"}],
+            "db-test-pop-b": [{"id": 11, "title": "인기"}],
+            # 한 사용자가 같은 공모전을 두 번 담아도 사용자 수는 1이다.
+            "db-test-pop-c": [{"id": 11, "title": "인기"}, {"id": 11, "title": "중복"}],
+        }
+        for nickname, wishlist in wishlists.items():
+            user_store.save_account(make_test_account(nickname))
+            data = user_store.empty_user_data()
+            data["wishlist"] = wishlist
+            user_store.save_user_data(nickname, data)
+
+        counts = user_store.wishlist_counts()
+        assert counts.get(11, 0) == before_11 + 3
+        assert counts.get(12, 0) == before_12 + 1
+
     def test_rename_moves_account_session_userdata(self):
         account = make_test_account("db-test-rename-old")
         user_store.save_account(account)

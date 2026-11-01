@@ -35,6 +35,10 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 // 자동 등록 공모전(중복 제거 후 목업에 없던 것만).
 /** @type {PoolContest[]} */
 let syncedContests = []
+// 공모전별 찜 사용자 수(인기도) — 백엔드가 사용자 데이터에서 집계해 준다.
+// 실패해도 비어 있는 것(모두 0)으로 목록은 그대로 동작한다.
+/** @type {Record<number, number>} */
+let popularityById = {}
 // 'idle' | 'loading' | 'ready' | 'failed' — 실패해도 목업 데이터로 화면은 유지된다.
 let loadState = 'idle'
 let version = 0
@@ -85,6 +89,11 @@ export function getContestPoolState() {
   return loadState
 }
 
+/** 공모전별 찜 사용자 수(인기도). 찜이 없거나 실패했으면 빈 객체. */
+export function getPopularityById() {
+  return popularityById
+}
+
 export function subscribeContestPool(listener) {
   listeners.add(listener)
   return () => listeners.delete(listener)
@@ -120,6 +129,24 @@ export function loadSyncedContests() {
     .finally(() => {
       inflight = null
       emit()
+    })
+  // 인기도(찜 수)는 목록과 함께 가져오되 실패가 목록 로딩을 타지 않게 따로 잡는다.
+  // 늦게 도착하면 emit으로 다시 그려지고, 실패하면 빈 집계(모두 0)로 남는다.
+  fetch(`${API_BASE}/api/contests/popular`, { signal: AbortSignal.timeout(8000) })
+    .then((response) => (response.ok ? response.json() : { popular: [] }))
+    .then((data) => {
+      const next = {}
+      for (const row of Array.isArray(data?.popular) ? data.popular : []) {
+        const id = Number(row?.contestId)
+        const count = Number(row?.count)
+        if (Number.isFinite(id) && Number.isFinite(count)) next[id] = count
+      }
+      popularityById = next
+    })
+    .catch(() => {})
+    .finally(() => {
+      // 목록 로딩이 아직 끝나지 않았으면 목록 쪽 emit이 한 번에 그려 준다.
+      if (loadState !== 'loading') emit()
     })
   return inflight
 }

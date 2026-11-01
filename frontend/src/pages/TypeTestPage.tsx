@@ -114,6 +114,9 @@ function TypeTestPage({ onBack, onGoInput, onOpenContest }: Props) {
   const [result, setResult] = useState<TestResult | null>(null)
   const [lastResult, setLastResult] = useState<LastResult | null>(loadLastResult)
   const [copyMessage, setCopyMessage] = useState<string | null>(null)
+  // '다른 공모전 추천받기'로 이미 보여 준 추천 id — 다음 추천에서 후보에서 뺀다.
+  // 새 결과가 나오면(검사 다시 하기·지난 결과 보기) 처음부터 다시 추천한다.
+  const [seenRecommendIds, setSeenRecommendIds] = useState<number[]>([])
 
   // 답하지 않은 첫 문항이 현재 문항입니다. 전부 답했으면 마지막 문항을 가리킵니다.
   const firstEmpty = answers.findIndex((answer) => answer === null)
@@ -127,8 +130,11 @@ function TypeTestPage({ onBack, onGoInput, onOpenContest }: Props) {
   // 유형에 맞춰 추천할 공모전 — 목업 + 자동 등록이 합쳐진 풀
   const contests = useContestPool()
   const recommendations = useMemo(
-    () => (resultTypeId ? recommendContestsForType(resultTypeId, contests, 3) : []),
-    [resultTypeId, contests],
+    () =>
+      resultTypeId
+        ? recommendContestsForType(resultTypeId, contests, 3, new Date(), seenRecommendIds)
+        : [],
+    [resultTypeId, contests, seenRecommendIds],
   )
 
   const startQuiz = () => {
@@ -136,6 +142,7 @@ function TypeTestPage({ onBack, onGoInput, onOpenContest }: Props) {
     setAnswers(TYPE_TEST_QUESTIONS.map(() => null))
     setResult(null)
     setCopyMessage(null)
+    setSeenRecommendIds([])
     setStage('quiz')
   }
 
@@ -155,6 +162,7 @@ function TypeTestPage({ onBack, onGoInput, onOpenContest }: Props) {
       saveLastResult(record)
       clearProgress()
       setLastResult(record)
+      setSeenRecommendIds([])
       setResult({ type, percentage, distribution })
       setStage('result')
     }
@@ -173,6 +181,7 @@ function TypeTestPage({ onBack, onGoInput, onOpenContest }: Props) {
     const type = getTypeById(lastResult.typeId)
     if (!type) return
     setCopyMessage(null)
+    setSeenRecommendIds([])
     setResult({
       type,
       percentage: lastResult.percentage ?? 0,
@@ -405,6 +414,18 @@ function TypeTestPage({ onBack, onGoInput, onOpenContest }: Props) {
                 )
               })}
             </ul>
+            <button
+              type="button"
+              className="type-test-recommend-again"
+              onClick={() =>
+                setSeenRecommendIds((ids) => [
+                  ...ids,
+                  ...recommendations.map((contest) => contest.id),
+                ])
+              }
+            >
+              다른 공모전 추천받기
+            </button>
           </section>
             <div className="type-test-actions" data-reveal>
               <AppLink

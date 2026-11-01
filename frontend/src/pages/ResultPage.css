@@ -397,6 +397,45 @@
   word-break: keep-all;
 }
 
+/* '다른 공모전 추천받기' — 이미 본 추천을 제외해 새 추천을 요청하는 버튼 */
+.recommend-again {
+  margin: 0 0 18px;
+}
+
+.recommend-again-button {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--panel);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    opacity 0.15s;
+}
+
+.recommend-again-button:hover:enabled {
+  background: var(--hover-bg);
+  border-color: var(--accent);
+}
+
+.recommend-again-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.recommend-again-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 165%;
+  color: var(--text-2);
+  word-break: keep-all;
+}
+
 .case-source {
   font-size: 11.5px;
   color: var(--text-2);

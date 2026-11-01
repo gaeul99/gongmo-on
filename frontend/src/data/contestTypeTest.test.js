@@ -3,7 +3,11 @@
 // npm test (frontend/)로 실행합니다.
 // ==========================================================
 import { describe, expect, it } from 'vitest'
-import { TYPE_TEST_QUESTIONS, calculateContestType } from './contestTypeTest.js'
+import {
+  TYPE_TEST_QUESTIONS,
+  calculateContestType,
+  recommendContestsForType,
+} from './contestTypeTest.js'
 
 describe('calculateContestType', () => {
   it('문항 하나만 답해도 답한 문항 만점 기준으로 계산된다', () => {
@@ -62,5 +66,39 @@ describe('calculateContestType', () => {
       expect(row.percent).toBeLessThanOrEqual(100)
     })
     expect(result.percentage).toBe(result.distribution[0].percent)
+  })
+})
+
+describe('recommendContestsForType', () => {
+  // solver 유형 키워드: 아이디어·정책·서비스·생활. 1·2·3·6번은 키워드 일치,
+  // 4·5번은 불일치(마감 보충용). 마감이 가까운 순으로 정렬된다.
+  const NOW = new Date('2026-10-27T00:00:00')
+  const POOL = [
+    { id: 1, title: '아이디어 서비스 공모전', field: '서비스', deadline: '2026-11-10' },
+    { id: 2, title: '정책 아이디어 공모전', field: '정책', deadline: '2026-11-05' },
+    { id: 3, title: '생활 개선 서비스 공모전', field: '생활', deadline: '2026-11-20' },
+    { id: 4, title: 'AI 데이터 공모전', field: '기술', deadline: '2026-11-08' },
+    { id: 5, title: '디자인 공모전', field: '디자인', deadline: '2026-11-15' },
+    { id: 6, title: '서비스 정책 신규 공모전', field: '정책', deadline: '2026-12-01' },
+  ]
+
+  it('키워드 일치 공모전을 마감이 가까운 순으로 limit개 추천한다', () => {
+    expect(recommendContestsForType('solver', POOL, 3, NOW).map((c) => c.id)).toEqual([2, 1, 3])
+  })
+
+  it('이미 본 공모전을 제외하면 다음 순위를 채운다', () => {
+    const next = recommendContestsForType('solver', POOL, 3, NOW, [2, 1, 3])
+    // 남은 일치분 6번이 먼저, 부족분은 불일치분(마감 순) 4·5번으로 채운다.
+    expect(next.map((c) => c.id)).toEqual([6, 4, 5])
+  })
+
+  it('제외할 공모전이 풀을 다 쓰면 제외를 풀고 처음부터 다시 추천한다', () => {
+    const next = recommendContestsForType('solver', POOL, 3, NOW, [2, 1, 3, 6, 4, 5])
+    expect(next.map((c) => c.id)).toEqual([2, 1, 3])
+  })
+
+  it('제외해도 남은 후보가 limit보다 많으면 제외분으로 되돌아오지 않는다', () => {
+    const next = recommendContestsForType('solver', POOL, 3, NOW, [2, 1])
+    expect(next.map((c) => c.id)).toEqual([3, 6, 4])
   })
 })

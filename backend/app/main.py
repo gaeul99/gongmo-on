@@ -192,6 +192,7 @@ ROOT_HTML = """<!doctype html>
       <h2>API 엔드포인트</h2>
       <div class="row"><span class="method get">GET</span><code>/api/health</code><span class="desc">서버 상태 확인</span></div>
       <div class="row"><span class="method post">POST</span><code>/api/ideas/analyze</code><span class="desc">아이디어 분석 (AI)</span></div>
+      <div class="row"><span class="method post">POST</span><code>/api/ideas/recommend</code><span class="desc">공모전 추천만 다시 받기 (AI)</span></div>
       <div class="row"><span class="method post">POST</span><code>/api/ideas/judge</code><span class="desc">제안서 심사 시뮬레이션 (AI)</span></div>
       <div class="row"><span class="method post">POST</span><code>/api/notifications/subscribe</code><span class="desc">알림 구독 등록</span></div>
       <div class="row"><span class="method post">POST</span><code>/api/notifications/run</code><span class="desc">알림 수동 점검</span></div>

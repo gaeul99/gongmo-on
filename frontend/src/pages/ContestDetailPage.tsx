@@ -3,7 +3,6 @@ import type { AppliedContest, AuthResult, User, WishlistContest } from './MyPage
 import AppLink from '../components/AppLink'
 import InlineAuthPanel from '../components/InlineAuthPanel'
 import { getContestPoolState, useContestPool } from '../data/contestPool.js'
-import { winnerArchivesForField, winnerArchiveSearchUrl } from '../data/mockData.js'
 import './ContestDetailPage.css'
 
 type Props = {
@@ -17,6 +16,8 @@ type Props = {
   // '이 공모전으로 아이디어 분석 시작' — 탐색·마키로 유입된 사용자가 상세에서
   // 아이디어 흐름(입력 → 분석)으로 합류하는 다리다.
   onGoInput: () => void
+  // '비슷한 공모전' 목록에서 다른 상세로 바로 넘어갈 때 쓰는 이동 처리.
+  onOpenContest: (id: number) => void
   onBack: () => void
   onSignIn: (nickname: string, password: string) => Promise<AuthResult>
   onSignUp: (nickname: string, password: string, email: string, phone: string) => Promise<AuthResult>
@@ -36,6 +37,47 @@ function deadlineBadge(left: number): { text: string; tone: string } {
   return { text: `D-${left}`, tone: left <= 7 ? 'urgent' : 'upcoming' }
 }
 
+// contestPool.js의 typedef를 TS 화면에서 쓰기 위한 별칭.
+type PoolContest = ReturnType<typeof useContestPool>[number]
+
+// 분야('디자인 (네이밍·슬로건)')의 첫 단어만 떼는 헬퍼 — 탐색 화면과 같은 기준.
+function fieldFamily(field: string): string {
+  return String(field ?? '').split(' ')[0] || '기타'
+}
+
+// 자동 등록 공모전의 포스터는 원본 사이트 주소라 사라질 수 있다 — placeholder로 대체
+function handleImageError(event: React.SyntheticEvent<HTMLImageElement>) {
+  const img = event.currentTarget
+  if (img.dataset.fallback) return
+  img.dataset.fallback = '1'
+  img.src = '/contest/ck/placeholder.svg'
+}
+
+// 이 공모전과 비슷한 공모전 — 같은 분야(+2)·같은 주최(+1)에 가점하고, 겹치는
+// 게 하나도 없는(점수 0) 공모전은 '비슷하다'고 말할 수 없으므로 목록에서 뺀다.
+// 점수가 같으면 마감이 안 지난 것을 먼저, 그다음 마감 임박순으로 준다.
+function similarContestsFor(contest: PoolContest, contests: PoolContest[]): PoolContest[] {
+  const family = fieldFamily(contest.field)
+  return contests
+    .filter((item) => item.id !== contest.id)
+    .map((item) => {
+      let score = 0
+      if (fieldFamily(item.field) === family) score += 2
+      if (item.organizer && item.organizer === contest.organizer) score += 1
+      return { item, score }
+    })
+    .filter((row) => row.score > 0)
+    .sort((a, b) => {
+      if (a.score !== b.score) return b.score - a.score
+      const aLeft = daysLeft(a.item.deadline)
+      const bLeft = daysLeft(b.item.deadline)
+      if ((aLeft < 0) !== (bLeft < 0)) return aLeft < 0 ? 1 : -1
+      return aLeft - bLeft
+    })
+    .slice(0, 3)
+    .map((row) => row.item)
+}
+
 // 검색 결과에서 연 공모전의 상세 설명 화면입니다.
 function ContestDetailPage({
   contestId,
@@ -46,6 +88,7 @@ function ContestDetailPage({
   onToggleWish,
   onGoMyPage,
   onGoInput,
+  onOpenContest,
   onBack,
   onSignIn,
   onSignUp,
@@ -98,9 +141,8 @@ function ContestDetailPage({
   const badge = deadlineBadge(left)
   const applied = appliedContestIds.includes(contest.id)
   const wished = wishlistedContestIds.includes(contest.id)
-  // 이 공모전 분야와 관련 있는 수상작 자료 — 수상작 아카이브(2026-10-23).
-  // 겹치는 자료가 없으면 '아직 준비 중' 안내 + 외부 검색 링크로 대신 보여 준다.
-  const fieldArchives = winnerArchivesForField(contest.field)
+  // 페이지 맨 아래에 제안할 비슷한 공모전(2026-10-28) — 같은 분야·주최를 가점한다.
+  const similar = similarContestsFor(contest, contests)
 
   return (
     <div className="page">
@@ -169,38 +211,6 @@ function ContestDetailPage({
               <li key={step}>{step}</li>
             ))}
           </ol>
-        </section>
-
-        {/* 수상작 아카이브 — 이 공모전 분야의 지난 수상작 자료(2026-10-23).
-            출품 전에 어떤 작품이 높은 점수를 받았는지 훔쳐보는 참고 자료다 */}
-        <section aria-labelledby="detail-archive-title" data-reveal>
-          <h2 id="detail-archive-title">이 분야의 지난 수상작</h2>
-          {fieldArchives.length > 0 ? (
-            <ul className="detail-archive-list">
-              {fieldArchives.map((archive) => (
-                <li key={archive.id} className="detail-archive-item">
-                  <a href={archive.url} target="_blank" rel="noreferrer">
-                    <span className="detail-archive-title">{archive.title}</span>
-                    <span className="detail-archive-organizer">{archive.organizer}</span>
-                    <span className="detail-archive-contents">{archive.contents}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="detail-archive-empty">
-              이 분야의 공개 수상작 자료는 아직 모아 두지 않았어요. 아래 검색으로 지난 수상작을
-              찾아 참고해 보세요.
-            </p>
-          )}
-          <a
-            className="detail-archive-search"
-            href={winnerArchiveSearchUrl(contest.field)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            이 분야 수상작 검색하기 ↗
-          </a>
         </section>
 
         <div className="detail-actions" data-reveal>
@@ -324,6 +334,46 @@ function ContestDetailPage({
             아이디어를 입력하면 강점·보완점 분석과 공모전 적합도를 받을 수 있어요.
           </p>
         </div>
+
+        {/* 비슷한 공모전 — 페이지 맨 아래에서 같은 분야·주최의 공모전을
+            2~3개 제안해 다른 상세로 바로 넘어가 볼 수 있게 한다(2026-10-28) */}
+        {similar.length > 0 && (
+          <section aria-labelledby="detail-similar-title" data-reveal>
+            <h2 id="detail-similar-title">비슷한 공모전</h2>
+            <ul className="detail-similar-list">
+              {similar.map((item) => {
+                const itemBadge = deadlineBadge(daysLeft(item.deadline))
+                return (
+                  <li key={item.id} className="detail-similar-item">
+                    <AppLink
+                      href={`/contest/${item.id}`}
+                      title={`${item.title} 상세 보기`}
+                      onNavigate={() => onOpenContest(item.id)}
+                    >
+                      <span className="detail-similar-thumb">
+                        <img
+                          src={item.image}
+                          alt=""
+                          loading="lazy"
+                          onError={handleImageError}
+                        />
+                      </span>
+                      <span className="detail-similar-info">
+                        <span className="detail-similar-name">{item.title}</span>
+                        <span className="detail-similar-meta">
+                          {item.organizer} · 마감 {item.deadline} · {fieldFamily(item.field)}
+                        </span>
+                      </span>
+                      <span className={`detail-dday tone-${itemBadge.tone}`}>
+                        {itemBadge.text}
+                      </span>
+                    </AppLink>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        )}
       </div>
     </div>
   )

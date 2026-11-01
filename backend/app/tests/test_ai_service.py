@@ -22,6 +22,7 @@ from app.services.ai_service import (
     get_ai_token_notice,
     is_ai_configured,
     is_expired_key_error,
+    recommend_contests,
 )
 
 
@@ -129,6 +130,14 @@ VALID_SCORE_RESPONSE = {
     "contests": [
         {"id": 5, "matchScore": 88.4, "matchReason": "주제가 직접 연결됩니다."},
         {"id": 6, "matchScore": 999, "matchReason": "점수 상한 초과 응답."},
+    ]
+}
+
+# 추천 전용 요청(recommend_contests)의 캐시 확인용 응답
+RECOMMEND_CACHE_RESPONSE = {
+    "contests": [
+        {"id": 5, "matchScore": 66, "matchReason": "추천 캐시 확인용 문구."},
+        {"id": 6, "matchScore": 41, "matchReason": "추천 캐시 확인용 문구 2."},
     ]
 }
 
@@ -355,3 +364,83 @@ class TestAnalyzeIdea:
         ]
         with pytest.raises(AiRequestTooLargeError):
             analyze_idea(body)
+
+
+class TestRecommendContests:
+    """공모전 추천만 다시 받기 — 점수 요청 하나만 나가는지·캐시·오류 매핑을 검증한다."""
+
+    def _make_body(self, title: str) -> dict:
+        return {
+            "idea": {
+                "title": title,
+                "description": "대학생 30만 명에게 마감 알림을 보내 탐색 시간을 줄이는 앱",
+                "category": "개발",
+            },
+            "contests": [
+                {"id": 5, "title": "공모전 다섯", "organizer": "주최5", "field": "개발", "deadline": "2026-11-30"},
+                {"id": 6, "title": "공모전 여섯", "organizer": "주최6", "field": "기획", "deadline": "2026-12-31"},
+            ],
+        }
+
+    def test_scores_only_response(self, stream_state):
+        stream_state["scoreText"] = json.dumps(
+            {"contests": [{"id": 5, "matchScore": 72.6, "matchReason": "확장해 제안할 수 있습니다."}]},
+            ensure_ascii=False,
+        )
+
+        data = recommend_contests(self._make_body("추천-응답"))
+
+        # 요청한 id마다 점수가 채워진다 — 응답에 없던 id 6은 기본값(50)으로
+        assert data == {
+            "contests": [
+                {"id": 5, "matchScore": 73, "matchReason": "확장해 제안할 수 있습니다."},
+                {"id": 6, "matchScore": 50, "matchReason": "공모전 여섯에 제안해 볼 수 있는지 검토해 보세요."},
+            ]
+        }
+        # 본문 분석 요청 없이 점수 요청 하나만 나간다
+        assert len(stream_state["calls"]) == 1
+        assert "공모전 추천 도우미" in stream_state["calls"][0]["system"]
+
+    def test_empty_score_response_returns_empty_contests(self, stream_state):
+        stream_state["scoreText"] = json.dumps({"contests": []})
+
+        data = recommend_contests(self._make_body("추천-빈응답"))
+
+        assert data == {"contests": []}
+
+    def test_cache_hit_does_not_call_openai_again(self, stream_state):
+        stream_state["scoreText"] = json.dumps(RECOMMEND_CACHE_RESPONSE, ensure_ascii=False)
+        body = self._make_body("추천-캐시-확인")
+
+        first = recommend_contests(body)
+        second = recommend_contests(self._make_body("추천-캐시-확인"))
+
+        assert second == first
+        assert len(stream_state["calls"]) == 1
+
+    def test_expired_key_maps_to_dedicated_error(self, stream_state):
+        stream_state["scoreError"] = _FakeError("The key has expired", status=401, code="expired_key")
+
+        with pytest.raises(AiKeyExpiredError):
+            recommend_contests(self._make_body("추천-만료"))
+
+    def test_generic_failure_wraps_as_upstream_error(self, stream_state):
+        stream_state["scoreError"] = _FakeError("boom")
+
+        with pytest.raises(AiUpstreamError, match="boom"):
+            recommend_contests(self._make_body("추천-업스트림"))
+
+    def test_missing_key_raises_before_calling(self, stream_state, monkeypatch):
+        monkeypatch.setenv("OPENAI_API_KEY", "")
+
+        with pytest.raises(AiNotConfiguredError):
+            recommend_contests(self._make_body("추천-미설정"))
+        assert stream_state["calls"] == []
+
+    def test_budget_error(self, monkeypatch):
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key-123")
+        body = self._make_body("추천-너무큼")
+        body["contests"] = [_make_contest(300 + i) for i in range(61)]
+
+        with pytest.raises(AiRequestTooLargeError):
+            recommend_contests(body)

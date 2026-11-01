@@ -696,7 +696,7 @@ function MyPage({
             </div>
           </section>
           <section
-            className="mypage-duo-box"
+            className="mypage-duo-box mypage-duo-box-archive"
             aria-labelledby="archive-teaser-title"
           >
             <h2 id="archive-teaser-title">

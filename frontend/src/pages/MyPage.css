@@ -582,6 +582,19 @@ section h2 {
   flex: 1;
 }
 
+/* 보관함 박스 — '보관함 열어보기' 버튼을 박스 맨 아래에 붙인다
+   (2026-10-28 사용자 요청). 티저를 세로 flex로 바꿔 남는 공간을
+   버튼 위 auto 마진이 흡수하게 한다. */
+.mypage-duo-box-archive .wishlist-teaser {
+  display: flex;
+  flex-direction: column;
+  row-gap: 10px;
+}
+
+.mypage-duo-box-archive .empty-cta-button {
+  margin-top: auto;
+}
+
 @media (max-width: 560px) {
   .mypage-duo {
     flex-direction: column;

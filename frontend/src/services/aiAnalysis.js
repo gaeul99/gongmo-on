@@ -85,3 +85,34 @@ export async function requestAiAnalysis(idea, referenceCases, contests) {
   cache.set(cacheKey, payload.data)
   return payload.data
 }
+
+// '다른 공모전 추천받기' — 분석 본문을 다시 만들지 않고 공모전 적합도만 새로 매깁니다.
+// 이미 보여 준 추천(excludeIds)은 후보 풀에서 빼고, 남은 후보 중 관련도 상위 16건을
+// 새로 점수 매겨 돌려받습니다. 호출한 쪽(ResultPage)은 실패 시 기존 점수의
+// 다음 순위로 대체하므로 여기서는 목업 대체를 하지 않습니다.
+export async function requestContestRecommendation(idea, contests, excludeIds = []) {
+  const excluded = new Set(excludeIds)
+  const pool = contests.filter((contest) => !excluded.has(contest.id))
+  const aiContests = pickAiCandidates(idea, pool)
+  if (aiContests.length === 0) {
+    throw new Error('새로 추천받을 공모전 후보가 남아 있지 않아요.')
+  }
+
+  const response = await fetch(`${API_BASE}/api/ideas/recommend`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idea, contests: aiContests }),
+    signal: AbortSignal.timeout(AI_TIMEOUT_MS),
+  })
+
+  if (!response.ok) {
+    throw new Error(`공모전 추천 요청이 실패했어요. (HTTP ${response.status})`)
+  }
+
+  const payload = await response.json()
+  if (!payload?.success || !Array.isArray(payload.data?.contests)) {
+    throw new Error('공모전 추천 응답 형식이 올바르지 않아요.')
+  }
+
+  return payload.data.contests
+}

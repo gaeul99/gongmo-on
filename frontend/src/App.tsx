@@ -27,6 +27,7 @@ import type { Analysis } from './types/analysis'
 import { signIn, signUp, requestLogout, getAuthToken, updateProfile } from './services/auth.js'
 import { syncNotificationSubscription } from './services/notificationService.js'
 import { pullUserData, pushUserData } from './services/userDataSync.js'
+import { notePlainText } from './services/practiceNotes'
 import { mergeImportedData, writeLocalOnlyData, EXPORT_KIND, EXPORT_VERSION } from './utils/dataPortability.js'
 import { loadSyncedContests } from './data/contestPool.js'
 import { STORAGE_KEYS } from './utils/storageKeys.js'
@@ -298,8 +299,18 @@ function App() {
   // 로그인 복원·연습 노트 저장 등으로 서버 백업이 필요해진 횟수. 각 화면이 이 값으로
   // localStorage의 자기 데이터를 다시 읽고, 백업도 다시 실행합니다.
   const [syncVersion, setSyncVersion] = useState(0)
-  // 서버 백업(풀·푸시)이 실패하고 있음을 알리는 배너. 성공하면 바로 내려간다.
+  // 실제 동기화 상태와 알림 표시를 분리해 알림을 닫아도 재시도는 계속한다.
   const [backupFailed, setBackupFailed] = useState(false)
+  const [backupNoticeDismissed, setBackupNoticeDismissed] = useState(false)
+
+  useEffect(() => {
+    if (!backupFailed) {
+      setBackupNoticeDismissed(false)
+      return
+    }
+    const timer = window.setTimeout(() => setBackupNoticeDismissed(true), 8_000)
+    return () => window.clearTimeout(timer)
+  }, [backupFailed])
   // 서버 백업 푸시는 로그인 직후 복원(풀)이 성공한 뒤에만 허용합니다.
   // 복원 전 푸시하면 서버 백업을 미완성 로컬 목록으로 덮어쓸 수 있어서입니다.
   const canPushRef = useRef(false)
@@ -858,11 +869,13 @@ function App() {
 
   // 앱 내 공모전 상세 화면으로 이동. 검색 팝업·마감 임박 목록이 함께 씁니다.
   // 상세 화면을 이미 보고 있을 때 다른 공모전을 열어도 id가 바로 바뀌게
-  // 상태로 함께 갱신합니다.
+  // 상태로 함께 갱신합니다. 상세 → 상세 전환은 screen이 그대라 맨 위로
+  // 이동 효과가 없으므로 여기서 직접 올린다(비슷한 공모전, 2026-10-28).
   const openContest = (id: number) => {
     window.history.pushState(null, '', hrefFor(`/contest/${id}`))
     setScreen('contest')
     setContestId(id)
+    window.scrollTo(0, 0)
   }
 
   return (
@@ -917,18 +930,8 @@ function App() {
               navigate('contests', '?status=upcoming')
             }}
             onOpenContest={openContest}
-            // 기능 소개 5개 메뉴탭 — 하단 바 메뉴 팝업(TopNav)과 같은 핸들러
+            // 히어로 주 CTA — 하단 바 메뉴 팝업(TopNav)과 같은 핸들러
             onTypeTest={() => navigate('test')}
-            onStart={() => {
-              setPrefill(null)
-              setTypeHints(null)
-              navigate('input')
-            }}
-            onNotes={() => {
-              setNotePrefill(null)
-              navigate('notes')
-            }}
-            onDashboard={() => navigate('dashboard')}
           />
         </>
       )}
@@ -963,6 +966,10 @@ function App() {
       )}
       {screen === 'contest' && (
         <ContestDetailPage
+          // 상세 → 상세 전환(비슷한 공모전)에서도 화면이 유지되므로 key로
+          // 새로 마운트한다 — 이전 공모전에서 열어 둔 응모 확인·로그인
+          // 패널이 새 공모전에 그대로 남는 걸 막는다.
+          key={contestId}
           contestId={contestId}
           user={user}
           appliedContestIds={myContests.map((contest) => contest.id)}
@@ -975,6 +982,7 @@ function App() {
             setTypeHints(null)
             navigate('input')
           }}
+          onOpenContest={openContest}
           onSignIn={handleSignIn}
           onSignUp={handleSignUp}
           onBack={() => {
@@ -1063,14 +1071,12 @@ function App() {
             navigate('input')
           }}
           onGoDashboard={() => navigate('dashboard')}
-          // 아이디어 재매칭 — 노트의 기획 의도·차별점을 아이디어 설명으로 삼아
-          // 분석 화면으로 보낸다. 결과 화면의 '추천 공모전'이 재매칭 결과가 된다.
+          // 아이디어 재매칭 — 노트 문서 전체(기획 의도·차별점·예상 질문 답변)를
+          // 아이디어 설명으로 삼아 분석 화면으로 보낸다(2026-10-29 워드 문서 전환:
+          // 문서가 통째로 내용이므로 본문 텍스트를 그대로 쓴다).
+          // 결과 화면의 '추천 공모전'이 재매칭 결과가 된다.
           onRematch={(note) => {
-            const description = [note.intent, note.diff]
-              .map((line) => line.trim())
-              .filter((line) => line !== '')
-              .join('\n\n')
-              .slice(0, 2000)
+            const description = notePlainText(note.content).slice(0, 2000)
             handleAnalyze({
               title: note.title,
               description: description || note.title,
@@ -1136,6 +1142,8 @@ function App() {
           wishlist={wishlist}
           onRemoveWish={handleRemoveWish}
           onApplyWish={handleApplyContest}
+          // 제목을 눌러 앱 안 상세 화면으로 이동(2026-10-27 사용자 요청)
+          onOpenContest={openContest}
           onBack={() => navigate('mypage')}
           onGoExplore={() => {
             setExploreFilter('all')
@@ -1144,14 +1152,15 @@ function App() {
           }}
         />
       )}
-      {/* 서버 백업 실패 알림 — 데이터가 이 브라우저에만 있음을 알리고, 성공하면 스스로 사라진다 */}
-      {backupFailed && (
+      {/* 같은 장애가 이어지는 동안 한 번만 표시하며, 닫아도 자동 재시도는 유지한다. */}
+      {backupFailed && !backupNoticeDismissed && (
         <div className="sync-notice" role="status">
-          <span>서버 백업이 지연되고 있어요 · 최근 변경은 이 브라우저에만 저장돼 있어요</span>
+          <span className="sync-notice-indicator" aria-hidden="true" />
+          <span>브라우저에 저장됨 <span className="sync-notice-detail">· 서버 연결 시 자동 백업</span></span>
           <button
             type="button"
             aria-label="백업 지연 알림 닫기"
-            onClick={() => setBackupFailed(false)}
+            onClick={() => setBackupNoticeDismissed(true)}
           >
             ×
           </button>

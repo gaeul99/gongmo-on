@@ -239,11 +239,31 @@ def _find_entry(items: list, entry_id):
 # 클라이언트가 바로 그릴 수 있는 완전한 형태로 만들어 돌려줍니다.
 # score_raw는 공모전 점수 요청의 응답(실패 시 None) — 비어 있으면 contests를
 # 빈 배열로 돌려 프론트가 목업 점수를 그대로 쓰게 합니다(mergeAnalysis).
+# 점수 응답을 요청한 공모전 id 개수에 맞게 보정합니다. 누락된 id는 기본 점수·문구로
+# 채우고, 응답이 아예 없으면 빈 배열을 돌려 호출한 쪽이 목업 값으로 대체하게 합니다.
+def _normalize_contest_scores(score_raw, contests: list) -> list:
+    score_root = score_raw if isinstance(score_raw, dict) else {}
+    raw_contests = score_root.get("contests") if isinstance(score_root.get("contests"), list) else []
+    result = []
+    if len(raw_contests) > 0:
+        for contest in contests:
+            entry = _find_entry(raw_contests, contest.get("id"))
+            result.append(
+                {
+                    "id": contest.get("id"),
+                    "matchScore": _clamp_score(entry.get("matchScore") if entry else None, 50),
+                    "matchReason": _as_text(
+                        entry.get("matchReason") if entry else None,
+                        f"{contest.get('title')}에 제안해 볼 수 있는지 검토해 보세요.",
+                    ),
+                }
+            )
+    return result
+
+
 def normalize_analysis(core_raw, score_raw, body: dict) -> dict:
     root = core_raw if isinstance(core_raw, dict) else {}
     raw_similar = root.get("similarCases") if isinstance(root.get("similarCases"), list) else []
-    score_root = score_raw if isinstance(score_raw, dict) else {}
-    raw_contests = score_root.get("contests") if isinstance(score_root.get("contests"), list) else []
 
     similar_cases = []
     for reference_case in body.get("referenceCases") or []:
@@ -272,20 +292,7 @@ def normalize_analysis(core_raw, score_raw, body: dict) -> dict:
         )
 
     # 점수 응답이 아예 없으면 빈 배열 — 일부만 왔을 때는 없는 id를 기본값으로 채운다.
-    contests = []
-    if len(raw_contests) > 0:
-        for contest in body.get("contests") or []:
-            entry = _find_entry(raw_contests, contest.get("id"))
-            contests.append(
-                {
-                    "id": contest.get("id"),
-                    "matchScore": _clamp_score(entry.get("matchScore") if entry else None, 50),
-                    "matchReason": _as_text(
-                        entry.get("matchReason") if entry else None,
-                        f"{contest.get('title')}에 제안해 볼 수 있는지 검토해 보세요.",
-                    ),
-                }
-            )
+    contests = _normalize_contest_scores(score_raw, body.get("contests") or [])
 
     detail = {
         "ideaSummary": _as_text(root.get("ideaSummary"), "입력 내용을 한 문장으로 다시 정리해 보세요."),
@@ -521,6 +528,60 @@ def analyze_idea(body: dict) -> dict:
     analysis = normalize_analysis(core_parsed, score_parsed, body)
     _set_cached_analysis(cache_key, analysis)
     return analysis
+
+
+# ==========================================================
+# 공모전 추천만 다시 받기 — 아이디어 분석 본문을 다시 만들지 않고
+# 공모전 적합도 점수(SCORE_SYSTEM_PROMPT)만 새로 요청합니다.
+# '다른 공모전 추천받기' 버튼이 씁니다. 이미 본 추천은 프론트가 후보에서
+# 빼고 보내므로, 같은 요청이면 같은 결과(캐시), 후보가 바뀌면 새 평가다.
+# ==========================================================
+
+
+def _recommendation_cache_key(body: dict) -> str:
+    # 분석 본문 캐시와 같은 저장소를 쓰되 태그를 달아 키가 겹치지 않게 한다.
+    return json.dumps(
+        [
+            "recommend",
+            body["idea"]["title"],
+            body["idea"]["description"],
+            body["idea"]["category"],
+            [item.get("id") for item in body.get("contests") or []],
+        ],
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+
+
+def recommend_contests(body: dict) -> dict:
+    budget = estimate_analysis_budget(body)
+    if budget["tooLarge"]:
+        raise AiRequestTooLargeError()
+
+    ai_model = (os.getenv("OPENAI_MODEL") or "").strip() or "gpt-4o-mini"
+    client = _get_client()
+    cache_key = _recommendation_cache_key(body)
+    cached = _get_cached_analysis(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        content = _run_stream(
+            client, ai_model, SCORE_SYSTEM_PROMPT, _build_score_user_prompt(body), SCORE_MAX_OUTPUT_TOKENS
+        )
+    except Exception as error:
+        raise _to_ai_service_error(error)
+
+    if not content:
+        raise AiUpstreamError("모델 응답이 비어 있습니다.")
+    try:
+        parsed = json.loads(content)
+    except ValueError:
+        raise AiUpstreamError("모델 응답을 JSON으로 해석하지 못했습니다.")
+
+    data = {"contests": _normalize_contest_scores(parsed, body.get("contests") or [])}
+    _set_cached_analysis(cache_key, data)
+    return data
 
 
 # ==========================================================

@@ -511,12 +511,23 @@ export function calculateContestType(answers) {
 // 유형 키워드로 접수 중 공모전을 골라 마감이 가까운 순으로 추천합니다.
 // 마감이 지난 공모전은 추천에서 뺀다(2026-10-14 사용자 지시). 후보가 부족하면
 // 키워드 불일치분으로 채워 항상 limit개를 돌려줍니다.
-export function recommendContestsForType(typeId, contests, limit = 3, now = new Date()) {
+// excludeIds에는 이미 보여 준 공모전 id를 넣는다('다른 공모전 추천받기').
+// 제외하고 남은 풀이 limit보다 작으면 제외를 풀고 처음부터 다시 고른다 —
+// 버튼을 아무리 눌러도 항상 limit개가 나오게 하기 위해서다.
+export function recommendContestsForType(
+  typeId,
+  contests,
+  limit = 3,
+  now = new Date(),
+  excludeIds = [],
+) {
   const type = CONTEST_TYPES[typeId]
   if (!type) return []
+  const excluded = excludeIds instanceof Set ? excludeIds : new Set(excludeIds)
   const matched = []
   const rest = []
   for (const contest of contests) {
+    if (excluded.has(contest.id)) continue
     const { left } = deadlineStatus(contest.deadline, now)
     // 일정을 알 수 없는 공모전은 마감 여부를 판단할 수 없으므로 그대로 둔다.
     if (left !== null && left < 0) continue
@@ -527,5 +538,14 @@ export function recommendContestsForType(typeId, contests, limit = 3, now = new 
   const byDeadline = (a, b) => (a.deadline < b.deadline ? -1 : a.deadline > b.deadline ? 1 : 0)
   matched.sort(byDeadline)
   rest.sort(byDeadline)
-  return [...matched, ...rest].slice(0, limit)
+  const picked = [...matched, ...rest].slice(0, limit)
+  if (picked.length < limit && excluded.size > 0) {
+    const restart = recommendContestsForType(typeId, contests, limit, now)
+    for (const contest of restart) {
+      if (picked.some((item) => item.id === contest.id)) continue
+      picked.push(contest)
+      if (picked.length === limit) break
+    }
+  }
+  return picked
 }

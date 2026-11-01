@@ -1,5 +1,7 @@
 /* 연습 노트 — 응모 전 심사 관점 연습 노트 화면.
-   입력 화면(IdeaInputPage)의 폭·필드 스타일과 같은 계열로 맞췄다. */
+   목록은 입력 화면(IdeaInputPage)의 폭·필드 스타일과 같은 계열로 맞췄고,
+   문서 편집은 워드(Word) 화면처럼 종이 캔버스 + 서식 도구 모음으로 구성한다
+   (2026-10-29 워드 문서 전환). */
 
 .notes-page {
   display: flex;
@@ -14,6 +16,12 @@
   @media (max-width: 768px) {
     padding: 32px 20px 64px;
   }
+}
+
+/* 문서 편집 화면 — 종이(A4 비율, 최대 800px)와 도구 모음이 들어가므로
+   목록(640px)보다 넓게 벌린다 */
+.notes-page--doc {
+  max-width: 980px;
 }
 
 .back-button {
@@ -173,6 +181,7 @@
 }
 
 .note-card {
+  box-shadow: none;
   display: flex;
   align-items: stretch;
   gap: 8px;
@@ -265,209 +274,9 @@
   border-color: var(--accent);
 }
 
-/* 작성 화면 */
-.note-editor {
-  margin-top: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.note-editor h1 {
-  margin: 12px 0 0;
-  font-size: clamp(17px, 4vw, 22px);
-  font-weight: 700;
-}
-
-.note-editor-lead {
-  margin-top: 8px;
-  color: var(--text-2);
-  line-height: 175%;
-  word-break: keep-all;
-}
-
-.note-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.note-field label {
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--text-h);
-}
-
-.note-required {
-  color: var(--error);
-}
-
-.note-optional {
-  font-size: 12px;
-  color: var(--text);
-  margin-left: 6px;
-  word-break: keep-all;
-}
-
-.note-field input[type='text'],
-.note-field textarea,
-.note-qa input[type='text'],
-.note-qa textarea {
-  font: inherit;
-  font-size: 12.5px;
-  color: var(--text-h);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 11px 14px;
-  box-sizing: border-box;
-  transition: border-color 0.2s;
-}
-
-.note-field textarea,
-.note-qa textarea {
-  resize: vertical;
-  line-height: 170%;
-  word-break: keep-all;
-}
-
-.note-field input::placeholder,
-.note-field textarea::placeholder,
-.note-qa input::placeholder,
-.note-qa textarea::placeholder {
-  color: var(--text);
-  opacity: 0.6;
-}
-
-.note-field input:focus-visible,
-.note-field textarea:focus-visible,
-.note-qa input:focus-visible,
-.note-qa textarea:focus-visible {
-  outline: none;
-  border-color: var(--accent);
-}
-
-.note-field input[aria-invalid='true'] {
-  border-color: var(--error);
-}
-
-.note-error {
-  font-size: 12px;
-  color: var(--error);
-}
-
-/* 예상 질문·답변 묶음 — 묶음 카드. 안쪽 행(--bg 흰색)이 테두리로 파여 보인다 */
-.note-qa {
-  margin: 0;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--panel);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.note-qa legend {
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--text-h);
-  padding: 0 4px;
-}
-
-.note-qa-lead {
-  font-size: 12px;
-  color: var(--text-2);
-  word-break: keep-all;
-}
-
-.note-qa-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-
-.note-qa-remove {
-  align-self: flex-start;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-
-.note-qa-remove:hover {
-  color: var(--error);
-  text-decoration: underline;
-}
-
-.note-qa-add {
-  align-self: flex-start;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--accent-text);
-  background: var(--bg);
-  border: 1px dashed var(--accent-border);
-  border-radius: 10px;
-  padding: 8px 14px;
-  cursor: pointer;
-}
-
-.note-qa-add:hover {
-  background: var(--hover-bg);
-}
-
-/* 저장·취소 */
-.note-editor-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.note-save-button {
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--accent-ink);
-  background: var(--accent);
-  border: none;
-  border-radius: 12px;
-  padding: 11px 24px;
-  cursor: pointer;
-  transition: transform 0.15s, opacity 0.15s;
-}
-
-.note-save-button:hover {
-  transform: translateY(-1px);
-  opacity: 0.92;
-}
-
-.note-cancel-button {
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  background: none;
-  border: none;
-  padding: 8px 4px;
-  cursor: pointer;
-}
-
-.note-cancel-button:hover {
-  color: var(--text-h);
-  text-decoration: underline;
-}
-
-/* 실전 팁 — 테두리·그림자는 위의 노트 카드(.note-card)와 같게(그림자는 index.css 카드 목록) */
+/* 실전 팁 — 노트 카드와 같은 그림자 없는 표면 */
 .notes-tips {
+  box-shadow: none;
   margin-top: 40px;
   padding: 18px 20px;
   background: var(--accent-bg);
@@ -507,4 +316,354 @@
   height: 6px;
   border-radius: 50%;
   background: var(--accent);
+}
+
+/* ==========================================================
+   워드 문서 편집 화면(2026-10-29)
+   제목 줄 → 서식 도구 모음(스크롤해도 위에 붙는다) → A4 종이 캔버스
+   → 상태 표시줄(글자 수·저장 상태) 순서로 쌓는다.
+   ========================================================== */
+
+/* 문서 제목 줄 — 워드의 문서 이름 표시줄 */
+.doc-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.doc-title-input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 15px;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.doc-title-input::placeholder {
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.doc-title-input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.doc-title-input[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+/* 서식 도구 모음 — 상단 고정 내비(TopNav) 바로 아래(--doc-top은 화면이 잰 높이) 붙는다 */
+.doc-toolbar {
+  position: sticky;
+  top: var(--doc-top, 0px);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: 10px;
+  padding: 6px 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.doc-tool-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 6px;
+}
+
+.doc-tool-group + .doc-tool-group {
+  border-left: 1px solid var(--border);
+}
+
+/* 인쇄·.doc·완료 묶음 — 도구 모음 오른쪽 끝으로 민다 */
+.doc-tool-actions {
+  margin-left: auto;
+}
+
+.doc-btn {
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.doc-btn:hover {
+  background: var(--hover-bg);
+  color: var(--text-h);
+}
+
+.doc-btn.is-active {
+  background: var(--brand-bg);
+  color: var(--brand-text);
+}
+
+/* 굵게·기울임·밑줄·취소선 글자 라벨 — 전역 굵은체(700)보다 진하게 세워 구별한다 */
+.doc-btn b,
+.doc-btn i,
+.doc-btn-u,
+.doc-btn-s {
+  font-weight: 900;
+}
+
+.doc-btn-u {
+  text-decoration: underline;
+}
+
+.doc-btn-s {
+  text-decoration: line-through;
+}
+
+.doc-select {
+  font: inherit;
+  font-size: 12px;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 4px;
+  max-width: 96px;
+  cursor: pointer;
+}
+
+.doc-select:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* 완료 — 목록으로 돌아가며 저장하는 행동 버튼(파랑 채움) */
+.doc-finish {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--brand-ink);
+  background: var(--brand);
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  margin-left: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.doc-finish:hover {
+  opacity: 0.92;
+}
+
+/* 글자색·형광펜 팝업 — 도구 버튼 아래에 뜬다 */
+.doc-color-wrap {
+  position: relative;
+}
+
+.doc-color-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(4, 24px);
+  gap: 6px;
+  padding: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-pop);
+}
+
+.doc-color-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.doc-color-swatch:hover {
+  transform: scale(1.12);
+}
+
+.doc-color-clear {
+  grid-column: 1 / -1;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--code-bg);
+  border: none;
+  border-radius: 6px;
+  padding: 5px 0;
+  cursor: pointer;
+}
+
+.doc-color-clear:hover {
+  background: var(--hover-bg);
+}
+
+/* 종이 캔버스 — 흰 종이가 회색 캔버스(--page) 위에 떠 있다.
+   인쇄 시 이 묶음(.doc-print-area)만 남긴다 */
+.doc-paper-wrap {
+  margin-top: 14px;
+}
+
+.doc-paper {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  border-radius: 4px;
+  width: 100%;
+  max-width: 800px;
+  min-height: 1080px;
+  margin: 0 auto;
+  padding: 64px 68px 88px;
+  box-sizing: border-box;
+  outline: none;
+  /* 전역 굵은체(700)를 문서에서만 푼다 — 본문은 굵지 않아야 B 버튼이
+     의미를 갖고, 제목(제목 1~3)만 굵게 위계가 잡힌다 */
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 2;
+  color: var(--text-h);
+  word-break: keep-all;
+  cursor: text;
+}
+
+.doc-paper-wrap:focus-within .doc-paper {
+  border-color: var(--brand-border);
+}
+
+/* 문서 요소 기본 서식 — 워드 기본값에 가깝게 */
+.doc-paper p {
+  margin: 0 0 10px;
+}
+
+.doc-paper h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 20px 0 10px;
+  line-height: 1.5;
+}
+
+.doc-paper h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 18px 0 8px;
+  line-height: 1.55;
+}
+
+.doc-paper h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 16px 0 6px;
+  line-height: 1.6;
+}
+
+.doc-paper blockquote {
+  margin: 8px 0;
+  padding: 4px 16px;
+  border-left: 3px solid var(--border);
+  color: var(--text);
+}
+
+.doc-paper ul,
+.doc-paper ol {
+  margin: 0 0 10px;
+  padding-left: 26px;
+}
+
+.doc-paper a {
+  color: var(--brand-text);
+}
+
+.doc-paper hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 18px 0;
+}
+
+/* 상태 표시줄 — 글자 수(왼쪽)와 저장 상태(오른쪽) */
+.doc-statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: 800px;
+  margin: 10px auto 0;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.doc-status-state {
+  font-weight: 700;
+}
+
+/* 인쇄 — 화면 요소를 모두 가리고 종이(문서 본문)만 흰 배경에 남긴다.
+   인쇄 창에서 'PDF로 저장'하면 문서 PDF가 된다 */
+@media print {
+  body {
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .doc-print-area,
+  .doc-print-area * {
+    visibility: visible !important;
+  }
+
+  .doc-print-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .doc-paper {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+/* 좁은 화면 — 종이 여백을 줄이고 도구 모음 간격을 조인다 */
+@media (max-width: 768px) {
+  .doc-title-input {
+    font-size: 14px;
+  }
+
+  .doc-tool-group {
+    padding: 0 4px;
+  }
+
+  .doc-paper {
+    min-height: 640px;
+    padding: 28px 20px 40px;
+  }
 }

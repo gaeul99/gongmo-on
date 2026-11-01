@@ -90,6 +90,15 @@
   word-break: keep-all;
 }
 
+/* 제목 링크 — 찜한 공모전을 눌러 앱 안 상세 화면으로 이동한다 */
+.wishlist-title-link {
+  color: inherit;
+}
+
+.wishlist-title-link:hover {
+  color: var(--accent-text);
+}
+
 .wishlist-meta {
   margin: 0;
   font-size: 12.5px;

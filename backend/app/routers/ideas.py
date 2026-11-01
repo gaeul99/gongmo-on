@@ -41,10 +41,9 @@ def sanitize_candidates(input_value) -> list[dict]:
     return result[:MAX_CANDIDATE_ITEMS]
 
 
-@router.post("/analyze")
-def post_idea_analysis(body: dict = Depends(json_body)):
-    idea = body.get("idea")
-
+# 아이디어 제목·설명·관심 분야 검증 — /analyze와 /recommend가 같이 쓴다.
+# 문제가 있으면 오류 응답을, 없으면 None을 돌려준다.
+def _invalid_idea_response(idea) -> JSONResponse | None:
     if (
         not isinstance(idea, dict)
         or not isinstance(idea.get("title"), str)
@@ -59,10 +58,20 @@ def post_idea_analysis(body: dict = Depends(json_body)):
             "INVALID_REQUEST",
             f"제목은 {MAX_TITLE_LENGTH}자, 설명은 {MAX_DESCRIPTION_LENGTH}자 이내로 입력해 주세요.",
         )
-    if not isinstance(body.get("referenceCases"), list) or not isinstance(body.get("contests"), list):
-        return _error(400, "INVALID_REQUEST", "분석 대상 사례·공모전 목록이 필요합니다.")
     if isinstance(idea.get("category"), str) and len(idea["category"]) > MAX_CATEGORY_LENGTH:
         return _error(400, "INVALID_REQUEST", "관심 분야는 100자 이내로 입력해 주세요.")
+    return None
+
+
+@router.post("/analyze")
+def post_idea_analysis(body: dict = Depends(json_body)):
+    idea = body.get("idea")
+
+    invalid_response = _invalid_idea_response(idea)
+    if invalid_response is not None:
+        return invalid_response
+    if not isinstance(body.get("referenceCases"), list) or not isinstance(body.get("contests"), list):
+        return _error(400, "INVALID_REQUEST", "분석 대상 사례·공모전 목록이 필요합니다.")
     if not ai_service.is_ai_configured():
         return _error(
             503,
@@ -103,6 +112,61 @@ def post_idea_analysis(body: dict = Depends(json_body)):
     except ai_service.AiUpstreamError as error:
         print(f"[ai] 분석 실패: {error}")
         return _error(502, "AI_UPSTREAM", "AI 분석 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.")
+    except Exception as error:
+        print(f"[ai] 알 수 없는 오류: {error!r}")
+        return _error(500, "INTERNAL", "서버 내부 오류가 발생했어요.")
+
+
+# 공모전 추천만 다시 받기 — 분석 본문 없이 후보 점수만 새로 매긴다.
+# 프론트의 '다른 공모전 추천받기' 버튼이 이미 본 추천을 후보에서 빼고 보낸다.
+@router.post("/recommend")
+def post_contest_recommendation(body: dict = Depends(json_body)):
+    idea = body.get("idea")
+
+    invalid_response = _invalid_idea_response(idea)
+    if invalid_response is not None:
+        return invalid_response
+    if not isinstance(body.get("contests"), list):
+        return _error(400, "INVALID_REQUEST", "추천 후보 공모전 목록이 필요합니다.")
+    if not ai_service.is_ai_configured():
+        return _error(
+            503,
+            "AI_NOT_CONFIGURED",
+            "OpenAI API 키가 설정되지 않았어요. backend/.env에 키를 넣은 뒤 서버를 다시 시작해 주세요.",
+        )
+
+    try:
+        data = ai_service.recommend_contests(
+            {
+                "idea": {
+                    "title": idea["title"].strip(),
+                    "description": idea["description"].strip(),
+                    "category": idea["category"].strip() if isinstance(idea.get("category"), str) else "",
+                },
+                "contests": sanitize_candidates(body.get("contests")),
+            }
+        )
+        return {"success": True, "data": data}
+    except ai_service.AiNotConfiguredError:
+        return _error(503, "AI_NOT_CONFIGURED", "OpenAI API 키가 설정되지 않았어요.")
+    except ai_service.AiRequestTooLargeError:
+        return _error(
+            400,
+            "AI_REQUEST_TOO_LARGE",
+            "추천 요청이 너무 큽니다. 후보 수를 줄인 뒤 다시 시도해 주세요.",
+        )
+    except ai_service.AiKeyExpiredError:
+        print(
+            "[ai] AI 인증 토큰이 만료되었습니다. mlapi.run에서 토큰을 재발급해 backend/.env의 OPENAI_API_KEY를 교체한 뒤 서버를 재시작하세요."
+        )
+        return _error(
+            503,
+            "AI_TOKEN_EXPIRED",
+            "AI 인증 토큰이 만료되었어요. 토큰이 갱신되면 다시 추천받을 수 있어요.",
+        )
+    except ai_service.AiUpstreamError as error:
+        print(f"[ai] 공모전 추천 실패: {error}")
+        return _error(502, "AI_UPSTREAM", "공모전 추천 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.")
     except Exception as error:
         print(f"[ai] 알 수 없는 오류: {error!r}")
         return _error(500, "INTERNAL", "서버 내부 오류가 발생했어요.")

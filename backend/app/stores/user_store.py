@@ -202,3 +202,27 @@ def save_user_data(nickname: str, data: dict) -> dict:
         ).fetchone()
     updated_at = row[0] if row else datetime.now(timezone.utc)
     return {"data": data, "updatedAt": iso_utc(updated_at)}
+
+
+def wishlist_counts() -> dict[int, int]:
+    """공모전별 찜 사용자 수 — 탐색 화면의 '인기도순' 정렬에 쓰는 집계.
+
+    userdata.data의 wishlist 배열을 SQL에서 바로 펼쳐 세므로 사용자가 늘어도
+    앱 메모리가 아니라 DB에서 한 번에 집계된다. 한 사용자가 같은 공모전을
+    중복으로 담아도 COUNT(DISTINCT nickname)이므로 1명으로 센다.
+    """
+    with get_pool().connection() as conn:
+        rows = conn.execute(
+            """SELECT entry->>'id' AS contest_id,
+                      COUNT(DISTINCT userdata.nickname) AS wish_count
+               FROM userdata, jsonb_array_elements(data->'wishlist') AS entry
+               GROUP BY contest_id"""
+        ).fetchall()
+    counts: dict[int, int] = {}
+    for row in rows:
+        try:
+            counts[int(row[0])] = int(row[1])
+        except (TypeError, ValueError):
+            # id가 숫자가 아닌 찜 기록(예전 데이터)은 집계에서 뺀다.
+            continue
+    return counts
