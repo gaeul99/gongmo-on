@@ -304,10 +304,7 @@ function App() {
   const [backupNoticeDismissed, setBackupNoticeDismissed] = useState(false)
 
   useEffect(() => {
-    if (!backupFailed) {
-      setBackupNoticeDismissed(false)
-      return
-    }
+    if (!backupFailed) return
     const timer = window.setTimeout(() => setBackupNoticeDismissed(true), 8_000)
     return () => window.clearTimeout(timer)
   }, [backupFailed])
@@ -622,6 +619,7 @@ function App() {
       persistList(SAVED_IDEAS_STORAGE_KEY, merged.savedIdeas)
       canPushRef.current = true
       setBackupFailed(false)
+      setBackupNoticeDismissed(false)
       setSyncVersion((v) => v + 1)
     } catch {
       // 백엔드가 꺼져 있어도 로그인 자체는 계속 진행됩니다.
@@ -652,7 +650,10 @@ function App() {
     if (!user || !canPushRef.current) return
     const timer = window.setTimeout(() => {
       pushUserData(buildSyncPayload(myContests, wishlist, savedIdeas))
-        .then((result) => setBackupFailed(!result.ok))
+        .then((result) => {
+          setBackupFailed(!result.ok)
+          if (result.ok) setBackupNoticeDismissed(false)
+        })
         .catch(() => {
           // 백엔드가 꺼져 있으면 다음 변경 때 다시 시도합니다.
           setBackupFailed(true)
