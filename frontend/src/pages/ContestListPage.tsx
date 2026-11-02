@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from 'react'
 import AppLink from '../components/AppLink'
 import { useContestPool, getSyncedContestCount, getPopularityById } from '../data/contestPool.js'
 import { pageItems } from '../utils/pagination'
+import { createContestMatcher } from '../utils/contestSearch'
 import { deadlineStatus, isApplicationOpen } from '../utils/contestAlerts.js'
 import type { WishlistContest } from './MyPage'
 import './ContestListPage.css'
@@ -160,16 +161,13 @@ function ContestListPage({
   }, [contests])
 
   const filtered = useMemo(() => {
-    const q = appliedQuery.trim()
+    const matchesSearch = createContestMatcher(appliedQuery)
     return contests
       .map((contest) => ({ contest, status: contestStatus(contest) }))
       .filter(({ status }) => statusFilter === 'all' || status === statusFilter)
       .filter(({ contest }) => fieldFilter === 'all' || fieldFamily(contest.field) === fieldFilter)
       .filter(({ contest }) => ageFilter === 'all' || contest.ageGroups?.includes(ageFilter))
-      .filter(({ contest }) => {
-        if (!q) return true
-        return `${contest.title} ${contest.organizer} ${contest.field} ${contest.description}`.includes(q)
-      })
+      .filter(({ contest }) => matchesSearch(contest))
   }, [contests, appliedQuery, statusFilter, fieldFilter, ageFilter])
 
   // 마감 임박순(기본)은 접수 중·곧 시작을 마감일 가까운 순으로, 마감된 공모전은
@@ -247,8 +245,9 @@ function ContestListPage({
                 setQuery(event.target.value)
                 setPage(1)
               }}
-              placeholder="공모전명·주최·주제로 검색"
+              placeholder="단어 하나로 관련 공모전 찾기"
               aria-label="공모전 검색"
+              aria-describedby="explore-search-help"
               maxLength={40}
             />
             {/* 지우기 버튼 자리를 늘 확보한다 — 첫 글자를 입력할 때 버튼이
@@ -267,6 +266,8 @@ function ContestListPage({
               ×
             </button>
           </div>
+
+          <p id="explore-search-help" className="explore-search-help">제목·주최·설명과 관련어를 함께 찾아요. 예: AI → 인공지능, 영상 → 숏폼·영화</p>
 
           <div className="explore-chip-row" role="group" aria-label="접수 상태 필터">
             {STATUS_FILTERS.map((option) => (

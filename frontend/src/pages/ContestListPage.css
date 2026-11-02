@@ -413,3 +413,10 @@
     white-space: nowrap;
   }
 }
+.explore-search-help {
+  margin: 10px 2px 16px;
+  color: var(--text-3);
+  font-size: 12px;
+  line-height: 1.7;
+  word-break: keep-all;
+}
