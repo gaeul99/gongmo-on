@@ -9,7 +9,10 @@
 // ==========================================================
 
 import { useSyncExternalStore } from 'react'
-import { contests as staticContests } from './mockData.js'
+import { contests as rawStaticContests } from './mockData.js'
+import { normalizeContestText } from '../utils/displayText'
+
+const staticContests = rawStaticContests.map(normalizeContestText)
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 
@@ -119,7 +122,7 @@ export function loadSyncedContests() {
       return response.json()
     })
     .then((data) => {
-      syncedContests = Array.isArray(data?.contests) ? data.contests : []
+      syncedContests = Array.isArray(data?.contests) ? data.contests.map(normalizeContestText) : []
       loadState = 'ready'
     })
     .catch(() => {

@@ -10,15 +10,12 @@ import { assetUrl } from '../utils/assetUrl.js'
 // D-x 라벨은 utils/contestAlerts.js의 deadlineStatus 기준을 그대로 쓴다.
 // ==========================================================
 import { useEffect, useRef, useState } from 'react'
+import type { PointerEvent } from 'react'
+import { flushSync } from 'react-dom'
 import AppLink from './AppLink'
 import { useContestPool } from '../data/contestPool.js'
 import { deadlineStatus, isApplicationOpen } from '../utils/contestAlerts.js'
 import './ContestMarquee.css'
-
-// 카드 폭 280px + 오른쪽 여백 16px(ContestMarquee.css의 .marquee-card) —
-// 화살표 한 번에 스크롤하는 픽셀 기준. 정렬은 Scroll Snap이 보장하고,
-// 이 값은 '한 번에 한 카드' 이동량으로만 쓴다.
-const CARD_STEP = 296
 
 type Props = {
   onOpenContest: (id: number) => void
@@ -37,66 +34,116 @@ function ContestMarquee({ onOpenContest }: Props) {
         isApplicationOpen(row.contest),
     )
 
-  // 화살표를 누르기 전엔 끊김 없는 무한 흐름(같은 목록을 두 번 이어 붙임),
-  // 누른 뒤엔 스와이프·화살표로 넘겨 보는 수동 모드(가로 스크롤+스냅)로 바뀐다.
   const [manual, setManual] = useState(false)
-  const [visible, setVisible] = useState(1)
-  // 현재 스크롤 위치와 끝 — 맨 앞/맨 뒤에서 화살표를 막는 판정에 쓴다
-  const [scrollAt, setScrollAt] = useState({ left: 0, max: 0 })
-  // 수동 모드로 막 진입한 첫 클릭도 한 장 이동으로 이어지게 — DOM이 커밋된 뒤
-  // 실행해야 스크롤 컨테이너가 준비되므로 이동 요청을 상태(큐)로 넘긴다
-  const [pendingSteps, setPendingSteps] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const [canScroll, setCanScroll] = useState(false)
   const windowRef = useRef<HTMLDivElement | null>(null)
+  const trackRef = useRef<HTMLUListElement | null>(null)
+  const targetRef = useRef<number | null>(null)
+  const suppressClickRef = useRef(false)
+  const dragRef = useRef<{ pointerId: number; x: number; left: number; scale: number; moved: boolean } | null>(null)
 
-  // 창 폭에 한 번에 보이는 카드 수를 재고(자동 모드 화살표 판정), 스크롤 범위도 함께 갱신한다.
+  // Measure the real card pitch: mobile cards and browser zoom use different sizes.
+  const geometry = () => {
+    const track = trackRef.current
+    const first = track?.children[0] as HTMLElement | undefined
+    const second = track?.children[1] as HTMLElement | undefined
+    const duplicate = track?.children[rows.length] as HTMLElement | undefined
+    return {
+      step: first && second ? second.offsetLeft - first.offsetLeft : 0,
+      cycle: first && duplicate ? duplicate.offsetLeft - first.offsetLeft : 0,
+    }
+  }
+
   useEffect(() => {
     const el = windowRef.current
-    if (!el) return
-    const measure = () => {
-      setVisible(Math.max(1, Math.floor(el.clientWidth / CARD_STEP)))
-      setScrollAt({ left: el.scrollLeft, max: el.scrollWidth - el.clientWidth })
-    }
-    measure()
+    const track = trackRef.current
+    if (!el || !track) return
+    const measure = () => setCanScroll(track.scrollWidth / 2 > el.clientWidth + 1)
     const observer = new ResizeObserver(measure)
     observer.observe(el)
+    observer.observe(track)
+    measure()
     return () => observer.disconnect()
-  }, [])
+  }, [rows.length])
 
-  // 수동 모드에서는 스크롤을 따라가 화살표 활성화를 갱신한다
-  useEffect(() => {
-    if (!manual) return
+  // Preserve the visible position when replacing the CSS animation with scrolling.
+  // Keep both copies mounted so the list never shrinks or jumps back to card one.
+  const enterManual = () => {
     const el = windowRef.current
-    if (!el) return
-    const onScroll = () =>
-      setScrollAt({ left: el.scrollLeft, max: el.scrollWidth - el.clientWidth })
-    onScroll()
-    el.addEventListener('scroll', onScroll, { passive: true })
-    return () => el.removeEventListener('scroll', onScroll)
-  }, [manual])
-
-  // 큐에 쌓인 이동 요청(한 카드 단위)을 실제 스크롤로 실행한다 —
-  // 정렬은 Scroll Snap이 맞추니 정확히 한 장씩 넘어간다
-  useEffect(() => {
-    if (!manual || pendingSteps === 0) return
-    const el = windowRef.current
-    if (!el) return
-    el.scrollBy({ left: pendingSteps * CARD_STEP, behavior: 'smooth' })
-    setPendingSteps(0)
-  }, [manual, pendingSteps])
-
-  const maxIndex = Math.max(0, rows.length - visible)
-
-  const goPrev = () => {
-    setManual(true)
-    setPendingSteps((steps) => steps - 1)
+    const track = trackRef.current
+    if (!el || !track) return
+    if (!manual) {
+      const transform = getComputedStyle(track).transform
+      const offset = el.scrollLeft + (transform === 'none' ? 0 : -new DOMMatrixReadOnly(transform).m41)
+      flushSync(() => setManual(true))
+      el.scrollLeft = offset
+    }
   }
 
-  const goNext = () => {
-    setManual(true)
-    setPendingSteps((steps) => steps + 1)
+  const go = (direction: number) => {
+    enterManual()
+    const el = windowRef.current
+    const { step, cycle } = geometry()
+    if (!el || !step || !cycle) return
+    let base = targetRef.current ?? el.scrollLeft
+    if (base >= cycle) {
+      el.scrollLeft = Math.max(0, el.scrollLeft - cycle)
+      base -= cycle
+    }
+    if (base < step / 2 && direction < 0) {
+      el.scrollLeft += cycle
+      base += cycle
+    }
+    const target = Math.max(0, Math.round(base / step) * step + direction * step)
+    targetRef.current = target
+    el.scrollTo({ left: target, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
   }
 
-  const cards = manual ? rows : [...rows, ...rows]
+  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0 || !canScroll) return
+    suppressClickRef.current = false
+    enterManual()
+    targetRef.current = null
+    if (event.pointerType !== 'mouse') return // touch uses native scrolling
+    const el = event.currentTarget
+    dragRef.current = {
+      pointerId: event.pointerId, x: event.clientX, left: el.scrollLeft,
+      scale: el.getBoundingClientRect().width / el.offsetWidth || 1, moved: false,
+    }
+  }
+
+  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    const delta = (event.clientX - drag.x) / drag.scale
+    if (!drag.moved && Math.abs(delta) < 6) return
+    if (!drag.moved) {
+      drag.moved = true
+      suppressClickRef.current = true
+      event.currentTarget.setPointerCapture(event.pointerId)
+      flushSync(() => setDragging(true))
+    }
+    event.preventDefault()
+    event.currentTarget.scrollLeft = drag.left - delta
+  }
+
+  const finishDrag = (event: PointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    dragRef.current = null
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+    if (!drag.moved) return
+    flushSync(() => setDragging(false))
+    const { step } = geometry()
+    if (step) {
+      const target = Math.round(event.currentTarget.scrollLeft / step) * step
+      targetRef.current = target
+      event.currentTarget.scrollTo({ left: target, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })
+    }
+  }
+
+  const cards = [...rows, ...rows]
 
   return (
     <section className="contest-marquee" aria-label="접수 중인 공모전">
@@ -105,8 +152,8 @@ function ContestMarquee({ onOpenContest }: Props) {
         <button
           type="button"
           className="marquee-arrow marquee-arrow-prev"
-          onClick={goPrev}
-          disabled={manual ? scrollAt.left <= 0 : true}
+          onClick={() => go(-1)}
+          disabled={!canScroll}
           aria-label="이전 공모전 보기"
         >
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -122,14 +169,31 @@ function ContestMarquee({ onOpenContest }: Props) {
         </button>
         <div
           ref={windowRef}
-          className={manual ? 'marquee-window manual' : 'marquee-window'}
+          className={`marquee-window${manual ? ' manual' : ''}${dragging ? ' is-dragging' : ''}`}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={finishDrag}
+          onPointerCancel={finishDrag}
+          onLostPointerCapture={finishDrag}
+          onDragStart={(event) => event.preventDefault()}
+          onScroll={() => {
+            const el = windowRef.current
+            if (el && targetRef.current !== null && Math.abs(el.scrollLeft - targetRef.current) < 1) targetRef.current = null
+          }}
+          onClickCapture={(event) => {
+            if (!suppressClickRef.current) return
+            event.preventDefault()
+            event.stopPropagation()
+            suppressClickRef.current = false
+          }}
         >
           <ul
+            ref={trackRef}
             className={manual ? 'marquee-track manual' : 'marquee-track'}
           >
             {cards.map(({ contest, status }, i) => {
               // 자동 흐름일 때 뒤쪽 절반(복제본)은 화면 낭독·탭 이동에서 제외
-              const hidden = !manual && i >= rows.length
+              const hidden = i >= rows.length
               return (
                 <li
                   key={`${contest.id}-${i}`}
@@ -170,8 +234,8 @@ function ContestMarquee({ onOpenContest }: Props) {
         <button
           type="button"
           className="marquee-arrow marquee-arrow-next"
-          onClick={goNext}
-          disabled={manual ? scrollAt.left >= scrollAt.max - 1 : maxIndex === 0}
+          onClick={() => go(1)}
+          disabled={!canScroll}
           aria-label="다음 공모전 보기"
         >
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">

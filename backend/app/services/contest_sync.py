@@ -7,6 +7,7 @@
 # robots.txt가 Allow:/ 인 공개 목록 페이지만 읽고, 요청 사이에 지연을 둔다.
 # ==========================================================
 import json
+from html import unescape
 import re
 import threading
 import time
@@ -106,7 +107,7 @@ def _to_contest(row) -> dict:
         "id": row[0],
         "source": row[1] if row[1] == "wevity" else "contestkorea",
         "sourceId": row[2],
-        "title": row[3],
+        "title": decode_entities(row[3]).strip(),
         "organizer": row[4],
         "field": row[5],
         "deadline": row[7],
@@ -193,23 +194,13 @@ def _persist_state(state: dict) -> None:
 
 # ---------- HTML 유틸 ----------
 
-_ENTITY_MAP = [
-    ("&nbsp;", " "),
-    ("&amp;", "&"),
-    ("&lt;", "<"),
-    ("&gt;", ">"),
-    ("&quot;", '"'),
-    ("&#0?39;", "'"),
-    ("&rsquo;", "'"),
-    ("&middot;", "·"),
-    ("&bull;", "·"),
-]
-
-
 def decode_entities(text: str) -> str:
-    for entity, char in _ENTITY_MAP:
-        text = text.replace(entity, char)
-    return text
+    for _ in range(3):
+        decoded = unescape(text)
+        if decoded == text:
+            break
+        text = decoded
+    return text.replace("\ufeff", "").replace("\u200b", "")
 
 
 def strip_tags(html: str) -> str:

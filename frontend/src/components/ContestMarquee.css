@@ -106,7 +106,7 @@
      벌려 두고 마진을 음수로 되돌려, 자동 흐름 모드와 카드 위치·아래 간격이
      같게 유지한다(2026-10-15 그림자 잘림 수정) */
   overflow-y: clip;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: none;
   /* 가로 스와이프가 브라우저 '뒤로 가기' 제스처로 새어 나가지 않게 */
   overscroll-behavior-x: contain;
   padding-block: 24px 48px;
@@ -121,10 +121,20 @@
    translateX(-50%)로 이음새 없이 무한 반복된다.
    1500s — 카드 한 장이 화면을 가로지르는 데 150초 정도 걸리는 매우 느린 속도 */
 .marquee-track {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   width: max-content;
   animation: marquee-slide 1500s linear infinite;
 }
+
+.marquee-window { cursor: grab; }
+.marquee-window.is-dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
+.marquee-window.is-dragging a { cursor: grabbing; }
+.marquee-thumb img { -webkit-user-drag: none; user-select: none; }
+.marquee-window:focus-within .marquee-track { animation-play-state: paused; }
 
 .marquee-window:hover .marquee-track {
   animation-play-state: paused;
