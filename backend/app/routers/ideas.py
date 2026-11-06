@@ -78,7 +78,7 @@ def post_idea_analysis(request: Request, body: dict = Depends(json_body)):
         return _error(
             503,
             "AI_NOT_CONFIGURED",
-            "OpenAI API 키가 설정되지 않았어요. backend/.env에 키를 넣은 뒤 서버를 다시 시작해 주세요.",
+            "AI 분석 연결을 준비 중이에요. 잠시 후 다시 이용해 주세요.",
         )
 
     try:
@@ -98,7 +98,7 @@ def post_idea_analysis(request: Request, body: dict = Depends(json_body)):
     except ApiError:
         raise
     except ai_service.AiNotConfiguredError:
-        return _error(503, "AI_NOT_CONFIGURED", "OpenAI API 키가 설정되지 않았어요.")
+        return _error(503, "AI_NOT_CONFIGURED", "AI 분석 연결을 준비 중이에요. 잠시 후 다시 이용해 주세요.")
     except ai_service.AiRequestTooLargeError:
         return _error(
             400,
@@ -137,7 +137,7 @@ def post_contest_recommendation(request: Request, body: dict = Depends(json_body
         return _error(
             503,
             "AI_NOT_CONFIGURED",
-            "OpenAI API 키가 설정되지 않았어요. backend/.env에 키를 넣은 뒤 서버를 다시 시작해 주세요.",
+            "AI 추천 연결을 준비 중이에요. 잠시 후 다시 이용해 주세요.",
         )
 
     try:
@@ -156,7 +156,7 @@ def post_contest_recommendation(request: Request, body: dict = Depends(json_body
     except ApiError:
         raise
     except ai_service.AiNotConfiguredError:
-        return _error(503, "AI_NOT_CONFIGURED", "OpenAI API 키가 설정되지 않았어요.")
+        return _error(503, "AI_NOT_CONFIGURED", "AI 추천 연결을 준비 중이에요. 잠시 후 다시 이용해 주세요.")
     except ai_service.AiRequestTooLargeError:
         return _error(
             400,
@@ -220,7 +220,7 @@ def post_idea_judging(request: Request, body: dict = Depends(json_body)):
         return _error(
             503,
             "AI_NOT_CONFIGURED",
-            "OpenAI API 키가 설정되지 않았어요. backend/.env에 키를 넣은 뒤 서버를 다시 시작해 주세요.",
+            "AI 채점 연결을 준비 중이에요. 잠시 후 다시 이용해 주세요.",
         )
 
     try:
@@ -243,7 +243,7 @@ def post_idea_judging(request: Request, body: dict = Depends(json_body)):
     except ApiError:
         raise
     except ai_service.AiNotConfiguredError:
-        return _error(503, "AI_NOT_CONFIGURED", "OpenAI API 키가 설정되지 않았어요.")
+        return _error(503, "AI_NOT_CONFIGURED", "AI 채점 연결을 준비 중이에요. 잠시 후 다시 이용해 주세요.")
     except ai_service.AiKeyExpiredError:
         print(
             "[ai] AI 인증 토큰이 만료되었습니다. mlapi.run에서 토큰을 재발급해 backend/.env의 OPENAI_API_KEY를 교체한 뒤 서버를 재시작하세요."
