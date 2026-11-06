@@ -191,13 +191,14 @@ function ResultPage({
   const [restored, setRestored] = useState(initialAnalysis !== null)
   // AI 요청 실패 후 사용자가 다시 시도하면 1씩 올라가며 분석을 다시 실행합니다.
   const [attempt, setAttempt] = useState(0)
-  // 자동으로 다시 시도할 남은 횟수 — 데모 배너의 자동 재시도 안내에 씁니다.
-  const [autoRetriesLeft, setAutoRetriesLeft] = useState(0)
+  // Show quota or connection errors without silently replaying paid requests.
+  const [aiFailure, setAiFailure] = useState('')
   // '다른 공모전 추천받기' — 지금까지 보여 준 추천 id를 쌓아 두고 다음 라운드에서 제외합니다.
   const [excludedRecommendIds, setExcludedRecommendIds] = useState<number[]>([])
   const [recommending, setRecommending] = useState(false)
   // AI 새 추천을 받지 못해 기존 점수의 다음 순위로 넘어갔을 때 안내 문구를 켜는 플래그
   const [recommendFallback, setRecommendFallback] = useState(false)
+  const [recommendFailure, setRecommendFailure] = useState('')
   const [recommendRound, setRecommendRound] = useState(0)
   // 실제 응모 안내(2단계)를 보여 주는 추천 공모전 id. 확정·취소하면 null로 돌아갑니다.
   const [confirmingApplyId, setConfirmingApplyId] = useState<number | null>(null)
@@ -209,6 +210,8 @@ function ResultPage({
   // 추천 후보 풀 — 목업 + 백엔드 자동 등록 공모전. 자동 등록분이 도착하면
   // 분석을 다시 요청해 후보에 합쳐진다.
   const contests = useContestPool()
+  const contestPoolRef = useRef(contests)
+  useEffect(() => { contestPoolRef.current = contests }, [contests])
   // 분석 완료 콜백은 ref로 읽어 의존성 배열에서 뺍니다. 콜백이 바뀔 때마다 분석을
   // 다시 요청하는 무한 반복을 막기 위해서입니다.
   const settledRef = useRef(onAnalysisSettled)
@@ -288,6 +291,7 @@ function ResultPage({
   const [judgeRunning, setJudgeRunning] = useState(false)
   const [judgeResult, setJudgeResult] = useState<JudgeSimResult | null>(null)
   const [judgeDemo, setJudgeDemo] = useState(false)
+  const [judgeFailure, setJudgeFailure] = useState('')
   const judgePoints = analysis?.detail.judgePoints ?? []
 
   const handleFillJudgeFromDraft = () => {
@@ -308,7 +312,8 @@ function ResultPage({
         setJudgeResult(data as JudgeSimResult)
         setJudgeDemo(false)
       })
-      .catch(() => {
+      .catch((error: Error) => {
+        setJudgeFailure(error.message)
         // 분석과 같은 규칙 — 서버가 꺼져 있어도 데모 채점으로 보여 준다.
         setJudgeResult(buildMockJudging({ proposal: judgeProposal, judgePoints }))
         setJudgeDemo(true)
@@ -333,50 +338,19 @@ function ResultPage({
       settledRef.current?.(merged)
     }
 
-    // 첫 실패로 데모 결과를 보여 준 뒤에도 포기하지 않고 백그라운드에서 두 번 더
-    // 시도한다 — 서버 재시작·게이트웨이 순단 같은 일시적 오류는 이 자동 재시도로
-    // 회복되고, 성공하면 데모 결과가 AI 결과로 조용히 교체된다. 모두 실패하면
-    // 수동 'AI 분석 다시 시도' 버튼에 맡긴다.
-    const RETRY_DELAYS_MS = [2_500, 8_000]
-    const timers: number[] = []
-    let demoShown = false
-
-    const runRequest = (retryIndex: number) => {
-      requestAiAnalysis(idea, referenceCases, contests)
-        .then((aiData) => {
-          if (!cancelled) {
-            apply(mergeAnalysis('ai', aiData, fallback))
-          }
-        })
-        .catch(() => {
-          if (cancelled) return
-          // 서버 미실행·키 미설정·타임아웃 등 어떤 경우에도 목업 결과를 표시합니다.
-          if (!demoShown) {
-            demoShown = true
-            apply(mergeAnalysis('demo', null, fallback))
-          }
-          const delay = RETRY_DELAYS_MS[retryIndex]
-          if (delay !== undefined) {
-            setAutoRetriesLeft(RETRY_DELAYS_MS.length - retryIndex)
-            timers.push(
-              window.setTimeout(() => {
-                if (!cancelled) runRequest(retryIndex + 1)
-              }, delay),
-            )
-          } else {
-            setAutoRetriesLeft(0)
-          }
-        })
-    }
-    runRequest(0)
-
-    return () => {
-      cancelled = true
-      for (const timer of timers) window.clearTimeout(timer)
-    }
-    // contests(후보 풀)가 의존성에 있다 — 자동 등록 공모전이 늦게 도착하면
-    // 후보에 합쳐진 상태로 분석을 다시 요청한다.
-  }, [idea, attempt, restored, contests])
+    // One logical attempt per user action. Coalesce StrictMode duplicates in the
+    // service and never replay a possibly-billed request after a timeout.
+    requestAiAnalysis(idea, referenceCases, contestPoolRef.current)
+      .then((aiData: AiAnalysisPayload) => {
+        if (!cancelled) { apply(mergeAnalysis('ai', aiData, fallback)); setAiFailure('') }
+      })
+      .catch((error: Error) => {
+        if (cancelled) return
+        setAiFailure(error.message || 'AI 분석을 완료하지 못했어요.')
+        apply(mergeAnalysis('demo', null, fallback))
+      })
+    return () => { cancelled = true }
+  }, [idea, attempt, restored])
 
   // 데모 결과로 떨어졌을 때 AI 분석을 다시 요청합니다.
   const retryAnalysis = () => {
@@ -435,7 +409,8 @@ function ResultPage({
       .then((freshScores) => {
         applyRecommendation(freshScores, excluded)
       })
-      .catch(() => {
+      .catch((error: Error) => {
+        setRecommendFailure(error.message)
         // AI 요청 실패 — 새 점수 없이 현재 점수 기준 다음 순위를 보여 준다.
         applyRecommendation([], excluded)
         setRecommendFallback(true)
@@ -470,10 +445,7 @@ function ResultPage({
           <div className="analysis-retry" role="alert">
             <p className="analysis-retry-title">AI 분석 요청이 실패했어요.</p>
             <p className="analysis-retry-desc">
-              백엔드 서버가 꺼져 있거나 일시적인 오류일 수 있어요. 지금은 데모 결과를 보여 드리고
-              있어요.
-              {autoRetriesLeft > 0 &&
-                ` 잠시 뒤 ${autoRetriesLeft}번 더 자동으로 시도하고, 성공하면 AI 결과로 바꿔 드려요.`}
+              {aiFailure || 'AI 분석을 완료하지 못했어요.'} 지금은 데모 결과를 보여 드리고 있어요.
             </p>
             <div className="analysis-retry-actions">
               <button type="button" className="retry-analysis-button" onClick={retryAnalysis}>
@@ -801,8 +773,7 @@ function ResultPage({
                 <p className="judge-verdict">{judgeResult.verdict}</p>
                 {judgeDemo && (
                   <p className="judge-demo-note">
-                    백엔드 AI에 연결하지 못해 만든 참고 채점이에요. AI에 연결되면 아이디어에 맞춰
-                    더 정확히 채점돼요.
+                    {judgeFailure} 지금은 참고용 데모 채점을 보여 드려요.
                   </p>
                 )}
                 <ul className="judge-items">
@@ -940,7 +911,7 @@ function ResultPage({
             </button>
             {recommendFallback ? (
               <p className="recommend-again-note">
-                AI 새 추천을 받지 못해 그다음 순위의 공모전을 보여 드려요.
+                {recommendFailure} AI 새 추천을 받지 못해 그다음 순위의 공모전을 보여 드려요.
               </p>
             ) : recommendRound > 0 ? (
               <p className="recommend-again-note">이미 본 추천을 제외하고 새로 골랐어요.</p>

@@ -12,6 +12,7 @@ import "./MyPage.css";
 // 로그인 계정은 서버(backend)에 저장되고, localStorage는 1차 캐시다.
 // email은 공모전 마감 알림(이메일) 발송에 사용됩니다.
 export type User = {
+  id?: string;
   nickname: string;
   joinedAt: string;
   email?: string;

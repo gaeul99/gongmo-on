@@ -26,6 +26,7 @@ router = APIRouter()
 
 def public_user(account: dict) -> dict:
     return {
+        "id": account.get("id"),
         "nickname": account["nickname"],
         "joinedAt": account["createdAt"],
         "email": account["email"],
@@ -75,7 +76,9 @@ def post_signup(body: dict = Depends(json_body)):
         "phone": phone_digits or None,
         "createdAt": iso_now(),
     }
-    user_store.save_account(account)
+    if not user_store.create_account(account):
+        return _error(409, "NICKNAME_TAKEN", "이미 가입된 아이디예요. 다른 아이디를 사용해 주세요.")
+    account = user_store.find_account(nickname)
     token = user_store.create_session(nickname)
     return {"success": True, "data": {"user": public_user(account), "token": token}}
 
@@ -144,7 +147,10 @@ def put_profile(request: Request, body: dict = Depends(json_body)):
         # 아이디는 로그인 ID이자 저장소 키라, 바꾸면 계정·세션·사용자 데이터를
         # 한 트랜잭션으로 새 아이디에 옮긴다 — 중간에 실패해도 전부 원래대로 돌아와
         # 로그인 상태와 내역이 그대로 유지됩니다.
-        user_store.rename_account_profile(account["nickname"], updated)
+        try:
+            user_store.rename_account_profile(account["nickname"], updated)
+        except user_store.NicknameTakenError:
+            return _error(409, "NICKNAME_TAKEN", "이미 사용 중인 아이디예요. 다른 아이디를 사용해 주세요.")
     else:
         user_store.save_account(updated)
     return {"success": True, "data": {"user": public_user(updated)}}

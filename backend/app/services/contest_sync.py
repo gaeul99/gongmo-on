@@ -633,7 +633,7 @@ def collect_contest_korea() -> list[dict]:
             html = fetch_html(f"{CK_BASE}/sub/list.php?int_gbn=1&displayrow=100&page={page}")
         except Exception as error:
             print(f"[contestSync] 콘테스트코리아 {page}페이지 수집 실패: {error}")
-            break
+            raise RuntimeError("contestkorea collection incomplete") from error
         items = parse_ck_list(html)
         before = len(all_items)
         for item in items:
@@ -652,7 +652,7 @@ def collect_wevity() -> list[dict]:
             html = fetch_html(f"{WEVITY_BASE}/?c=find&s=1&gub=1&gp={page}")
         except Exception as error:
             print(f"[contestSync] 위비티 {page}페이지 수집 실패: {error}")
-            break
+            raise RuntimeError("wevity collection incomplete") from error
         items = parse_wevity_list(html)
         before = len(all_items)
         for item in items:
@@ -710,25 +710,86 @@ def sync_contests(force: bool = False) -> dict:
                 }
         _sync_in_flight = True
     try:
-        return _run_sync()
+        _record_sync_attempt()
+        summary = _run_sync()
+        _record_sync_result(summary.get("outcome", "success"))
+        return summary
+    except Exception:
+        try:
+            _record_sync_result("failed")
+        except Exception:
+            print("[contestSync] 실패 상태 기록 불가")
+        raise
     finally:
         with _sync_lock:
             _sync_in_flight = False
 
 
+def _record_sync_attempt():
+    with get_pool().connection() as conn:
+        conn.execute(
+            """INSERT INTO sync_state (id, last_attempt, last_status) VALUES (1, now(), 'running')
+               ON CONFLICT (id) DO UPDATE SET last_attempt = now(), last_status = 'running'"""
+        )
+
+
+def _record_sync_result(status: str):
+    with get_pool().connection() as conn:
+        conn.execute(
+            """UPDATE sync_state SET last_status = %s,
+                 last_success = CASE WHEN %s = 'success' THEN now() ELSE last_success END
+               WHERE id = 1""", (status, status)
+        )
+
+
+def get_sync_status() -> dict:
+    with get_pool().connection() as conn:
+        row = conn.execute(
+            """SELECT last_sync, last_attempt, last_success, last_status,
+                      (SELECT count(*) FROM contests) FROM sync_state WHERE id = 1"""
+        ).fetchone()
+    if not row:
+        return {"lastSyncAt": None, "lastAttemptAt": None, "lastSuccessAt": None,
+                "lastOutcome": "unknown", "stale": True, "inProgress": False,
+                "intervalSeconds": SYNC_INTERVAL_SEC, "count": 0}
+    synced, attempted, succeeded, outcome, count = row
+    # Before this migration last_sync was the only timestamp available. Keep it
+    # visible, but do not label a historic run with unknown outcome as success.
+    now = datetime.now(timezone.utc)
+    def utc(value):
+        return value.replace(tzinfo=timezone.utc) if value and value.tzinfo is None else value
+    succeeded, attempted = utc(succeeded), utc(attempted)
+    return {
+        "lastSyncAt": iso_utc(synced) if synced else None,
+        "lastAttemptAt": iso_utc(attempted) if attempted else None,
+        "lastSuccessAt": iso_utc(succeeded) if succeeded else None,
+        "lastOutcome": outcome or "unknown",
+        "stale": succeeded is None or (now - succeeded).total_seconds() > SYNC_INTERVAL_SEC + 1800,
+        "inProgress": outcome == "running" and attempted is not None and (now - attempted).total_seconds() < 3600,
+        "intervalSeconds": SYNC_INTERVAL_SEC, "count": int(count),
+    }
+
+
 def _run_sync() -> dict:
     state = _load_state()
+    source_errors = []
     try:
         ck_items = collect_contest_korea()
     except Exception as error:
         print(f"[contestSync] 콘테스트코리아 수집 실패: {error}")
         ck_items = []
+        source_errors.append("contestkorea")
     try:
         wevity_items = collect_wevity()
     except Exception as error:
         print("[contestSync] 위비티 수집 실패(이번 패스는 콘테스트코리아만 반영):", error)
         wevity_items = []
+        source_errors.append("wevity")
     candidates = ck_items + wevity_items
+    if not candidates:
+        raise RuntimeError("수집 목록이 비어 있어 기존 목록과 성공 시각을 유지합니다.")
+    if not ck_items and "contestkorea" not in source_errors: source_errors.append("contestkorea")
+    if not wevity_items and "wevity" not in source_errors: source_errors.append("wevity")
 
     added = 0
     refreshed = 0
@@ -816,6 +877,8 @@ def _run_sync() -> dict:
     _persist_state(state)
 
     summary = {
+        "outcome": "partial" if source_errors or skipped_detail_fail else "success",
+        "sourcesFailed": source_errors,
         "added": added,
         "refreshed": refreshed,
         "pruned": pruned,

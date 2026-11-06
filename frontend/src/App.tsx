@@ -24,7 +24,9 @@ import type {
 } from './pages/MyPage'
 import type { IdeaInput, TypeIdeaHints } from './pages/IdeaInputPage'
 import type { Analysis } from './types/analysis'
-import { signIn, signUp, requestLogout, getAuthToken, updateProfile } from './services/auth.js'
+import { accountContext, switchAccountStorage, discardActiveAccountStorage, notifyAccountChanged } from './services/accountStorage'
+import { subscribeBackendConnection, getBackendConnecting } from './services/backendConnection.js'
+import { signIn, signUp, requestLogout, getAuthToken, getAuthUser, saveAuthSession, updateProfile } from './services/auth.js'
 import { syncNotificationSubscription } from './services/notificationService.js'
 import { pullUserData, pushUserData } from './services/userDataSync.js'
 import { notePlainText } from './services/practiceNotes'
@@ -138,12 +140,7 @@ function clearAnalysisSnapshot() {
 }
 
 function loadUser(): User | null {
-  try {
-    const raw = localStorage.getItem(USER_STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as User) : null
-  } catch {
-    return null
-  }
+  return getAuthUser() as User | null
 }
 
 function loadMyContests(): AppliedContest[] {
@@ -173,13 +170,13 @@ function loadSavedIdeas(): SavedIdea[] {
   }
 }
 
-// 이메일 알림 수신 동의. 한 번도 건드리지 않았다면 기본으로 켭니다.
+// 이메일 알림은 사용자가 직접 동의한 경우에만 켭니다.
 function loadNotifOptIn(): boolean {
   try {
     const raw = localStorage.getItem(NOTIF_OPT_IN_STORAGE_KEY)
-    return raw === null ? true : raw === 'true'
+    return raw === 'true'
   } catch {
-    return true
+    return false
   }
 }
 
@@ -279,6 +276,8 @@ function contestIdFromLocation(): number {
 function App() {
   // 모든 화면의 data-reveal 요소를 관찰해 스크롤 등장 애니메이션을 담당한다.
   useScrollReveal()
+  const contextRef = useRef(accountContext())
+  const backendConnecting = useSyncExternalStore(subscribeBackendConnection, getBackendConnecting)
   const [screen, setScreen] = useState<Screen>(screenFromLocation)
   // 개별 공모전 상세 화면(/contest/:id)의 id. 새 탭에서 상세 주소를 곧바로
   // 열 때도 이 값으로 화면을 그립니다. 상세 화면에서 다른 상세로 넘어가거나
@@ -477,6 +476,7 @@ function App() {
   }
 
   const saveSession = (nextUser: User) => {
+    saveAuthSession(getAuthToken(), nextUser)
     try {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser))
     } catch {
@@ -489,13 +489,20 @@ function App() {
     const result = await signIn(nickname, password)
     if (result.ok && result.user) {
       const nextUser: User = {
+        id: result.user.id,
         nickname: result.user.nickname,
         joinedAt: result.user.joinedAt,
         email: result.user.email,
         phone: result.user.phone,
       }
+      try {
+        switchAccountStorage(nextUser)
+      } catch {
+        requestLogout().catch(() => {})
+        return { ok: false, error: '브라우저 저장 공간을 확인한 뒤 다시 로그인해 주세요.' }
+      }
       saveSession(nextUser)
-      void restoreFromServer()
+      notifyAccountChanged()
       return { ok: true, user: nextUser }
     }
     return { ok: false, error: result.error ?? '로그인에 실패했어요. 다시 시도해 주세요.' }
@@ -510,13 +517,20 @@ function App() {
     const result = await signUp(nickname, password, email, phone)
     if (result.ok && result.user) {
       const nextUser: User = {
+        id: result.user.id,
         nickname: result.user.nickname,
         joinedAt: result.user.joinedAt,
         email: result.user.email,
         phone: result.user.phone,
       }
+      try {
+        switchAccountStorage(nextUser)
+      } catch {
+        requestLogout().catch(() => {})
+        return { ok: false, error: '브라우저 저장 공간을 확인한 뒤 다시 로그인해 주세요.' }
+      }
       saveSession(nextUser)
-      void restoreFromServer()
+      notifyAccountChanged()
       return { ok: true, user: nextUser }
     }
     return { ok: false, error: result.error ?? '가입에 실패했어요. 다시 시도해 주세요.' }
@@ -533,12 +547,14 @@ function App() {
     const result = await updateProfile(payload)
     if (result.ok && result.user) {
       const nextUser: User = {
+        id: result.user.id,
         nickname: result.user.nickname,
         joinedAt: result.user.joinedAt,
         email: result.user.email,
         phone: result.user.phone,
       }
       saveSession(nextUser)
+      notifyAccountChanged()
       return { ok: true, user: nextUser }
     }
     return { ok: false, error: result.error ?? '회원정보 저장에 실패했어요. 다시 시도해 주세요.' }
@@ -553,8 +569,10 @@ function App() {
     } catch {
       // 제거에 실패해도 화면 상태는 로그아웃으로 바꿉니다.
     }
-    setUser(null)
     canPushRef.current = false
+    try { switchAccountStorage(null) } catch { discardActiveAccountStorage() }
+    setUser(null)
+    notifyAccountChanged()
   }
 
   const handleToggleNotifOptIn = (next: boolean) => {
@@ -568,7 +586,7 @@ function App() {
 
   // 로그인 상태·응모/관심 목록·수신 설정이 바뀔 때마다 백엔드 구독 정보를 최신으로 동기화합니다.
   useEffect(() => {
-    if (!user || !user.email) return
+    if (!user || !user.email || contextRef.current !== accountContext()) return
     const contestMap = new Map<
       number,
       { id: number; title: string; deadline: string; url?: string }
@@ -597,8 +615,11 @@ function App() {
   // 브라우저를 정리해 localStorage가 비어 있어도 서버 백업으로 복원됩니다.
   // 병합은 내보내기 파일 가져오기와 같은 규칙(기존 항목 유지, 없는 것만 추가)을 씁니다.
   const restoreFromServer = async () => {
+    const context = contextRef.current
+    if (context !== accountContext()) return
     try {
       const result = await pullUserData()
+      if (context !== accountContext()) return
       if (!result.ok) {
         // 서버에 도달했지만 복원이 거절된 경우 — 백업도 막혀 있음을 알린다.
         setBackupFailed(true)
@@ -622,7 +643,8 @@ function App() {
       setBackupNoticeDismissed(false)
       setSyncVersion((v) => v + 1)
     } catch {
-      // 백엔드가 꺼져 있어도 로그인 자체는 계속 진행됩니다.
+      // Discard failures from a request belonging to a previous account.
+      if (context !== accountContext()) return
       setBackupFailed(true)
     }
   }
@@ -633,7 +655,8 @@ function App() {
   // 마운트 1회만 실행 — 로그인 버튼을 누른 흐름은 handleSignIn/SignUp이 이미 복원을 돌린다.
   useEffect(() => {
     if (!getAuthToken()) return
-    void restoreFromServer()
+    const timer = window.setTimeout(() => { void restoreFromServer() }, 0)
+    return () => window.clearTimeout(timer)
   }, [])
 
   // 백엔드가 자동 등록한 공모전(/api/contests)을 시작 때 한 번 가져온다.
@@ -647,14 +670,18 @@ function App() {
   // 서버에 백업합니다(0.8초 디바운스). 유형 검사·자가 점검·연습 노트처럼
   // 각 화면이 localStorage에 직접 쓴 값도 이 시점에 함께 백업됩니다.
   useEffect(() => {
-    if (!user || !canPushRef.current) return
+    if (!user || !canPushRef.current || contextRef.current !== accountContext()) return
+    const context = contextRef.current
     const timer = window.setTimeout(() => {
+      if (context !== accountContext()) return
       pushUserData(buildSyncPayload(myContests, wishlist, savedIdeas))
         .then((result) => {
+          if (context !== accountContext()) return
           setBackupFailed(!result.ok)
           if (result.ok) setBackupNoticeDismissed(false)
         })
         .catch(() => {
+          if (context !== accountContext()) return
           // 백엔드가 꺼져 있으면 다음 변경 때 다시 시도합니다.
           setBackupFailed(true)
         })
@@ -809,6 +836,7 @@ function App() {
 
   // 분석이 끝날 때마다 보관함의 같은 아이디어 스냅숏을 최신 결과로 갱신합니다.
   const handleAnalysisSettled = (analysis: Analysis) => {
+    if (contextRef.current !== accountContext()) return
     const isSameIdea = idea
       ? (saved: SavedIdea) =>
           saved.title === idea.title &&
@@ -1154,7 +1182,8 @@ function App() {
         />
       )}
       {/* 같은 장애가 이어지는 동안 한 번만 표시하며, 닫아도 자동 재시도는 유지한다. */}
-      {backupFailed && !backupNoticeDismissed && (
+      {backendConnecting && <div className="sync-notice" role="status">서버에 연결하고 있어요. 첫 연결은 잠시 걸릴 수 있어요.</div>}
+      {backupFailed && !backupNoticeDismissed && !backendConnecting && (
         <div className="sync-notice" role="status">
           <span className="sync-notice-indicator" aria-hidden="true" />
           <span>브라우저에 저장됨 <span className="sync-notice-detail">· 서버 연결 시 자동 백업</span></span>

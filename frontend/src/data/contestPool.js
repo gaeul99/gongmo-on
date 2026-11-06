@@ -1,3 +1,4 @@
+import { fetchBackend } from '../services/backendConnection.js'
 // ==========================================================
 // 공모전 데이터 풀 — 목업 데이터 + 백엔드 자동 등록(스크래핑) 데이터
 // 백엔드(contestSync 서비스)가 위비티·콘테스트코리아에서 주기적으로 수집한
@@ -14,7 +15,6 @@ import { normalizeContestText } from '../utils/displayText'
 
 const staticContests = rawStaticContests.map(normalizeContestText)
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 
 // 목업 + 자동 등록 공모전이 공통으로 갖춘 형태. 자동 등록 데이터는 이 필드를 모두
 // 채워 오며(applySteps·startDate는 상세를 못 읽은 경우에도 기본 문장으로 채워진다),
@@ -116,7 +116,7 @@ export function useContestPool() {
 export function loadSyncedContests() {
   if (loadState === 'loading') return inflight ?? Promise.resolve()
   loadState = 'loading'
-  inflight = fetch(`${API_BASE}/api/contests`, { signal: AbortSignal.timeout(8000) })
+  inflight = fetchBackend(`/api/contests`, { timeoutMs: 15_000 })
     .then((response) => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       return response.json()
@@ -135,7 +135,7 @@ export function loadSyncedContests() {
     })
   // 인기도(찜 수)는 목록과 함께 가져오되 실패가 목록 로딩을 타지 않게 따로 잡는다.
   // 늦게 도착하면 emit으로 다시 그려지고, 실패하면 빈 집계(모두 0)로 남는다.
-  fetch(`${API_BASE}/api/contests/popular`, { signal: AbortSignal.timeout(8000) })
+  fetchBackend(`/api/contests/popular`, { timeoutMs: 15_000 })
     .then((response) => (response.ok ? response.json() : { popular: [] }))
     .then((data) => {
       const next = {}

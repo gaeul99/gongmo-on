@@ -8,7 +8,11 @@ from datetime import datetime, timedelta
 import pytest
 
 from app.routers import notifications
-from app.routers.notifications import post_weekly_digest
+from app.routers.notifications import post_weekly_digest as _post_weekly_digest
+
+
+def post_weekly_digest(body):
+    return _post_weekly_digest(body, account={"nickname": "테스터", "email": "tester@example.com"})
 
 
 @pytest.fixture()

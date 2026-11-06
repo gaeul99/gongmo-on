@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS sessions (
   nickname   text NOT NULL REFERENCES accounts (nickname) ON DELETE CASCADE,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS account_id text NOT NULL DEFAULT gen_random_uuid()::text;
+CREATE UNIQUE INDEX IF NOT EXISTS accounts_account_id_idx ON accounts(account_id);
 CREATE INDEX IF NOT EXISTS sessions_nickname_idx ON sessions (nickname, created_at);
 
 CREATE TABLE IF NOT EXISTS userdata (
@@ -74,6 +76,17 @@ CREATE TABLE IF NOT EXISTS sync_state (
   next_id   integer NOT NULL DEFAULT 1000,
   registry  jsonb NOT NULL DEFAULT '{}'::jsonb,
   last_sync timestamptz
+);
+
+ALTER TABLE sync_state ADD COLUMN IF NOT EXISTS last_attempt timestamptz;
+ALTER TABLE sync_state ADD COLUMN IF NOT EXISTS last_success timestamptz;
+ALTER TABLE sync_state ADD COLUMN IF NOT EXISTS last_status text;
+
+CREATE TABLE IF NOT EXISTS ai_usage (
+  usage_day date NOT NULL,
+  actor text NOT NULL,
+  units integer NOT NULL DEFAULT 0 CHECK (units >= 0),
+  PRIMARY KEY (usage_day, actor)
 );
 
 CREATE TABLE IF NOT EXISTS outbox (

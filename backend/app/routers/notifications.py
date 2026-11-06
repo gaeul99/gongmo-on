@@ -11,7 +11,8 @@ from app.deps import json_body
 from app.security import require_admin_token
 from app.services import notification_scheduler
 from app.services.notification_senders import send_email
-from app.stores import notification_store
+from app.stores import notification_store, user_store
+from app.utils.validation import ApiError, get_bearer_token
 
 router = APIRouter()
 
@@ -48,10 +49,19 @@ def _parse_categories(input_value) -> list[str]:
     return [item for item in input_value if isinstance(item, str) and len(item) > 0][:20]
 
 
+def authenticated_account(request: Request):
+    token = get_bearer_token(request.headers.get("authorization"))
+    nickname = user_store.get_session_user(token) if token else None
+    account = user_store.find_account(nickname) if nickname else None
+    if not account:
+        raise ApiError(401, "UNAUTHORIZED", "로그인 후 이용해 주세요.")
+    return account
+
+
 @router.post("/subscribe")
-def post_subscribe(body: dict = Depends(json_body)):
-    nickname = body.get("nickname").strip() if isinstance(body.get("nickname"), str) else ""
-    email = body.get("email").strip() if isinstance(body.get("email"), str) else ""
+def post_subscribe(body: dict = Depends(json_body), account: dict = Depends(authenticated_account)):
+    nickname = account["nickname"]
+    email = account["email"]
 
     if not nickname or len(nickname) > 20:
         return _error(400, "INVALID_NICKNAME", "아이디가 올바르지 않아요.")
@@ -63,27 +73,11 @@ def post_subscribe(body: dict = Depends(json_body)):
         email=email,
         idea_categories=_parse_categories(body.get("ideaCategories")),
         contests=_parse_contests(body.get("contests")),
-        opt_in=body.get("optIn") is not False,
+        opt_in=body.get("optIn") is True,
     )
 
-    # 구독(또는 정보 갱신) 직후 환영 메시지를 보내 발송 경로를 바로 확인할 수 있게 합니다.
+    # Saving a bookmark must not send another welcome email.
     delivery = "skipped"
-    if subscriber["optIn"]:
-        delivery = send_email(
-            email,
-            "[공모온] 알림 구독이 시작됐어요",
-            "\n".join(
-                [
-                    f"{subscriber['nickname']}님, 공모온 알림 구독이 완료됐습니다!",
-                    "",
-                    f"· 등록한 이메일: {subscriber['email']}",
-                    f"· 알림 대상 공모전: {len(subscriber['contests'])}개",
-                    "",
-                    "응모·관심 공모전의 마감이 다가오면(D-7·D-3·당일) 알려 드릴게요.",
-                ]
-            ),
-        )
-
     return {"success": True, "data": {"subscriber": subscriber["nickname"], "delivery": delivery}}
 
 
@@ -99,11 +93,11 @@ def post_run_check(request: Request):
 
 
 @router.post("/weekly")
-def post_weekly_digest(body: dict = Depends(json_body)):
+def post_weekly_digest(body: dict = Depends(json_body), account: dict = Depends(authenticated_account)):
     # 주간 다이제스트는 실제 이메일을 발송하므로 따로 더 타이트하게 제한한다.
     # (제한 값은 main.py의 엔드포인트별 rate limit 참고)
-    nickname = body.get("nickname").strip() if isinstance(body.get("nickname"), str) else ""
-    email = body.get("email").strip() if isinstance(body.get("email"), str) else ""
+    nickname = account["nickname"]
+    email = account["email"]
 
     if not email or not EMAIL_PATTERN.match(email):
         return _error(400, "INVALID_EMAIL", "이메일 형식이 올바르지 않아요.")

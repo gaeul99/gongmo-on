@@ -2,11 +2,13 @@
 # 아이디어 분석 요청 라우트
 # 입력 검증 → AI 서비스 호출 → 표준 응답 형식으로 포장합니다.
 # ==========================================================
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
 from app.deps import json_body
 from app.services import ai_service
+from app.services.ai_limits import ai_request
+from app.utils.validation import ApiError
 
 MAX_TITLE_LENGTH = 100
 MAX_DESCRIPTION_LENGTH = 2000
@@ -33,10 +35,10 @@ def sanitize_candidates(input_value) -> list[dict]:
     result = []
     for item in input_value:
         if isinstance(item, dict) and isinstance(item.get("id"), int) and not isinstance(item.get("id"), bool):
-            entry = dict(item)
-            for key in list(entry.keys()):
-                if isinstance(entry[key], str):
-                    entry[key] = entry[key].strip()[:MAX_CANDIDATE_TEXT]
+            entry = {"id": item["id"]}
+            for key in ["title", "organizer", "field", "description", "summary", "domain", "url", "problem", "solution", "impact"]:
+                if isinstance(item.get(key), str):
+                    entry[key] = item[key].strip()[:MAX_CANDIDATE_TEXT]
             result.append(entry)
     return result[:MAX_CANDIDATE_ITEMS]
 
@@ -64,7 +66,7 @@ def _invalid_idea_response(idea) -> JSONResponse | None:
 
 
 @router.post("/analyze")
-def post_idea_analysis(body: dict = Depends(json_body)):
+def post_idea_analysis(request: Request, body: dict = Depends(json_body)):
     idea = body.get("idea")
 
     invalid_response = _invalid_idea_response(idea)
@@ -80,18 +82,21 @@ def post_idea_analysis(body: dict = Depends(json_body)):
         )
 
     try:
-        data = ai_service.analyze_idea(
-            {
-                "idea": {
-                    "title": idea["title"].strip(),
-                    "description": idea["description"].strip(),
-                    "category": idea["category"].strip() if isinstance(idea.get("category"), str) else "",
-                },
-                "referenceCases": sanitize_candidates(body.get("referenceCases")),
-                "contests": sanitize_candidates(body.get("contests")),
-            }
-        )
+        with ai_request(request, units=2):
+            data = ai_service.analyze_idea(
+                {
+                    "idea": {
+                        "title": idea["title"].strip(),
+                        "description": idea["description"].strip(),
+                        "category": idea["category"].strip() if isinstance(idea.get("category"), str) else "",
+                    },
+                    "referenceCases": sanitize_candidates(body.get("referenceCases")),
+                    "contests": sanitize_candidates(body.get("contests")),
+                }
+            )
         return {"success": True, "data": data}
+    except ApiError:
+        raise
     except ai_service.AiNotConfiguredError:
         return _error(503, "AI_NOT_CONFIGURED", "OpenAI API 키가 설정되지 않았어요.")
     except ai_service.AiRequestTooLargeError:
@@ -120,7 +125,7 @@ def post_idea_analysis(body: dict = Depends(json_body)):
 # 공모전 추천만 다시 받기 — 분석 본문 없이 후보 점수만 새로 매긴다.
 # 프론트의 '다른 공모전 추천받기' 버튼이 이미 본 추천을 후보에서 빼고 보낸다.
 @router.post("/recommend")
-def post_contest_recommendation(body: dict = Depends(json_body)):
+def post_contest_recommendation(request: Request, body: dict = Depends(json_body)):
     idea = body.get("idea")
 
     invalid_response = _invalid_idea_response(idea)
@@ -136,17 +141,20 @@ def post_contest_recommendation(body: dict = Depends(json_body)):
         )
 
     try:
-        data = ai_service.recommend_contests(
-            {
-                "idea": {
-                    "title": idea["title"].strip(),
-                    "description": idea["description"].strip(),
-                    "category": idea["category"].strip() if isinstance(idea.get("category"), str) else "",
-                },
-                "contests": sanitize_candidates(body.get("contests")),
-            }
-        )
+        with ai_request(request, units=1):
+            data = ai_service.recommend_contests(
+                {
+                    "idea": {
+                        "title": idea["title"].strip(),
+                        "description": idea["description"].strip(),
+                        "category": idea["category"].strip() if isinstance(idea.get("category"), str) else "",
+                    },
+                    "contests": sanitize_candidates(body.get("contests")),
+                }
+            )
         return {"success": True, "data": data}
+    except ApiError:
+        raise
     except ai_service.AiNotConfiguredError:
         return _error(503, "AI_NOT_CONFIGURED", "OpenAI API 키가 설정되지 않았어요.")
     except ai_service.AiRequestTooLargeError:
@@ -180,7 +188,7 @@ MAX_JUDGE_POINT_LENGTH = 200
 
 
 @router.post("/judge")
-def post_idea_judging(body: dict = Depends(json_body)):
+def post_idea_judging(request: Request, body: dict = Depends(json_body)):
     proposal = body.get("proposal")
     judge_points = body.get("judgePoints")
 
@@ -216,21 +224,24 @@ def post_idea_judging(body: dict = Depends(json_body)):
         )
 
     try:
-        data = ai_service.simulate_judging(
-            {
-                "proposal": proposal.strip()[:MAX_PROPOSAL_LENGTH],
-                "judgePoints": [
-                    point.strip()[:MAX_JUDGE_POINT_LENGTH] for point in judge_points
-                ][:MAX_JUDGE_POINTS],
-                "contestTitle": body.get("contestTitle").strip()[:MAX_TITLE_LENGTH]
-                if isinstance(body.get("contestTitle"), str)
-                else "",
-                "ideaTitle": body.get("ideaTitle").strip()[:MAX_TITLE_LENGTH]
-                if isinstance(body.get("ideaTitle"), str)
-                else "",
-            }
-        )
+        with ai_request(request, units=1):
+            data = ai_service.simulate_judging(
+                {
+                    "proposal": proposal.strip()[:MAX_PROPOSAL_LENGTH],
+                    "judgePoints": [
+                        point.strip()[:MAX_JUDGE_POINT_LENGTH] for point in judge_points
+                    ][:MAX_JUDGE_POINTS],
+                    "contestTitle": body.get("contestTitle").strip()[:MAX_TITLE_LENGTH]
+                    if isinstance(body.get("contestTitle"), str)
+                    else "",
+                    "ideaTitle": body.get("ideaTitle").strip()[:MAX_TITLE_LENGTH]
+                    if isinstance(body.get("ideaTitle"), str)
+                    else "",
+                }
+            )
         return {"success": True, "data": data}
+    except ApiError:
+        raise
     except ai_service.AiNotConfiguredError:
         return _error(503, "AI_NOT_CONFIGURED", "OpenAI API 키가 설정되지 않았어요.")
     except ai_service.AiKeyExpiredError:

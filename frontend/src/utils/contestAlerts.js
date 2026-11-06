@@ -122,13 +122,9 @@ let seenAlertsCache = null
 const seenAlertsListeners = new Set()
 
 export function getSeenAlertsKey() {
-  if (seenAlertsCache === null) {
-    try {
-      seenAlertsCache = localStorage.getItem(ALERTS_SEEN_STORAGE_KEY) ?? ''
-    } catch {
-      seenAlertsCache = ''
-    }
-  }
+  try {
+    seenAlertsCache = localStorage.getItem(ALERTS_SEEN_STORAGE_KEY) ?? ''
+  } catch { seenAlertsCache = '' }
   return seenAlertsCache
 }
 

@@ -1,3 +1,6 @@
+import { accountContext } from './accountStorage'
+import { getAuthToken } from './auth.js'
+import { fetchBackend, apiError } from './backendConnection.js'
 // ==========================================================
 // 백엔드 AI 분석 API 호출
 // 백엔드(http://localhost:3000)의 /api/ideas/analyze를 호출합니다.
@@ -5,7 +8,6 @@
 // 목업 분석(buildMockAnalysis)으로 대체합니다.
 // ==========================================================
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 
 // AI 프롬프트에 넣을 공모전 후보 수. 후보 전부(350여 건)를 보내면 프롬프트·응답이
 // 토큰 한도를 넘어 분석이 실패하고, 후보가 많을수록 응답 JSON도 길어져 30초 예산을
@@ -48,9 +50,11 @@ export function pickAiCandidates(idea, contests) {
 
 // 같은 아이디어를 다시 열 때(보관함 '다시 보기' 등) AI 호출을 아끼기 위한 세션 캐시입니다.
 const cache = new Map()
+const pending = new Map()
 
 function cacheKeyFor(idea, referenceCases, contests) {
   return JSON.stringify([
+    accountContext(),
     idea.title,
     idea.description,
     idea.category,
@@ -59,31 +63,37 @@ function cacheKeyFor(idea, referenceCases, contests) {
   ])
 }
 
-export async function requestAiAnalysis(idea, referenceCases, contests) {
+export function requestAiAnalysis(idea, referenceCases, contests) {
   const aiContests = pickAiCandidates(idea, contests)
   const cacheKey = cacheKeyFor(idea, referenceCases, aiContests)
   if (cache.has(cacheKey)) {
-    return cache.get(cacheKey)
+    return Promise.resolve(cache.get(cacheKey))
   }
 
-  const response = await fetch(`${API_BASE}/api/ideas/analyze`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ idea, referenceCases, contests: aiContests }),
-    signal: AbortSignal.timeout(AI_TIMEOUT_MS),
-  })
+  if (pending.has(cacheKey)) return pending.get(cacheKey)
+  const request = (async () => {
+    const response = await fetchBackend(`/api/ideas/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(getAuthToken() ? { Authorization: `Bearer ${getAuthToken()}` } : {}) },
+      body: JSON.stringify({ idea, referenceCases, contests: aiContests }),
+      timeoutMs: AI_TIMEOUT_MS,
+    })
 
-  if (!response.ok) {
-    throw new Error(`AI 분석 요청이 실패했어요. (HTTP ${response.status})`)
-  }
+    if (!response.ok) {
+      throw await apiError(response, `AI 분석 요청이 실패했어요. (HTTP ${response.status})`)
+    }
 
-  const payload = await response.json()
-  if (!payload?.success || !payload.data) {
-    throw new Error('AI 분석 응답 형식이 올바르지 않아요.')
-  }
+    const payload = await response.json()
+    if (!payload?.success || !payload.data) {
+      throw new Error('AI 분석 응답 형식이 올바르지 않아요.')
+    }
 
-  cache.set(cacheKey, payload.data)
-  return payload.data
+    if (cache.size >= 50) cache.delete(cache.keys().next().value)
+    cache.set(cacheKey, payload.data)
+    return payload.data
+  })().finally(() => pending.delete(cacheKey))
+  pending.set(cacheKey, request)
+  return request
 }
 
 // '다른 공모전 추천받기' — 분석 본문을 다시 만들지 않고 공모전 적합도만 새로 매깁니다.
@@ -98,15 +108,15 @@ export async function requestContestRecommendation(idea, contests, excludeIds = 
     throw new Error('새로 추천받을 공모전 후보가 남아 있지 않아요.')
   }
 
-  const response = await fetch(`${API_BASE}/api/ideas/recommend`, {
+  const response = await fetchBackend(`/api/ideas/recommend`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(getAuthToken() ? { Authorization: `Bearer ${getAuthToken()}` } : {}) },
     body: JSON.stringify({ idea, contests: aiContests }),
-    signal: AbortSignal.timeout(AI_TIMEOUT_MS),
+    timeoutMs: AI_TIMEOUT_MS,
   })
 
   if (!response.ok) {
-    throw new Error(`공모전 추천 요청이 실패했어요. (HTTP ${response.status})`)
+    throw await apiError(response, `공모전 추천 요청이 실패했어요. (HTTP ${response.status})`)
   }
 
   const payload = await response.json()

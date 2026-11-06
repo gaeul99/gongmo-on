@@ -5,6 +5,9 @@
 # GET /api/contests/popular — 공모전별 찜 사용자 수(탐색 화면 '인기도순' 정렬용)
 # POST /api/contests/sync  — 즉시 동기화 실행(수동 점검용)
 # ==========================================================
+import threading
+import time
+
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
@@ -13,12 +16,23 @@ from app.services import contest_sync
 from app.stores import user_store
 
 router = APIRouter()
+_list_lock = threading.Lock()
+_list_cache = {"until": 0.0, "rows": []}
 
 
 @router.get("")
 def get_contests():
-    contests = contest_sync.get_contests()
+    with _list_lock:
+        if time.monotonic() >= _list_cache["until"]:
+            _list_cache["rows"] = contest_sync.get_contests()
+            _list_cache["until"] = time.monotonic() + 30
+        contests = _list_cache["rows"]
     return {"success": True, "count": len(contests), "contests": contests}
+
+
+@router.get("/status")
+def get_status():
+    return {"success": True, "data": contest_sync.get_sync_status()}
 
 
 @router.get("/popular")

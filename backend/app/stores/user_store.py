@@ -59,10 +59,11 @@ def _to_account(row) -> dict:
         "email": row[3],
         "phone": row[4],
         "createdAt": iso_utc(row[5]),
+        "id": row[6],
     }
 
 
-ACCOUNT_COLUMNS = "nickname, salt, password_hash, email, phone, created_at"
+ACCOUNT_COLUMNS = "nickname, salt, password_hash, email, phone, created_at, account_id"
 
 
 # ---------- 계정 ----------
@@ -100,6 +101,26 @@ def _upsert_account(conn: Connection, account: dict) -> None:
 def save_account(account: dict) -> None:
     with get_pool().connection() as conn:
         _upsert_account(conn, account)
+
+
+class NicknameTakenError(Exception):
+    pass
+
+
+def _insert_account(conn: Connection, account: dict) -> bool:
+    row = conn.execute(
+        """INSERT INTO accounts (nickname, salt, password_hash, email, phone, created_at)
+           VALUES (%s, %s, %s, %s, %s, %s)
+           ON CONFLICT (nickname) DO NOTHING RETURNING nickname""",
+        (account["nickname"], account["salt"], account["passwordHash"], account["email"], account.get("phone"), account["createdAt"]),
+    ).fetchone()
+    return row is not None
+
+
+def create_account(account: dict) -> bool:
+    """Concurrent signups cannot overwrite an account created in the meantime."""
+    with get_pool().connection() as conn:
+        return _insert_account(conn, account)
 
 
 # ---------- 세션 ----------
@@ -151,7 +172,11 @@ def delete_session(token: str) -> None:
 def rename_account_profile(old_nickname: str, updated: dict) -> None:
     with get_pool().connection() as conn:
         with conn.transaction():
-            _upsert_account(conn, updated)
+            original = conn.execute("SELECT account_id FROM accounts WHERE nickname = %s FOR UPDATE", (old_nickname,)).fetchone()
+            if not original:
+                raise ValueError("account missing")
+            if not _insert_account(conn, updated):
+                raise NicknameTakenError()
             conn.execute(
                 "UPDATE userdata SET nickname = %s WHERE nickname = %s",
                 (updated["nickname"], old_nickname),
@@ -161,6 +186,7 @@ def rename_account_profile(old_nickname: str, updated: dict) -> None:
                 (updated["nickname"], old_nickname),
             )
             conn.execute("DELETE FROM accounts WHERE nickname = %s", (old_nickname,))
+            conn.execute("UPDATE accounts SET account_id = %s WHERE nickname = %s", (original[0], updated["nickname"]))
 
 
 # 서버 시작 때 만료된 세션을 한 번 정리합니다.

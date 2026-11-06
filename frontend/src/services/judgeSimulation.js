@@ -1,3 +1,5 @@
+import { getAuthToken } from './auth.js'
+import { fetchBackend, apiError } from './backendConnection.js'
 // ==========================================================
 // AI 심사 시뮬레이션 API 호출
 // 백엔드(http://localhost:3000)의 /api/ideas/judge를 호출해
@@ -6,22 +8,21 @@
 // 데모 채점(buildMockJudging)으로 대체합니다 — aiAnalysis.js와 같은 규칙.
 // ==========================================================
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 
 // 채점은 기준 3~6개 × 한 문장 코멘트라 분석보다 훨씬 짧다. 그래도 게이트웨이
 // 사정을 고려해 분석과 같은 30초 상한을 쓴다.
 const JUDGE_TIMEOUT_MS = 30_000
 
 export async function requestJudgeSimulation({ proposal, judgePoints, contestTitle = '', ideaTitle = '' }) {
-  const response = await fetch(`${API_BASE}/api/ideas/judge`, {
+  const response = await fetchBackend(`/api/ideas/judge`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(getAuthToken() ? { Authorization: `Bearer ${getAuthToken()}` } : {}) },
     body: JSON.stringify({ proposal, judgePoints, contestTitle, ideaTitle }),
-    signal: AbortSignal.timeout(JUDGE_TIMEOUT_MS),
+    timeoutMs: JUDGE_TIMEOUT_MS,
   })
 
   if (!response.ok) {
-    throw new Error(`심사 시뮬레이션 요청이 실패했어요. (HTTP ${response.status})`)
+    throw await apiError(response, `심사 시뮬레이션 요청이 실패했어요. (HTTP ${response.status})`)
   }
 
   const payload = await response.json()

@@ -1,3 +1,5 @@
+import { getAuthToken } from './auth.js'
+import { fetchBackend } from './backendConnection.js'
 // ==========================================================
 // 백엔드 알림 구독 동기화
 // 로그인 사용자의 이메일과 응모·관심 공모전 목록을
@@ -5,7 +7,6 @@
 // 백엔드가 꺼져 있어도 조용히 건너뛰고, 다음 변경 때 다시 시도합니다.
 // ==========================================================
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
 
 /**
  * @typedef {Object} SubscriptionPayload
@@ -20,9 +21,9 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000'
  * @param {SubscriptionPayload} payload
  */
 export async function syncNotificationSubscription(payload) {
-  const response = await fetch(`${API_BASE}/api/notifications/subscribe`, {
+  const response = await fetchBackend(`/api/notifications/subscribe`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAuthToken() ?? ''}` },
     body: JSON.stringify(payload),
   })
   if (!response.ok) {
@@ -38,9 +39,9 @@ export async function syncNotificationSubscription(payload) {
  * @param {{ nickname?: string, email: string, fields: string[], contests: Array<{ id: number, title: string, field: string, deadline: string, startDate?: string, url?: string }> }} payload
  */
 export async function sendWeeklyDigest(payload) {
-  const response = await fetch(`${API_BASE}/api/notifications/weekly`, {
+  const response = await fetchBackend(`/api/notifications/weekly`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAuthToken() ?? ''}` },
     body: JSON.stringify(payload),
   })
   if (!response.ok) {
